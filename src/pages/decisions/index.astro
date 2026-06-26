@@ -1,0 +1,25 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../../layouts/AppLayout.astro";
+import Pill from "../../components/Pill.astro";
+import { getBacklog, isOpenDecision, taskHref } from "../../lib/backlog";
+const all = getBacklog();
+const decisions = all.filter(isOpenDecision);
+const formal = all.filter((item) => item.category === "Decision Log Items");
+const archive = await getCollection("archive");
+---
+<AppLayout title="Decision log" section="decisions">
+  <header class="page-head"><div class="head-copy"><p class="eyebrow">Governance / decision log</p><h1>Nothing becomes canon by accident.</h1><p class="lede">Formal decisions and embedded decision gates are surfaced together. Each one links back to the concepts and repair work it governs.</p></div><div class="count-orbit"><div><b>{formal.length}</b><span>formal decisions</span></div></div></header>
+  <div class="grid grid-3">
+    <div class="card stat-card decision-card"><div class="card-kicker">Formal records</div><b>{formal.length}</b><p>Named decisions waiting to be made and recorded.</p></div>
+    <div class="card stat-card"><div class="card-kicker">All gates</div><b>{decisions.length}</b><p>Tasks that need explicit authority before adoption.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Connected records</div><b>{archive.filter((entry) => entry.data.openDecisions.length).length}</b><p>Archive items exposing their decisions directly.</p></div>
+  </div>
+  <div class="section-head"><h2>Formal decision queue</h2><span class="eyebrow">Append-only when resolved</span></div>
+  <div class="grid grid-2">
+    {formal.map((item) => {
+      const linked = archive.filter((entry) => entry.data.openDecisions.includes(item.id));
+      return <a class="card card-link decision-card" href={taskHref(item.id)}><div class="card-kicker">{item.id} · {item.priority}</div><h3>{item.title}</h3><p>{item.problem}</p><div class="card-meta"><Pill label={item.priority} tone={item.priority} />{linked.slice(0,2).map((entry) => <Pill label={entry.data.title} />)}</div></a>;
+    })}
+  </div>
+</AppLayout>

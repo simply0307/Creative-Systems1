@@ -1,0 +1,25 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Pill from "./Pill.astro";
+interface Props { entry: CollectionEntry<"archive">; }
+const { entry } = Astro.props;
+const d = entry.data;
+const typeLabel = d.entityType.replaceAll("-", " ");
+---
+<a
+  class:list={["card", "card-link", "archive-card", `type-${d.entityType}`]}
+  href={`/archive/${entry.id}`}
+  data-card
+  data-type={d.entityType}
+  data-status={d.canonStatus}
+  data-text={`${d.title} ${d.aliases.join(" ")} ${d.summary} ${d.tags.join(" ")} ${d.reuseCategories.join(" ")}`.toLowerCase()}
+>
+  <div class="type-dot">{d.title.slice(0, 2).toUpperCase()}</div>
+  <div class="card-kicker" style="margin:12px 0 0">{typeLabel}</div>
+  <div class="card-title">{d.title}</div>
+  <p>{d.summary}</p>
+  <div class="card-meta">
+    <Pill label={d.canonStatus} />
+    {d.reviewFlags.slice(0, 1).map((flag: string) => <Pill label={flag} tone="flag" />)}
+  </div>
+</a>

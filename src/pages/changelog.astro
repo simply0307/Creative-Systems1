@@ -1,0 +1,23 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../layouts/AppLayout.astro";
+import Pill from "../components/Pill.astro";
+const entries = (await getCollection("changeLog")).sort((a,b)=>b.data.timestamp.localeCompare(a.data.timestamp));
+---
+<AppLayout title="Change log" section="changelog">
+  <header class="page-head"><div class="head-copy"><p class="eyebrow">Workbench / operational history</p><h1>Change Log</h1><p class="lede">Every meaningful employee action should leave a trace: what changed, who requested it, where the impact lands, and whether source files were actually committed.</p></div><div class="count-orbit"><div><b>{entries.length}</b><span>repo records</span></div></div></header>
+  <section class="card pipeline-card acid" style="margin-bottom:18px"><div class="card-kicker">Source truth</div><h3>Repo records, staged pull requests, and local drafts are different.</h3><p>Entries marked <b>repo record</b> came from structured JSON on the built branch. The browser mirror may link to a review PR or contain a local-only draft; neither means production or canon changed before merge.</p></section>
+  <div class="toolbar"><div class="search"><input id="change-search" type="search" placeholder="Search actions, people, records, or files…" /></div><select id="change-status"><option value="all">All states</option><option value="completed">Completed</option><option value="staged">Staged</option><option value="pull-request-open">Pull request open</option><option value="local-draft">Local draft</option></select><span class="result-count"><b id="change-count">{entries.length}</b> shown</span></div>
+  <div class="grid" id="change-list">
+    {entries.map((entry)=><article class="card review-row" data-change data-status={entry.data.status} data-text={`${entry.data.summary} ${entry.data.person} ${entry.data.affectedRecords.join(" ")} ${entry.data.affectedFiles.join(" ")}`.toLowerCase()}><div><div class="card-kicker">{entry.data.timestamp} · {entry.data.actionType}</div><h3>{entry.data.summary}</h3><p>{entry.data.person} · {entry.data.notes}</p><div class="relation-line"><b>Records:</b> {entry.data.affectedRecords.join(" · ") || "None"}</div><div class="relation-line"><b>Files:</b> {entry.data.affectedFiles.join(" · ") || "None"}</div></div><div class="review-flags"><Pill label={entry.data.status}/><Pill label="repo record"/></div></article>)}
+  </div>
+  <div id="local-changes"></div>
+  <div id="change-empty" class="empty-panel" hidden>No change-log entries match these filters.</div>
+  <script is:inline>
+    const escapeHtml=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    const local=(window.CreativeOperations?.readLocal?.()||[]); const host=document.querySelector('#local-changes');
+    if(local.length){host.innerHTML='<div class="section-head"><h2>Browser operation mirror</h2><span class="eyebrow">Local drafts and staged PRs</span></div><div class="grid">'+local.map(e=>{const hasPr=Boolean(e.pullRequestUrl),status=hasPr?(e.status||'pull-request-open'):'local-draft';return `<article class="card review-row" data-change data-status="${escapeHtml(status)}" data-text="${escapeHtml(`${e.summary} ${e.person} ${(e.affectedRecords||[]).join(' ')}`.toLowerCase())}"><div><div class="card-kicker">${escapeHtml(e.timestamp)} · ${escapeHtml(e.actionType)}</div><h3>${escapeHtml(e.summary)}</h3><p>${escapeHtml(e.person)} · ${escapeHtml(e.notes)}</p><div class="relation-line"><b>Records:</b> ${escapeHtml((e.affectedRecords||[]).join(' · '))}</div>${hasPr?`<div class="relation-line"><a href="${escapeHtml(e.pullRequestUrl)}" target="_blank" rel="noopener noreferrer">Open review pull request →</a></div>`:''}</div><div class="review-flags"><span class="pill ${hasPr?'':'flag'}">${escapeHtml(status)}</span><span class="pill">${hasPr?'review branch':'source unchanged'}</span></div></article>`;}).join('')+'</div>';}
+    const search=document.querySelector('#change-search'), status=document.querySelector('#change-status'), count=document.querySelector('#change-count'), empty=document.querySelector('#change-empty');
+    const filter=()=>{const q=search.value.toLowerCase();let shown=0;document.querySelectorAll('[data-change]').forEach(el=>{const ok=(!q||el.dataset.text.includes(q))&&(status.value==='all'||el.dataset.status===status.value);el.hidden=!ok;if(ok)shown++;});count.textContent=shown;empty.hidden=shown!==0;};[search,status].forEach(el=>el.addEventListener('input',filter));filter();
+  </script>
+</AppLayout>

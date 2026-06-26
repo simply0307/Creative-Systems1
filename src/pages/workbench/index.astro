@@ -1,0 +1,49 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import Pill from "../../components/Pill.astro";
+import { getBacklog, isOpenDecision, taskHref } from "../../lib/backlog";
+const backlog = getBacklog();
+const categories = [...new Set(backlog.map((item) => item.category))];
+const critical = backlog.filter((item) => item.priority === "Critical").length;
+const decisions = backlog.filter(isOpenDecision).length;
+const risks = backlog.filter((item) => /risk|legal|rights|monetization/i.test(`${item.category} ${item.workType}`)).length;
+---
+<AppLayout title="Remediation workbench" section="workbench">
+  <header class="page-head">
+    <div class="head-copy"><p class="eyebrow">Remediation / workbench mode</p><h1>Repair the system</h1><p class="lede">Every criticism becomes visible work. Filter the complete remediation backlog, follow it back to affected concepts, and keep unresolved decisions from masquerading as canon.</p></div>
+    <div class="count-orbit"><div><b>{backlog.length}</b><span>open records</span></div></div>
+  </header>
+  <div class="grid grid-4">
+    <div class="card stat-card risk-card"><div class="card-kicker">Critical</div><b>{critical}</b><p>Blocking vocabulary, integrity, and product-risk issues.</p></div>
+    <div class="card stat-card decision-card"><div class="card-kicker">Decision gates</div><b>{decisions}</b><p>Items that require explicit user authority.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Risk surface</div><b>{risks}</b><p>Legal, rights, provenance, and design caution records.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Coverage</div><b>{categories.length}</b><p>Remediation categories connected to archive work.</p></div>
+  </div>
+  <div class="toolbar" data-filter-root style="margin-top:28px">
+    <div class="search"><input id="task-search" type="search" placeholder="Search problems, fixes, outputs, IDs…" /></div>
+    <select id="task-category"><option value="all">All categories</option>{categories.map((category) => <option value={category}>{category.replace(" Issues", "")}</option>)}</select>
+    <select id="task-priority"><option value="all">All priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
+    <select id="task-decision"><option value="all">All decision states</option><option value="yes">Needs decision</option><option value="no">Can proceed</option></select>
+    <span class="result-count"><b id="task-count">{backlog.length}</b> shown</span>
+  </div>
+  <div class="grid" id="task-grid">
+    {backlog.map((item) => (
+      <a class="card card-link work-card" href={taskHref(item.id)} data-task data-category={item.category} data-priority={item.priority} data-decision={item.needsDecision.startsWith("Yes") ? "yes" : "no"} data-text={`${item.id} ${item.title} ${item.problem} ${item.fix} ${item.output} ${item.workType}`.toLowerCase()}>
+        <div class="work-id">{item.id}</div>
+        <div><h3>{item.title}</h3><p>{item.problem}</p></div>
+        <div class="work-meta"><Pill label={item.priority} tone={item.priority} />{item.needsDecision.startsWith("Yes") && <Pill label="decision" tone="flag" />}</div>
+      </a>
+    ))}
+  </div>
+  <p id="task-empty" class="empty" hidden>No remediation items match those filters.</p>
+  <script is:inline>
+    const search = document.querySelector('#task-search'); const category = document.querySelector('#task-category');
+    const priority = document.querySelector('#task-priority'); const decision = document.querySelector('#task-decision');
+    const tasks = [...document.querySelectorAll('[data-task]')]; const count = document.querySelector('#task-count'); const empty = document.querySelector('#task-empty');
+    const filter = () => { const q = search.value.trim().toLowerCase(); let visible = 0;
+      tasks.forEach(task => { const show = (!q || task.dataset.text.includes(q)) && (category.value === 'all' || task.dataset.category === category.value) && (priority.value === 'all' || task.dataset.priority === priority.value) && (decision.value === 'all' || task.dataset.decision === decision.value); task.hidden = !show; if(show) visible++; });
+      count.textContent = visible; empty.hidden = visible !== 0;
+    };
+    [search,category,priority,decision].forEach(el => el.addEventListener('input', filter));
+  </script>
+</AppLayout>

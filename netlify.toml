@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/operations"
+  to = "/.netlify/functions/operations"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/creative-os"
+  to = "/.netlify/functions/creative-os?splat=health"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/creative-os/*"
+  to = "/.netlify/functions/creative-os?splat=:splat"
+  status = 200
+  force = true

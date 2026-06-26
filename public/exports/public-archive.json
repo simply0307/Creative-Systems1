@@ -1,0 +1,661 @@
+{
+  "generatedAt": "2026-06-19T08:19:43.470Z",
+  "publicationRule": "Excludes experimental/retired records, source artifacts, and legal/monetization/rights risks.",
+  "archive": [
+    {
+      "id": "astral-vanguards",
+      "title": "Astral Vanguards",
+      "entityType": "astral-vanguard",
+      "summary": "Outsiders who recognize recurring pressures across worlds—and risk confusing understanding with authority.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "outsider",
+        "explorer",
+        "observer",
+        "intervention"
+      ],
+      "reuseCategories": [
+        "lore",
+        "player identity",
+        "profiles",
+        "UI/HUD"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem",
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "foundation",
+        "zendra"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "AVG-01",
+        "AVG-02",
+        "AVG-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt",
+        "Archive/Prose/zendrapoem.txt"
+      ],
+      "riskFlags": [
+        "savior-complex",
+        "authorial-mouthpiece"
+      ],
+      "version": "0.1",
+      "provenance": "Extracted as a separate ontological layer from the hybrid source file.",
+      "featured": true,
+      "body": "## Role\n\nAstral Vanguards are travelers, scouts, historians, archivists, preservers, witnesses, and intruders. Unlike the alien principles, they do not pressure reality from beneath. They move across expressions and learn to recognize the pattern.\n\n## Central tension\n\nDoes seeing the pattern create responsibility—or the most dangerous kind of confidence? Saving, preserving, and interpreting can all become forms of control when consent disappears."
+    },
+    {
+      "id": "bizi",
+      "title": "Bizi",
+      "entityType": "mortal-civilization",
+      "summary": "Sacred infrastructure: routes, fuel, maintenance, and access transformed into metaphysics.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "sacred infrastructure",
+        "maintenance",
+        "routes",
+        "dependency"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "visual motifs",
+        "UI/HUD"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "voltari",
+        "zendra",
+        "voltari-zendra",
+        "sheen"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-01",
+        "CIV-04",
+        "HIS-01",
+        "ART-04"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are bizi.txt",
+        "Archive/Prose/bizitimeline.txt",
+        "Archive/Art/Bizi"
+      ],
+      "riskFlags": [
+        "Byzantine-transcription",
+        "real-world-religious-architecture"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; visual and historical execution requires transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nBizi treats maintenance as prayer and movement as participation in a sacred system. Whoever controls the route, fuel, or Hub controls access and legitimacy.\n\nIts strongest reusable question is: **when a society depends on a system completely, can it afford to tell the truth about that system?**\n\n## Distinction\n\nBizi routes, powers, connects, repairs, schedules, and creates dependency. Its identity should not collapse into Sheen's memory and inheritance systems."
+    },
+    {
+      "id": "foundation",
+      "title": "Archive Foundation",
+      "entityType": "foundation",
+      "summary": "The operating contract that keeps the archive reusable across games without forcing literal lore repetition.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "needs-user-decision"
+      ],
+      "tags": [
+        "foundation",
+        "governance",
+        "reuse"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "player identity",
+        "project planning"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "voltari",
+        "zendra",
+        "morphlings",
+        "astral-vanguards"
+      ],
+      "openDecisions": [
+        "DEC-04",
+        "DEC-05",
+        "DEC-12"
+      ],
+      "remediationTasks": [
+        "FND-01",
+        "FND-04",
+        "FND-05",
+        "CAN-03"
+      ],
+      "sourceArtifacts": [
+        "ARCHIVE_FOUNDATION_SPEC.md",
+        "Index/readme.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Synthesized from the Archive Diagnostic and Foundation Specification.",
+      "featured": true,
+      "body": "## What this archive is\n\nThe EGGS / Para archive is an evergreen creative systems library. It preserves symbolic pressures, thematic questions, mechanical patterns, aesthetic motifs, player identities, competitive meanings, and project-specific expressions.\n\nIt is not one finished story, one game's lore bible, or a requirement that every game reproduce the same factions literally.\n\n> Alien principles define pressures on what can happen. Mortal expressions show how those pressures feel when embodied in a world, institution, game, or player experience.\n\n## Reuse standard\n\nA future game should document at least one material derivation from the archive. That derivation may be explicit lore, a visible system, an aesthetic pattern, symbolic language, or hidden mechanical logic. Copying only a name, color, or emblem is not meaningful reuse.\n\nProjects may intentionally omit principles that do not improve the game."
+    },
+    {
+      "id": "frumo",
+      "title": "Frumo",
+      "entityType": "mortal-civilization",
+      "summary": "A frozen revolution where legitimate grief becomes authority, theater, and eventually another throne.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "grief economy",
+        "revolution",
+        "frozen future",
+        "tribunal"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "zendra",
+        "zynarth-zendra"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-03",
+        "HIS-01",
+        "HIS-02",
+        "HIS-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are frumo.txt",
+        "Archive/Prose/frumotimline.txt",
+        "Archive/Art/Frumo"
+      ],
+      "riskFlags": [
+        "direct-French-Revolution-analogy",
+        "historical-names"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; current timeline remains project-specific and needs transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nFrumo is an emotional weather system. A wounded people build solidarity through remembered injustice, then discover that institutions fed by pain require the wound to remain open.\n\nIts strongest reusable question is: **how long can a people live on righteous grief before grief becomes another throne?**\n\n## Rewrite boundary\n\nPreserve frozen futurity, grief as legitimacy, tribunals, revolutionary purity, and fear of healing. Replace the French Revolutionary sequence and one-to-one historical figures."
+    },
+    {
+      "id": "morphlings",
+      "title": "Morphlings",
+      "entityType": "morphling",
+      "summary": "Embodied hybrid expressions produced where alien principles overlap and categories fail.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "needs-user-decision"
+      ],
+      "tags": [
+        "hybrid",
+        "embodiment",
+        "border identity"
+      ],
+      "reuseCategories": [
+        "lore",
+        "player identity",
+        "cards/badges",
+        "profiles"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth-voltari",
+        "voltari-zendra",
+        "zynarth-zendra"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-03",
+        "MOR-04"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt"
+      ],
+      "riskFlags": [
+        "generic-shapeshifter-drift"
+      ],
+      "version": "0.1",
+      "provenance": "Current direction narrowed from an overloaded source definition.",
+      "featured": true,
+      "body": "## Working definition\n\nA Morphling gives a convergence a body, identity, group, or stable form. Morphlings are not generic shapeshifters, miscellaneous mutants, or arbitrary mixtures.\n\nEvery Morphling should identify its source convergence, embodiment logic, stable and variable traits, narrative role, and mechanical affordance.\n\n## Why they matter\n\nThey prevent the system from becoming a chart of pure teams. They make translation, contradiction, inheritance, and mixed belonging visible."
+    },
+    {
+      "id": "rumin",
+      "title": "Rumin",
+      "entityType": "mortal-civilization",
+      "summary": "Empire as appetite made respectable: conquest converted into contracts, credit, and civic order.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "procedural greed",
+        "empire",
+        "finance",
+        "obligation"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "cards/badges"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "voltari",
+        "zynarth-voltari"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-02",
+        "HIS-01",
+        "HIS-02",
+        "HIS-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are rumin.txt",
+        "Archive/Prose/rumintimeline.txt",
+        "Archive/Art/Rumin"
+      ],
+      "riskFlags": [
+        "direct-Rome-analogy",
+        "historical-names"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; current timeline remains project-specific and needs transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nRumin is procedural appetite: extraction presented as public order, conquest translated into paperwork, and obligation made beautiful enough to feel inevitable.\n\nIts strongest reusable question is: **when does order stop protecting life and start owning it?**\n\n## Rewrite boundary\n\nPreserve finance, civic spectacle, debt, roads, legal legibility, and respectable appetite. Replace the one-to-one Roman event sequence, rulers, symbols, and institutional copies before project-canon promotion."
+    },
+    {
+      "id": "sheen",
+      "title": "Sheen",
+      "entityType": "mortal-civilization",
+      "summary": "Rooted memory: continuity, healing, inherited duty, and preservation becoming control.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "rooted memory",
+        "inheritance",
+        "healing",
+        "continuity"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "visual motifs",
+        "profiles"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "voltari",
+        "zendra",
+        "voltari-zendra",
+        "bizi"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-01",
+        "CIV-05",
+        "HIS-01",
+        "HIS-02"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are sheen.txt",
+        "Archive/Prose/sheentimeline.txt",
+        "Archive/Art/Sheen"
+      ],
+      "riskFlags": [
+        "imperial-China-transcription",
+        "cultural-flattening"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; governance and historical execution need transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nSheen imagines history as rings in wood: continuity makes life bearable, but inherited memory can become a cage that teaches each new branch how it is permitted to grow.\n\nIts strongest reusable question is: **what do we owe the past, and when does that debt become a cage?**\n\n## Distinction\n\nSheen remembers, inherits, heals, legitimizes, and preserves. Its identity should not collapse into Bizi's routing and infrastructure systems."
+    },
+    {
+      "id": "voltari-zendra",
+      "title": "Voltari × Zendra",
+      "entityType": "convergence",
+      "summary": "Regulated perception: belief encoded into rules, rituals, interfaces, and institutions.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "regulated perception",
+        "institutional belief",
+        "hybrid"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "UI/HUD",
+        "profiles"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "voltari",
+        "zendra",
+        "bizi",
+        "sheen",
+        "morphlings"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-02",
+        "CIV-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Extracted from Morphling examples and Bizi/Sheen expressions.",
+      "featured": false,
+      "body": "## Synthesis\n\nDream becomes law. Interpretation acquires protocol. A shared symbolic world is made reproducible through ritual, architecture, education, or interface.\n\nIts constructive possibility is common meaning maintained carefully. Its destructive form is propaganda that no longer looks like persuasion because it has become infrastructure.\n\n## Mechanical direction\n\nRule prediction, ritual sequences, declared information, controlled reveals, and systems that reward reading how others interpret the same signal."
+    },
+    {
+      "id": "voltari",
+      "title": "Voltari",
+      "entityType": "alien-principle",
+      "summary": "Order before government: sequence, rank, procedure, control, and the promise that everything can function.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "order",
+        "law",
+        "hierarchy",
+        "structure"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "UI/HUD",
+        "profiles",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth-voltari",
+        "voltari-zendra",
+        "rumin",
+        "bizi",
+        "sheen"
+      ],
+      "openDecisions": [
+        "DEC-05"
+      ],
+      "remediationTasks": [
+        "ALN-02",
+        "ALN-04",
+        "FAC-02",
+        "PID-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are voltari.txt",
+        "Archive/Prose/alien principle.txt"
+      ],
+      "riskFlags": [
+        "accusatory-player-language",
+        "generic-robot-empire"
+      ],
+      "version": "0.1",
+      "provenance": "Synthesized from current alien-principle prose.",
+      "featured": true,
+      "body": "## Core question\n\nWhat is lost when everything finally functions?\n\nVoltari translates messy life into legible systems: grids, schedules, ranks, laws, protocols, architecture, and reliable rules.\n\n## Constructive expression\n\nDiscipline, fairness, coordination, mastery, stable memory, and dependable structures that make meaningful competition possible.\n\n## Failure mode\n\nThe spontaneous becomes an error. Difference becomes inefficiency. A system designed to protect life begins correcting everything that cannot fit it.\n\n## Mechanical vocabulary\n\nArrange, rank, sequence, constrain, optimize, standardize, defend, and execute."
+    },
+    {
+      "id": "zendra",
+      "title": "Zendra",
+      "entityType": "alien-principle",
+      "summary": "Perception, influence, signal interpretation, and the point where meaning changes possible action.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "unresolved-terminology"
+      ],
+      "tags": [
+        "perception",
+        "signal",
+        "influence",
+        "interpretation"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "player identity",
+        "UI/HUD",
+        "Para Poker"
+      ],
+      "relatedProjects": [
+        "Para Poker",
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "voltari-zendra",
+        "zynarth-zendra",
+        "bizi",
+        "sheen",
+        "signal-reader"
+      ],
+      "openDecisions": [
+        "DEC-02"
+      ],
+      "remediationTasks": [
+        "ALN-03",
+        "ALN-04",
+        "PID-01",
+        "PPR-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are zendra.txt",
+        "Archive/Prose/zendrapoem.txt"
+      ],
+      "riskFlags": [
+        "mental-health-framing",
+        "generic-psychic-magic"
+      ],
+      "version": "0.1",
+      "provenance": "Synthesized from Zendra principle prose and the Xen'Dra observer poem.",
+      "featured": true,
+      "body": "## Core question\n\nWhat is real once enough minds obey it?\n\nZendra is the inner battlefield: attention, interpretation, prediction, memory, art, propaganda, empathy, belief, and mistrust.\n\n## Constructive expression\n\nImagination, empathy, insight, reframing, artistic transformation, and the ability to read unstable situations.\n\n## Failure mode\n\nFear becomes evidence. Symbols become commands. A population acts on ghosts because shared meaning has become heavier than observable reality.\n\n## Mechanical vocabulary\n\nReveal, conceal, predict, bluff, misread, reframe, signal, and distort."
+    },
+    {
+      "id": "zynarth-voltari",
+      "title": "Zynarth × Voltari",
+      "entityType": "convergence",
+      "summary": "Organized appetite: multiplication given lanes, procedure, infrastructure, and rank.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "organized appetite",
+        "procedural growth",
+        "hybrid"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "cards/badges",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "voltari",
+        "rumin",
+        "morphlings"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-02",
+        "CIV-02"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt",
+        "Archive/Prose/what are rumin.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Extracted from Morphling examples and the Rumin expression.",
+      "featured": false,
+      "body": "## Synthesis\n\nA swarm learns bureaucracy. Consumption becomes procedural. Growth acquires standards, routes, ledgers, and enforcement.\n\nIts constructive possibility is coordinated scale: many actors sharing reliable infrastructure. Its destructive form is extraction so organized that no individual action appears responsible.\n\n## Mechanical direction\n\nEngine building, production chains, formation swarms, escalating economies, and the tension between efficient growth and overextension."
+    },
+    {
+      "id": "zynarth-zendra",
+      "title": "Zynarth × Zendra",
+      "entityType": "convergence",
+      "summary": "Contagious meaning: fear, hope, grief, or myth multiplying through attention and bodies.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "contagious belief",
+        "viral meaning",
+        "hybrid"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "zendra",
+        "frumo",
+        "morphlings"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-02",
+        "CIV-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Extracted from Morphling examples and the Frumo expression.",
+      "featured": false,
+      "body": "## Synthesis\n\nA rumor becomes an organism. An emotion gains momentum because every witness becomes a carrier.\n\nIts constructive possibility is inspiration, shared courage, and distributed imagination. Its destructive form is panic or grievance that feeds by reproducing itself.\n\n## Mechanical direction\n\nViral objectives, chain reactions, social deduction, copied states, contagious buffs, and pressure created by uncertain shared information."
+    },
+    {
+      "id": "zynarth",
+      "title": "Zynarth",
+      "entityType": "alien-principle",
+      "summary": "Pressure, appetite, multiplication, and the moment quantity becomes destiny.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "unresolved-terminology"
+      ],
+      "tags": [
+        "swarm",
+        "pressure",
+        "appetite",
+        "accumulation"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "profiles",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth-voltari",
+        "zynarth-zendra",
+        "rumin",
+        "frumo"
+      ],
+      "openDecisions": [
+        "DEC-01"
+      ],
+      "remediationTasks": [
+        "FND-03",
+        "ALN-01",
+        "FAC-02",
+        "PID-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are xynarth.txt",
+        "Archive/Prose/alien principle.txt"
+      ],
+      "riskFlags": [
+        "accusatory-player-language",
+        "runaway-snowball"
+      ],
+      "aliases": [
+        "Xynarth"
+      ],
+      "version": "0.1",
+      "provenance": "Current direction normalized from mixed Zynarth/Xynarth source spelling.",
+      "featured": true,
+      "body": "## Core question\n\nWhat happens when more becomes unstoppable?\n\nZynarth is not merely insects, monsters, or biological horror. It is the logic of accumulation: repetition, compounding advantage, crowd force, appetite, survival, and collective action.\n\n## Constructive expression\n\nResilience, adaptation, solidarity, and the ability of many small actors to challenge concentrated power.\n\n## Failure mode\n\nNeed becomes appetite. Growth continues because growth worked before. Responsibility is distributed until no one feels accountable for the flood.\n\n## Mechanical vocabulary\n\nMultiply, compound, consume, recover, spread, recruit, overwhelm, and overextend."
+    }
+  ]
+}

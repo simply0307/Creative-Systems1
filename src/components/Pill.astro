@@ -1,0 +1,6 @@
+---
+interface Props { label: string; tone?: string; }
+const { label, tone = "" } = Astro.props;
+const normalized = tone || label.replaceAll(" ", "-").toLowerCase();
+---
+<span class:list={["pill", normalized]}>{label.replaceAll("-", " ")}</span>

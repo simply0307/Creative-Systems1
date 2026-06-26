@@ -1,0 +1,3237 @@
+{
+  "generatedAt": "2026-06-19T08:19:43.470Z",
+  "archive": [
+    {
+      "id": "astral-vanguards",
+      "title": "Astral Vanguards",
+      "entityType": "astral-vanguard",
+      "summary": "Outsiders who recognize recurring pressures across worlds—and risk confusing understanding with authority.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "outsider",
+        "explorer",
+        "observer",
+        "intervention"
+      ],
+      "reuseCategories": [
+        "lore",
+        "player identity",
+        "profiles",
+        "UI/HUD"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem",
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "foundation",
+        "zendra"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "AVG-01",
+        "AVG-02",
+        "AVG-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt",
+        "Archive/Prose/zendrapoem.txt"
+      ],
+      "riskFlags": [
+        "savior-complex",
+        "authorial-mouthpiece"
+      ],
+      "version": "0.1",
+      "provenance": "Extracted as a separate ontological layer from the hybrid source file.",
+      "featured": true,
+      "body": "## Role\n\nAstral Vanguards are travelers, scouts, historians, archivists, preservers, witnesses, and intruders. Unlike the alien principles, they do not pressure reality from beneath. They move across expressions and learn to recognize the pattern.\n\n## Central tension\n\nDoes seeing the pattern create responsibility—or the most dangerous kind of confidence? Saving, preserving, and interpreting can all become forms of control when consent disappears."
+    },
+    {
+      "id": "bizi",
+      "title": "Bizi",
+      "entityType": "mortal-civilization",
+      "summary": "Sacred infrastructure: routes, fuel, maintenance, and access transformed into metaphysics.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "sacred infrastructure",
+        "maintenance",
+        "routes",
+        "dependency"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "visual motifs",
+        "UI/HUD"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "voltari",
+        "zendra",
+        "voltari-zendra",
+        "sheen"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-01",
+        "CIV-04",
+        "HIS-01",
+        "ART-04"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are bizi.txt",
+        "Archive/Prose/bizitimeline.txt",
+        "Archive/Art/Bizi"
+      ],
+      "riskFlags": [
+        "Byzantine-transcription",
+        "real-world-religious-architecture"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; visual and historical execution requires transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nBizi treats maintenance as prayer and movement as participation in a sacred system. Whoever controls the route, fuel, or Hub controls access and legitimacy.\n\nIts strongest reusable question is: **when a society depends on a system completely, can it afford to tell the truth about that system?**\n\n## Distinction\n\nBizi routes, powers, connects, repairs, schedules, and creates dependency. Its identity should not collapse into Sheen's memory and inheritance systems."
+    },
+    {
+      "id": "competitive-circuit",
+      "title": "Competitive Circuit Proposal",
+      "entityType": "artifact",
+      "summary": "A product-strategy draft with paid-only progression and unsupported legal claims requiring replacement or major rewrite.",
+      "canonStatus": "experimental",
+      "reviewFlags": [
+        "risky-needs-review",
+        "contradictory"
+      ],
+      "tags": [
+        "artifact",
+        "product strategy",
+        "tournament",
+        "XP"
+      ],
+      "reuseCategories": [
+        "competitive ladders",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "Para",
+        "Para Poker"
+      ],
+      "relatedConcepts": [
+        "para-poker"
+      ],
+      "openDecisions": [
+        "DEC-10"
+      ],
+      "remediationTasks": [
+        "PPR-02",
+        "PPR-03",
+        "PPR-04",
+        "LGL-01",
+        "LGL-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/INTRODUCTION to Competetive circuit (2).pdf"
+      ],
+      "riskFlags": [
+        "pay-to-advance",
+        "money-spent-proxy",
+        "legal-claim"
+      ],
+      "version": "source draft",
+      "provenance": "Archived PDF reviewed during the Archive Diagnostic.",
+      "featured": false,
+      "body": "## Why it remains in the archive\n\nThis proposal records an important product experiment and the tensions it revealed. It should be preserved as strategy history, not silently discarded.\n\n## Why it must not guide implementation\n\nK-XP from paid events is required for major qualification, paid participation becomes a proxy for legitimacy, and the document calls the structure legally clean without qualified review. Those elements contradict the player-first direction."
+    },
+    {
+      "id": "compounding-pressure",
+      "title": "Compounding Pressure",
+      "entityType": "mechanic",
+      "summary": "A growth pattern where small advantages multiply, balanced by visible overextension and counterplay.",
+      "canonStatus": "experimental",
+      "reviewFlags": [],
+      "tags": [
+        "mechanic",
+        "snowball",
+        "tempo",
+        "counterplay"
+      ],
+      "reuseCategories": [
+        "mechanics",
+        "competitive ladders",
+        "achievements"
+      ],
+      "relatedProjects": [
+        "Future EGGS games"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "zynarth-voltari"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "FAC-04",
+        "ALN-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are xynarth.txt"
+      ],
+      "riskFlags": [
+        "unanswerable-snowball"
+      ],
+      "version": "0.1",
+      "provenance": "Mechanic translation extracted from Zynarth's competitive snowball language.",
+      "featured": false,
+      "body": "## Skill test\n\nThe player must know when to convert momentum and when further growth becomes overextension.\n\nHealthy versions expose thresholds, costs, and counterplay. A mechanic that merely makes the current leader increasingly impossible to challenge expresses Zynarth's failure mode without becoming a good game system."
+    },
+    {
+      "id": "ethics-codex",
+      "title": "Designer Ethics Codex",
+      "entityType": "artifact",
+      "summary": "The current fiction and commentary ethics guidance, valuable but contradicted by direct historical transcription.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "contradictory",
+        "operationalization-needed"
+      ],
+      "tags": [
+        "artifact",
+        "ethics",
+        "guardrails",
+        "history"
+      ],
+      "reuseCategories": [
+        "lore",
+        "project planning",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "foundation",
+        "rumin",
+        "frumo",
+        "bizi",
+        "sheen"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "HIS-01",
+        "HIS-02",
+        "HIS-04",
+        "LGL-05"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/THE EGGS MS WHOLISTIC DESIGNER ETHICS CODEX.pdf"
+      ],
+      "riskFlags": [
+        "policy-practice-contradiction"
+      ],
+      "version": "source draft",
+      "provenance": "Archived PDF reviewed during the Archive Diagnostic.",
+      "featured": false,
+      "body": "## Durable direction\n\nTransform rather than transcribe. Critique systems rather than vulnerable people. Use fiction to illuminate reality without reenacting human trauma or relying on direct real-world symbols.\n\n## Open problem\n\nThe current civilization timelines closely follow Rome, the French Revolution, Byzantium, and imperial China. The codex needs operational checks, and the timelines need transformation or explicit reclassification."
+    },
+    {
+      "id": "foundation",
+      "title": "Archive Foundation",
+      "entityType": "foundation",
+      "summary": "The operating contract that keeps the archive reusable across games without forcing literal lore repetition.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "needs-user-decision"
+      ],
+      "tags": [
+        "foundation",
+        "governance",
+        "reuse"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "player identity",
+        "project planning"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "voltari",
+        "zendra",
+        "morphlings",
+        "astral-vanguards"
+      ],
+      "openDecisions": [
+        "DEC-04",
+        "DEC-05",
+        "DEC-12"
+      ],
+      "remediationTasks": [
+        "FND-01",
+        "FND-04",
+        "FND-05",
+        "CAN-03"
+      ],
+      "sourceArtifacts": [
+        "ARCHIVE_FOUNDATION_SPEC.md",
+        "Index/readme.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Synthesized from the Archive Diagnostic and Foundation Specification.",
+      "featured": true,
+      "body": "## What this archive is\n\nThe EGGS / Para archive is an evergreen creative systems library. It preserves symbolic pressures, thematic questions, mechanical patterns, aesthetic motifs, player identities, competitive meanings, and project-specific expressions.\n\nIt is not one finished story, one game's lore bible, or a requirement that every game reproduce the same factions literally.\n\n> Alien principles define pressures on what can happen. Mortal expressions show how those pressures feel when embodied in a world, institution, game, or player experience.\n\n## Reuse standard\n\nA future game should document at least one material derivation from the archive. That derivation may be explicit lore, a visible system, an aesthetic pattern, symbolic language, or hidden mechanical logic. Copying only a name, color, or emblem is not meaningful reuse.\n\nProjects may intentionally omit principles that do not improve the game."
+    },
+    {
+      "id": "frumo",
+      "title": "Frumo",
+      "entityType": "mortal-civilization",
+      "summary": "A frozen revolution where legitimate grief becomes authority, theater, and eventually another throne.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "grief economy",
+        "revolution",
+        "frozen future",
+        "tribunal"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "zendra",
+        "zynarth-zendra"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-03",
+        "HIS-01",
+        "HIS-02",
+        "HIS-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are frumo.txt",
+        "Archive/Prose/frumotimline.txt",
+        "Archive/Art/Frumo"
+      ],
+      "riskFlags": [
+        "direct-French-Revolution-analogy",
+        "historical-names"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; current timeline remains project-specific and needs transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nFrumo is an emotional weather system. A wounded people build solidarity through remembered injustice, then discover that institutions fed by pain require the wound to remain open.\n\nIts strongest reusable question is: **how long can a people live on righteous grief before grief becomes another throne?**\n\n## Rewrite boundary\n\nPreserve frozen futurity, grief as legitimacy, tribunals, revolutionary purity, and fear of healing. Replace the French Revolutionary sequence and one-to-one historical figures."
+    },
+    {
+      "id": "index-workbook",
+      "title": "Creative Asset System Index",
+      "entityType": "artifact",
+      "summary": "The current inventory workbook: useful as a migration scaffold, insufficient as the final domain model.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "data-quality-review"
+      ],
+      "tags": [
+        "artifact",
+        "index",
+        "spreadsheet",
+        "migration"
+      ],
+      "reuseCategories": [
+        "project planning"
+      ],
+      "relatedProjects": [
+        "Archive app"
+      ],
+      "relatedConcepts": [
+        "foundation"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "DAT-01",
+        "DAT-02",
+        "DAT-03",
+        "DAT-04",
+        "DAT-05",
+        "DAT-06"
+      ],
+      "sourceArtifacts": [
+        "Index/creative_asset_system_index.xlsx",
+        "Index/readme.txt"
+      ],
+      "riskFlags": [
+        "shifted-metadata",
+        "filename-keys",
+        "absolute-paths"
+      ],
+      "version": "current",
+      "provenance": "Existing organizational scaffold inspected during the Archive Diagnostic.",
+      "featured": false,
+      "body": "## Keep\n\nThe master inventory, browsable views, controlled labels, subject/faction filtering, and direct links to source files.\n\n## Change\n\nUse stable IDs and checksums, workspace-relative paths, typed entity relationships, separate canon and review state, and provenance/rights fields. The `assets` sheet should remain a generated view rather than a second source of truth."
+    },
+    {
+      "id": "morphlings",
+      "title": "Morphlings",
+      "entityType": "morphling",
+      "summary": "Embodied hybrid expressions produced where alien principles overlap and categories fail.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "needs-user-decision"
+      ],
+      "tags": [
+        "hybrid",
+        "embodiment",
+        "border identity"
+      ],
+      "reuseCategories": [
+        "lore",
+        "player identity",
+        "cards/badges",
+        "profiles"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth-voltari",
+        "voltari-zendra",
+        "zynarth-zendra"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-03",
+        "MOR-04"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt"
+      ],
+      "riskFlags": [
+        "generic-shapeshifter-drift"
+      ],
+      "version": "0.1",
+      "provenance": "Current direction narrowed from an overloaded source definition.",
+      "featured": true,
+      "body": "## Working definition\n\nA Morphling gives a convergence a body, identity, group, or stable form. Morphlings are not generic shapeshifters, miscellaneous mutants, or arbitrary mixtures.\n\nEvery Morphling should identify its source convergence, embodiment logic, stable and variable traits, narrative role, and mechanical affordance.\n\n## Why they matter\n\nThey prevent the system from becoming a chart of pure teams. They make translation, contradiction, inheritance, and mixed belonging visible."
+    },
+    {
+      "id": "para-poker",
+      "title": "Para Poker",
+      "entityType": "para-application",
+      "summary": "A proposed competitive application centered on reads, pressure, identity, and incomplete information—not wagering.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "needs-user-decision",
+        "legal-design-review"
+      ],
+      "tags": [
+        "Para",
+        "poker-inspired",
+        "information",
+        "competition"
+      ],
+      "reuseCategories": [
+        "mechanics",
+        "player identity",
+        "profiles",
+        "competitive ladders",
+        "Para Poker"
+      ],
+      "relatedProjects": [
+        "Para Poker"
+      ],
+      "relatedConcepts": [
+        "zendra",
+        "voltari",
+        "signal-reader"
+      ],
+      "openDecisions": [
+        "DEC-09",
+        "DEC-10"
+      ],
+      "remediationTasks": [
+        "PPR-01",
+        "PPR-02",
+        "PPR-04",
+        "LGL-01",
+        "LGL-02"
+      ],
+      "sourceArtifacts": [
+        "ARCHIVE_FOUNDATION_SPEC.md",
+        "Archive/Prose/INTRODUCTION to Competetive circuit (2).pdf"
+      ],
+      "riskFlags": [
+        "gambling-framing",
+        "paid-advancement",
+        "unsupported-legal-claims"
+      ],
+      "version": "0.1",
+      "provenance": "Product boundary synthesized from user direction and diagnostic criticism.",
+      "featured": true,
+      "body": "## Product premise\n\nPara Poker should use poker's durable competitive meanings—reads, pressure, incomplete information, identity, history, and rivalry—without importing deposits, wagering, rake, cash-equivalent chips, or paid competitive power.\n\n## Current caution\n\nThe archived competitive circuit requires paid-only K-XP for major qualification and makes unsupported claims of legal safety. That document is a risky product-strategy artifact, not an implementation specification."
+    },
+    {
+      "id": "pressure-field",
+      "title": "Pressure Field",
+      "entityType": "visual-motif",
+      "summary": "Small repeated marks accelerating toward a shared mass without defaulting to insect imagery.",
+      "canonStatus": "experimental",
+      "reviewFlags": [
+        "visual-review-needed"
+      ],
+      "tags": [
+        "motif",
+        "repetition",
+        "motion",
+        "pressure"
+      ],
+      "reuseCategories": [
+        "visual motifs",
+        "UI/HUD",
+        "cards/badges",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "Future EGGS games"
+      ],
+      "relatedConcepts": [
+        "zynarth"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "ART-02",
+        "ART-03",
+        "ART-05"
+      ],
+      "sourceArtifacts": [
+        "Archive/Art"
+      ],
+      "riskFlags": [
+        "provenance-pending"
+      ],
+      "version": "0.1",
+      "provenance": "Conceptual motif awaiting art-source audit and visual grammar approval.",
+      "featured": false,
+      "body": "## Behavior\n\nMany small marks begin independently, then align, accelerate, and become visually difficult to separate. The motif may appear through animation, borders, map pressure, or achievement frames.\n\nIt should avoid making insects the default visual shorthand for Zynarth."
+    },
+    {
+      "id": "reath",
+      "title": "Reath",
+      "entityType": "project",
+      "summary": "Provisional project scope for the developed mortal civilizations, timelines, and associated visual archive.",
+      "canonStatus": "experimental",
+      "reviewFlags": [
+        "scope-unresolved"
+      ],
+      "tags": [
+        "project",
+        "world",
+        "mortal expressions"
+      ],
+      "reuseCategories": [
+        "lore",
+        "visual motifs",
+        "cards/badges"
+      ],
+      "relatedProjects": [
+        "Paralleon"
+      ],
+      "relatedConcepts": [
+        "rumin",
+        "frumo",
+        "bizi",
+        "sheen"
+      ],
+      "openDecisions": [
+        "DEC-04",
+        "DEC-06",
+        "DEC-07"
+      ],
+      "remediationTasks": [
+        "FND-01",
+        "CAN-05",
+        "CIV-06"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose",
+        "Archive/Art"
+      ],
+      "riskFlags": [
+        "brand-world-hierarchy-unresolved"
+      ],
+      "version": "0.1",
+      "provenance": "Provisional scope created to prevent world-specific lore from binding all EGGS games.",
+      "featured": false,
+      "body": "## Provisional role\n\nReath currently functions as the safest scope for Rumin, Frumo, Bizi, Sheen, their characters, timelines, and locations. This prevents those materials from silently becoming ecosystem-wide foundation canon.\n\nIts relationship to Paralleon, Para, and EGGS still requires a user decision."
+    },
+    {
+      "id": "returning-tide",
+      "title": "The Returning Tide",
+      "entityType": "achievement",
+      "summary": "A resilience achievement for turning repeated losing positions into earned competitive recovery.",
+      "canonStatus": "experimental",
+      "reviewFlags": [],
+      "tags": [
+        "achievement",
+        "comeback",
+        "resilience"
+      ],
+      "reuseCategories": [
+        "achievements",
+        "cards/badges",
+        "profiles",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "Future EGGS games"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "frumo"
+      ],
+      "openDecisions": [],
+      "remediationTasks": [
+        "PID-04",
+        "FAC-04"
+      ],
+      "sourceArtifacts": [
+        "ARCHIVE_FOUNDATION_SPEC.md"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Prototype example created to test meaningful achievement translation.",
+      "featured": false,
+      "body": "## Earned meaning\n\nAwarded for demonstrating persistence and adaptation—not for purchasing attempts or grinding trivial participation.\n\nThe exact criteria belong to each project, but the achievement should preserve evidence of the matches or season that earned it."
+    },
+    {
+      "id": "rumin",
+      "title": "Rumin",
+      "entityType": "mortal-civilization",
+      "summary": "Empire as appetite made respectable: conquest converted into contracts, credit, and civic order.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "procedural greed",
+        "empire",
+        "finance",
+        "obligation"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "cards/badges"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "voltari",
+        "zynarth-voltari"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-02",
+        "HIS-01",
+        "HIS-02",
+        "HIS-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are rumin.txt",
+        "Archive/Prose/rumintimeline.txt",
+        "Archive/Art/Rumin"
+      ],
+      "riskFlags": [
+        "direct-Rome-analogy",
+        "historical-names"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; current timeline remains project-specific and needs transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nRumin is procedural appetite: extraction presented as public order, conquest translated into paperwork, and obligation made beautiful enough to feel inevitable.\n\nIts strongest reusable question is: **when does order stop protecting life and start owning it?**\n\n## Rewrite boundary\n\nPreserve finance, civic spectacle, debt, roads, legal legibility, and respectable appetite. Replace the one-to-one Roman event sequence, rulers, symbols, and institutional copies before project-canon promotion."
+    },
+    {
+      "id": "sheen",
+      "title": "Sheen",
+      "entityType": "mortal-civilization",
+      "summary": "Rooted memory: continuity, healing, inherited duty, and preservation becoming control.",
+      "canonStatus": "flexible-inspiration",
+      "reviewFlags": [
+        "historical-transcription",
+        "rewrite-required"
+      ],
+      "tags": [
+        "rooted memory",
+        "inheritance",
+        "healing",
+        "continuity"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "visual motifs",
+        "profiles"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "voltari",
+        "zendra",
+        "voltari-zendra",
+        "bizi"
+      ],
+      "openDecisions": [
+        "DEC-06"
+      ],
+      "remediationTasks": [
+        "CIV-01",
+        "CIV-05",
+        "HIS-01",
+        "HIS-02"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are sheen.txt",
+        "Archive/Prose/sheentimeline.txt",
+        "Archive/Art/Sheen"
+      ],
+      "riskFlags": [
+        "imperial-China-transcription",
+        "cultural-flattening"
+      ],
+      "version": "0.1",
+      "provenance": "Strong concept kernel; governance and historical execution need transformation.",
+      "featured": true,
+      "body": "## Concept kernel\n\nSheen imagines history as rings in wood: continuity makes life bearable, but inherited memory can become a cage that teaches each new branch how it is permitted to grow.\n\nIts strongest reusable question is: **what do we owe the past, and when does that debt become a cage?**\n\n## Distinction\n\nSheen remembers, inherits, heals, legitimizes, and preserves. Its identity should not collapse into Bizi's routing and infrastructure systems."
+    },
+    {
+      "id": "signal-reader",
+      "title": "Signal Reader",
+      "entityType": "player-archetype",
+      "summary": "A player who interprets unstable information early and changes plans without becoming trapped by certainty.",
+      "canonStatus": "experimental",
+      "reviewFlags": [],
+      "tags": [
+        "archetype",
+        "prediction",
+        "adaptation"
+      ],
+      "reuseCategories": [
+        "player identity",
+        "profiles",
+        "achievements",
+        "Para Poker"
+      ],
+      "relatedProjects": [
+        "Para Poker"
+      ],
+      "relatedConcepts": [
+        "zendra",
+        "voltari"
+      ],
+      "openDecisions": [
+        "DEC-08",
+        "DEC-09"
+      ],
+      "remediationTasks": [
+        "PID-01",
+        "PID-02",
+        "PID-03"
+      ],
+      "sourceArtifacts": [
+        "ARCHIVE_FOUNDATION_SPEC.md"
+      ],
+      "riskFlags": [
+        "avoid-psychological-diagnosis"
+      ],
+      "version": "0.1",
+      "provenance": "Prototype archetype translating Zendra into a constructive player promise.",
+      "featured": false,
+      "body": "## Player promise\n\nYou notice what a changing situation is trying to say before others do.\n\nSignal Reader describes observable play—selective bluffing, adaptation, and information discipline. It must not label a player paranoid, manipulative, delusional, or morally suspect."
+    },
+    {
+      "id": "voltari-zendra",
+      "title": "Voltari × Zendra",
+      "entityType": "convergence",
+      "summary": "Regulated perception: belief encoded into rules, rituals, interfaces, and institutions.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "regulated perception",
+        "institutional belief",
+        "hybrid"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "UI/HUD",
+        "profiles"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "voltari",
+        "zendra",
+        "bizi",
+        "sheen",
+        "morphlings"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-02",
+        "CIV-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Extracted from Morphling examples and Bizi/Sheen expressions.",
+      "featured": false,
+      "body": "## Synthesis\n\nDream becomes law. Interpretation acquires protocol. A shared symbolic world is made reproducible through ritual, architecture, education, or interface.\n\nIts constructive possibility is common meaning maintained carefully. Its destructive form is propaganda that no longer looks like persuasion because it has become infrastructure.\n\n## Mechanical direction\n\nRule prediction, ritual sequences, declared information, controlled reveals, and systems that reward reading how others interpret the same signal."
+    },
+    {
+      "id": "voltari",
+      "title": "Voltari",
+      "entityType": "alien-principle",
+      "summary": "Order before government: sequence, rank, procedure, control, and the promise that everything can function.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "order",
+        "law",
+        "hierarchy",
+        "structure"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "UI/HUD",
+        "profiles",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth-voltari",
+        "voltari-zendra",
+        "rumin",
+        "bizi",
+        "sheen"
+      ],
+      "openDecisions": [
+        "DEC-05"
+      ],
+      "remediationTasks": [
+        "ALN-02",
+        "ALN-04",
+        "FAC-02",
+        "PID-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are voltari.txt",
+        "Archive/Prose/alien principle.txt"
+      ],
+      "riskFlags": [
+        "accusatory-player-language",
+        "generic-robot-empire"
+      ],
+      "version": "0.1",
+      "provenance": "Synthesized from current alien-principle prose.",
+      "featured": true,
+      "body": "## Core question\n\nWhat is lost when everything finally functions?\n\nVoltari translates messy life into legible systems: grids, schedules, ranks, laws, protocols, architecture, and reliable rules.\n\n## Constructive expression\n\nDiscipline, fairness, coordination, mastery, stable memory, and dependable structures that make meaningful competition possible.\n\n## Failure mode\n\nThe spontaneous becomes an error. Difference becomes inefficiency. A system designed to protect life begins correcting everything that cannot fit it.\n\n## Mechanical vocabulary\n\nArrange, rank, sequence, constrain, optimize, standardize, defend, and execute."
+    },
+    {
+      "id": "zendra",
+      "title": "Zendra",
+      "entityType": "alien-principle",
+      "summary": "Perception, influence, signal interpretation, and the point where meaning changes possible action.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "unresolved-terminology"
+      ],
+      "tags": [
+        "perception",
+        "signal",
+        "influence",
+        "interpretation"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "player identity",
+        "UI/HUD",
+        "Para Poker"
+      ],
+      "relatedProjects": [
+        "Para Poker",
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "voltari-zendra",
+        "zynarth-zendra",
+        "bizi",
+        "sheen",
+        "signal-reader"
+      ],
+      "openDecisions": [
+        "DEC-02"
+      ],
+      "remediationTasks": [
+        "ALN-03",
+        "ALN-04",
+        "PID-01",
+        "PPR-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are zendra.txt",
+        "Archive/Prose/zendrapoem.txt"
+      ],
+      "riskFlags": [
+        "mental-health-framing",
+        "generic-psychic-magic"
+      ],
+      "version": "0.1",
+      "provenance": "Synthesized from Zendra principle prose and the Xen'Dra observer poem.",
+      "featured": true,
+      "body": "## Core question\n\nWhat is real once enough minds obey it?\n\nZendra is the inner battlefield: attention, interpretation, prediction, memory, art, propaganda, empathy, belief, and mistrust.\n\n## Constructive expression\n\nImagination, empathy, insight, reframing, artistic transformation, and the ability to read unstable situations.\n\n## Failure mode\n\nFear becomes evidence. Symbols become commands. A population acts on ghosts because shared meaning has become heavier than observable reality.\n\n## Mechanical vocabulary\n\nReveal, conceal, predict, bluff, misread, reframe, signal, and distort."
+    },
+    {
+      "id": "zynarth-voltari",
+      "title": "Zynarth × Voltari",
+      "entityType": "convergence",
+      "summary": "Organized appetite: multiplication given lanes, procedure, infrastructure, and rank.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "organized appetite",
+        "procedural growth",
+        "hybrid"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "cards/badges",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "voltari",
+        "rumin",
+        "morphlings"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-02",
+        "CIV-02"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt",
+        "Archive/Prose/what are rumin.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Extracted from Morphling examples and the Rumin expression.",
+      "featured": false,
+      "body": "## Synthesis\n\nA swarm learns bureaucracy. Consumption becomes procedural. Growth acquires standards, routes, ledgers, and enforcement.\n\nIts constructive possibility is coordinated scale: many actors sharing reliable infrastructure. Its destructive form is extraction so organized that no individual action appears responsible.\n\n## Mechanical direction\n\nEngine building, production chains, formation swarms, escalating economies, and the tension between efficient growth and overextension."
+    },
+    {
+      "id": "zynarth-zendra",
+      "title": "Zynarth × Zendra",
+      "entityType": "convergence",
+      "summary": "Contagious meaning: fear, hope, grief, or myth multiplying through attention and bodies.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [],
+      "tags": [
+        "contagious belief",
+        "viral meaning",
+        "hybrid"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "marketing/community"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedConcepts": [
+        "zynarth",
+        "zendra",
+        "frumo",
+        "morphlings"
+      ],
+      "openDecisions": [
+        "DEC-03"
+      ],
+      "remediationTasks": [
+        "MOR-01",
+        "MOR-02",
+        "CIV-03"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are morphlings.txt"
+      ],
+      "riskFlags": [],
+      "version": "0.1",
+      "provenance": "Extracted from Morphling examples and the Frumo expression.",
+      "featured": false,
+      "body": "## Synthesis\n\nA rumor becomes an organism. An emotion gains momentum because every witness becomes a carrier.\n\nIts constructive possibility is inspiration, shared courage, and distributed imagination. Its destructive form is panic or grievance that feeds by reproducing itself.\n\n## Mechanical direction\n\nViral objectives, chain reactions, social deduction, copied states, contagious buffs, and pressure created by uncertain shared information."
+    },
+    {
+      "id": "zynarth",
+      "title": "Zynarth",
+      "entityType": "alien-principle",
+      "summary": "Pressure, appetite, multiplication, and the moment quantity becomes destiny.",
+      "canonStatus": "strong-direction",
+      "reviewFlags": [
+        "unresolved-terminology"
+      ],
+      "tags": [
+        "swarm",
+        "pressure",
+        "appetite",
+        "accumulation"
+      ],
+      "reuseCategories": [
+        "lore",
+        "mechanics",
+        "achievements",
+        "profiles",
+        "competitive ladders"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedConcepts": [
+        "zynarth-voltari",
+        "zynarth-zendra",
+        "rumin",
+        "frumo"
+      ],
+      "openDecisions": [
+        "DEC-01"
+      ],
+      "remediationTasks": [
+        "FND-03",
+        "ALN-01",
+        "FAC-02",
+        "PID-01"
+      ],
+      "sourceArtifacts": [
+        "Archive/Prose/what are xynarth.txt",
+        "Archive/Prose/alien principle.txt"
+      ],
+      "riskFlags": [
+        "accusatory-player-language",
+        "runaway-snowball"
+      ],
+      "aliases": [
+        "Xynarth"
+      ],
+      "version": "0.1",
+      "provenance": "Current direction normalized from mixed Zynarth/Xynarth source spelling.",
+      "featured": true,
+      "body": "## Core question\n\nWhat happens when more becomes unstoppable?\n\nZynarth is not merely insects, monsters, or biological horror. It is the logic of accumulation: repetition, compounding advantage, crowd force, appetite, survival, and collective action.\n\n## Constructive expression\n\nResilience, adaptation, solidarity, and the ability of many small actors to challenge concentrated power.\n\n## Failure mode\n\nNeed becomes appetite. Growth continues because growth worked before. Responsibility is distributed until no one feels accountable for the flood.\n\n## Mechanical vocabulary\n\nMultiply, compound, consume, recover, spread, recruit, overwhelm, and overextend."
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "artifact.alien-principle",
+      "title": "Alien Cosmology: The Underpinnings of Occurrence",
+      "type": "prose",
+      "fileName": "alien principle.txt",
+      "filePath": "Archive/Prose/alien principle.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "strong-direction",
+      "reviewStatus": "reviewed",
+      "riskFlags": [],
+      "tags": [
+        "alien-principles",
+        "foundation",
+        "cosmology"
+      ],
+      "relatedArchiveRecords": [
+        "foundation",
+        "zynarth",
+        "voltari",
+        "zendra"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedTasks": [
+        "FND-05",
+        "ALN-05"
+      ],
+      "notes": "Primary source for the grammar-of-occurrence framing.",
+      "importBatch": "batch.foundation-prose"
+    },
+    {
+      "id": "artifact.bizi-constantinople",
+      "title": "Bizi Constantinople Reference",
+      "type": "image",
+      "fileName": "Steampunk_constantinople_in_sepiaa.webp",
+      "filePath": "Archive/Art/Bizi/Places/Steampunk_constantinople_in_sepiaa.webp",
+      "sourceType": "archive-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "unknown-needs-review",
+      "aiGenerated": true,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "needs-rights",
+      "riskFlags": [
+        "real-world-religious-architecture",
+        "unknown-provenance"
+      ],
+      "tags": [
+        "bizi",
+        "place",
+        "visual-reference"
+      ],
+      "relatedArchiveRecords": [
+        "bizi"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedTasks": [
+        "ART-04",
+        "PRV-01",
+        "PRV-03"
+      ],
+      "notes": "Internal reference only until rights and transformation review.",
+      "importBatch": "batch.visual-sample"
+    },
+    {
+      "id": "artifact.bizi-source",
+      "title": "What Are Bizi",
+      "type": "prose",
+      "fileName": "what are bizi.txt",
+      "filePath": "Archive/Prose/what are bizi.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "rewrite-queued",
+      "riskFlags": [
+        "historical-transcription"
+      ],
+      "tags": [
+        "bizi",
+        "mortal-expression",
+        "sacred-infrastructure"
+      ],
+      "relatedArchiveRecords": [
+        "bizi"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedTasks": [
+        "CIV-01",
+        "CIV-04"
+      ],
+      "notes": "Preserve sacred infrastructure; transform Byzantine analogy.",
+      "importBatch": "batch.civilization-prose"
+    },
+    {
+      "id": "artifact.competitive-circuit",
+      "title": "Introduction to Competitive Circuit",
+      "type": "pdf",
+      "fileName": "INTRODUCTION to Competetive circuit (2).pdf",
+      "filePath": "Archive/Prose/INTRODUCTION to Competetive circuit (2).pdf",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "experimental",
+      "reviewStatus": "risky-needs-review",
+      "riskFlags": [
+        "paid-advancement",
+        "unsupported-legal-claims",
+        "monetization"
+      ],
+      "tags": [
+        "product-strategy",
+        "competitive-circuit",
+        "XP"
+      ],
+      "relatedArchiveRecords": [
+        "competitive-circuit",
+        "para-poker"
+      ],
+      "relatedProjects": [
+        "Para",
+        "Para Poker"
+      ],
+      "relatedTasks": [
+        "PPR-02",
+        "PPR-04",
+        "LGL-01",
+        "DEC-10"
+      ],
+      "notes": "Must not guide implementation in current form.",
+      "importBatch": "batch.strategy-documents"
+    },
+    {
+      "id": "artifact.ethics-codex",
+      "title": "Paralleon Designer Ethics Codex",
+      "type": "pdf",
+      "fileName": "THE EGGS MS WHOLISTIC DESIGNER ETHICS CODEX.pdf",
+      "filePath": "Archive/Prose/THE EGGS MS WHOLISTIC DESIGNER ETHICS CODEX.pdf",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "strong-direction",
+      "reviewStatus": "operationalization-needed",
+      "riskFlags": [
+        "policy-practice-contradiction"
+      ],
+      "tags": [
+        "ethics",
+        "guardrails",
+        "historical-distance"
+      ],
+      "relatedArchiveRecords": [
+        "ethics-codex",
+        "foundation"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedTasks": [
+        "HIS-02",
+        "LGL-05"
+      ],
+      "notes": "Durable direction; needs operational checks.",
+      "importBatch": "batch.strategy-documents"
+    },
+    {
+      "id": "artifact.frumo-place",
+      "title": "Frozen Frumo City Reference",
+      "type": "image",
+      "fileName": "frumo.png",
+      "filePath": "Archive/Art/Frumo/Places/frumo.png",
+      "sourceType": "archive-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "unknown-needs-review",
+      "aiGenerated": true,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "needs-provenance",
+      "riskFlags": [
+        "unknown-provenance"
+      ],
+      "tags": [
+        "frumo",
+        "place",
+        "visual-reference"
+      ],
+      "relatedArchiveRecords": [
+        "frumo"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedTasks": [
+        "ART-01",
+        "PRV-01",
+        "PRV-02"
+      ],
+      "notes": "Mood reference; not canonical depiction.",
+      "importBatch": "batch.visual-sample"
+    },
+    {
+      "id": "artifact.frumo-source",
+      "title": "What Are Frumo",
+      "type": "prose",
+      "fileName": "what are frumo.txt",
+      "filePath": "Archive/Prose/what are frumo.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "rewrite-queued",
+      "riskFlags": [
+        "historical-transcription"
+      ],
+      "tags": [
+        "frumo",
+        "mortal-expression",
+        "grief-economy"
+      ],
+      "relatedArchiveRecords": [
+        "frumo"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedTasks": [
+        "CIV-03",
+        "HIS-01"
+      ],
+      "notes": "Preserve emotional weather; transform French Revolutionary transcription.",
+      "importBatch": "batch.civilization-prose"
+    },
+    {
+      "id": "artifact.mdp",
+      "title": "EGGS Minimum Deliverable Product Guide",
+      "type": "pdf",
+      "fileName": "EGGS MDP (1).pdf",
+      "filePath": "Archive/Prose/EGGS MDP (1).pdf",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "experimental",
+      "reviewStatus": "classified",
+      "riskFlags": [
+        "product-canon-mixing"
+      ],
+      "tags": [
+        "product-strategy",
+        "community",
+        "onboarding"
+      ],
+      "relatedArchiveRecords": [
+        "foundation"
+      ],
+      "relatedProjects": [
+        "Para",
+        "EGGS ecosystem"
+      ],
+      "relatedTasks": [
+        "PPR-03",
+        "PPR-05",
+        "PID-05"
+      ],
+      "notes": "Dated product-strategy source; not creative canon.",
+      "importBatch": "batch.strategy-documents"
+    },
+    {
+      "id": "artifact.mekan-unclassified",
+      "title": "Mekan Temple Dragon Reference",
+      "type": "image",
+      "fileName": "big_dumb_temple_dragon.webp",
+      "filePath": "Archive/Art/mekan/Places/big_dumb_temple_dragon.webp",
+      "sourceType": "archive-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "unknown-needs-review",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "unclassified",
+      "reviewStatus": "intake",
+      "riskFlags": [
+        "unknown-provenance"
+      ],
+      "tags": [],
+      "relatedArchiveRecords": [],
+      "relatedProjects": [],
+      "relatedTasks": [
+        "CIV-06",
+        "PRV-01"
+      ],
+      "notes": "Intentionally incomplete seed demonstrating batch-tagging queues.",
+      "importBatch": "batch.visual-sample"
+    },
+    {
+      "id": "artifact.morphlings-source",
+      "title": "Morphlings and Astral Vanguards",
+      "type": "prose",
+      "fileName": "what are morphlings.txt",
+      "filePath": "Archive/Prose/what are morphlings.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "strong-direction",
+      "reviewStatus": "rewrite-queued",
+      "riskFlags": [
+        "term-overload",
+        "duplicate-formulation"
+      ],
+      "tags": [
+        "morphlings",
+        "convergences",
+        "astral-vanguards"
+      ],
+      "relatedArchiveRecords": [
+        "morphlings",
+        "astral-vanguards",
+        "zynarth-voltari",
+        "voltari-zendra",
+        "zynarth-zendra"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedTasks": [
+        "MOR-01",
+        "MOR-04",
+        "AVG-01"
+      ],
+      "notes": "Abstract convergence logic and embodied Morphlings need separation.",
+      "importBatch": "batch.foundation-prose"
+    },
+    {
+      "id": "artifact.rumin-source",
+      "title": "What Are Rumin",
+      "type": "prose",
+      "fileName": "what are rumin.txt",
+      "filePath": "Archive/Prose/what are rumin.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "rewrite-queued",
+      "riskFlags": [
+        "historical-transcription"
+      ],
+      "tags": [
+        "rumin",
+        "mortal-expression",
+        "procedural-appetite"
+      ],
+      "relatedArchiveRecords": [
+        "rumin"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedTasks": [
+        "CIV-02",
+        "HIS-01"
+      ],
+      "notes": "Preserve concept kernel; transform direct Roman parallels.",
+      "importBatch": "batch.civilization-prose"
+    },
+    {
+      "id": "artifact.sheen-greenhouse",
+      "title": "Sheen Greenhouse Reference",
+      "type": "image",
+      "fileName": "sheen_greenhouse.webp",
+      "filePath": "Archive/Art/Sheen/Places/sheen_greenhouse.webp",
+      "sourceType": "archive-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "unknown-needs-review",
+      "aiGenerated": true,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "needs-provenance",
+      "riskFlags": [
+        "unknown-provenance"
+      ],
+      "tags": [
+        "sheen",
+        "place",
+        "visual-reference"
+      ],
+      "relatedArchiveRecords": [
+        "sheen"
+      ],
+      "relatedProjects": [],
+      "relatedTasks": [
+        "ART-01",
+        "PRV-01",
+        "PRV-02"
+      ],
+      "notes": "Needs project-use decision and provenance review.",
+      "importBatch": "batch.visual-sample"
+    },
+    {
+      "id": "artifact.sheen-source",
+      "title": "What Are Sheen",
+      "type": "prose",
+      "fileName": "what are sheen.txt",
+      "filePath": "Archive/Prose/what are sheen.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "flexible-inspiration",
+      "reviewStatus": "rewrite-queued",
+      "riskFlags": [
+        "historical-transcription",
+        "cultural-flattening"
+      ],
+      "tags": [
+        "sheen",
+        "mortal-expression",
+        "rooted-memory"
+      ],
+      "relatedArchiveRecords": [
+        "sheen"
+      ],
+      "relatedProjects": [
+        "Reath"
+      ],
+      "relatedTasks": [
+        "CIV-01",
+        "CIV-05"
+      ],
+      "notes": "Preserve rooted memory; transform imperial-China analogy.",
+      "importBatch": "batch.civilization-prose"
+    },
+    {
+      "id": "artifact.voltari-source",
+      "title": "What Are Voltari",
+      "type": "prose",
+      "fileName": "what are voltari.txt",
+      "filePath": "Archive/Prose/what are voltari.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "strong-direction",
+      "reviewStatus": "reviewed",
+      "riskFlags": [],
+      "tags": [
+        "voltari",
+        "principle-source"
+      ],
+      "relatedArchiveRecords": [
+        "voltari"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedTasks": [
+        "ALN-02",
+        "ALN-04"
+      ],
+      "notes": "Core source for Voltari's structure and control logic.",
+      "importBatch": "batch.foundation-prose"
+    },
+    {
+      "id": "artifact.zendra-source",
+      "title": "What Are Zendra",
+      "type": "prose",
+      "fileName": "what are zendra.txt",
+      "filePath": "Archive/Prose/what are zendra.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "strong-direction",
+      "reviewStatus": "needs-terminology",
+      "riskFlags": [
+        "xendra-relationship-unresolved"
+      ],
+      "tags": [
+        "zendra",
+        "principle-source"
+      ],
+      "relatedArchiveRecords": [
+        "zendra"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem",
+        "Para Poker"
+      ],
+      "relatedTasks": [
+        "ALN-03",
+        "DEC-02"
+      ],
+      "notes": "Needs a formal relationship to the Xen'Dra observer poem.",
+      "importBatch": "batch.foundation-prose"
+    },
+    {
+      "id": "artifact.zynarth-source",
+      "title": "What Are Xynarth",
+      "type": "prose",
+      "fileName": "what are xynarth.txt",
+      "filePath": "Archive/Prose/what are xynarth.txt",
+      "sourceType": "internal-file",
+      "sourceUrl": null,
+      "creator": null,
+      "createdAt": null,
+      "importedAt": "2026-06-18",
+      "rightsStatus": "owned-internal",
+      "aiGenerated": null,
+      "aiModel": null,
+      "promptUsed": null,
+      "canonStatus": "strong-direction",
+      "reviewStatus": "needs-terminology",
+      "riskFlags": [
+        "name-drift"
+      ],
+      "tags": [
+        "zynarth",
+        "principle-source"
+      ],
+      "relatedArchiveRecords": [
+        "zynarth"
+      ],
+      "relatedProjects": [
+        "EGGS ecosystem"
+      ],
+      "relatedTasks": [
+        "FND-03",
+        "ALN-01",
+        "DEC-01"
+      ],
+      "notes": "Source spelling differs from current Zynarth direction.",
+      "importBatch": "batch.foundation-prose"
+    }
+  ],
+  "importBatches": [
+    {
+      "id": "batch.civilization-prose",
+      "title": "Mortal civilization intake",
+      "importedAt": "2026-06-18",
+      "source": "Archive/Prose",
+      "files": [
+        "artifact.rumin-source",
+        "artifact.frumo-source",
+        "artifact.bizi-source",
+        "artifact.sheen-source"
+      ],
+      "defaultTags": [
+        "prose",
+        "mortal-expression"
+      ],
+      "status": "needs-review",
+      "notes": "Concept kernels are useful; historical-distance review remains open."
+    },
+    {
+      "id": "batch.foundation-prose",
+      "title": "Foundation prose intake",
+      "importedAt": "2026-06-18",
+      "source": "Archive/Prose",
+      "files": [
+        "artifact.alien-principle",
+        "artifact.zynarth-source",
+        "artifact.voltari-source",
+        "artifact.zendra-source",
+        "artifact.morphlings-source"
+      ],
+      "defaultTags": [
+        "prose",
+        "foundation-source"
+      ],
+      "status": "classified",
+      "notes": "Initial principle and hybrid source documents."
+    },
+    {
+      "id": "batch.strategy-documents",
+      "title": "Strategy and governance documents",
+      "importedAt": "2026-06-18",
+      "source": "Archive/Prose PDFs",
+      "files": [
+        "artifact.mdp",
+        "artifact.competitive-circuit",
+        "artifact.ethics-codex"
+      ],
+      "defaultTags": [
+        "pdf",
+        "strategy"
+      ],
+      "status": "classified",
+      "notes": "Product strategy is separated from creative canon."
+    },
+    {
+      "id": "batch.visual-sample",
+      "title": "Visual archive sample",
+      "importedAt": "2026-06-18",
+      "source": "Archive/Art",
+      "files": [
+        "artifact.bizi-constantinople",
+        "artifact.frumo-place",
+        "artifact.sheen-greenhouse",
+        "artifact.mekan-unclassified"
+      ],
+      "defaultTags": [
+        "visual-reference",
+        "internal-only"
+      ],
+      "status": "needs-review",
+      "notes": "Representative sample for provenance, rights, and motif workflows."
+    }
+  ],
+  "exportBundles": [
+    {
+      "id": "export.artifact-index",
+      "title": "Artifact Index",
+      "createdAt": "build-time",
+      "exportType": "inventory",
+      "includedCollections": [
+        "artifacts"
+      ],
+      "includedTags": [],
+      "includedProjects": [],
+      "format": "csv",
+      "filePath": "/exports/artifact-index.csv",
+      "notes": "Spreadsheet-friendly artifact metadata index.",
+      "publicStatus": "private",
+      "riskWarnings": [
+        "contains-internal-file-paths",
+        "contains-rights-status"
+      ]
+    },
+    {
+      "id": "export.canon-bible",
+      "title": "Canon Bible",
+      "createdAt": "build-time",
+      "exportType": "creative-pack",
+      "includedCollections": [
+        "archive"
+      ],
+      "includedTags": [
+        "foundation-canon",
+        "strong-direction"
+      ],
+      "includedProjects": [],
+      "format": "markdown",
+      "filePath": "/exports/canon-bible.md",
+      "notes": "Readable foundation and strong-direction summary with unresolved status visible.",
+      "publicStatus": "internal",
+      "riskWarnings": [
+        "strong-direction-is-not-approved-canon"
+      ]
+    },
+    {
+      "id": "export.decision-queue",
+      "title": "Decision Queue",
+      "createdAt": "build-time",
+      "exportType": "workbench",
+      "includedCollections": [
+        "remediation"
+      ],
+      "includedTags": [
+        "decision"
+      ],
+      "includedProjects": [],
+      "format": "json",
+      "filePath": "/exports/decision-queue.json",
+      "notes": "Formal decision-log records and user decision gates.",
+      "publicStatus": "private",
+      "riskWarnings": [
+        "contains-unresolved-decisions"
+      ]
+    },
+    {
+      "id": "export.faction-pack",
+      "title": "Faction Pack",
+      "createdAt": "build-time",
+      "exportType": "creative-pack",
+      "includedCollections": [
+        "archive"
+      ],
+      "includedTags": [
+        "alien-principle",
+        "convergence",
+        "mortal-civilization"
+      ],
+      "includedProjects": [],
+      "format": "json",
+      "filePath": "/exports/faction-pack.json",
+      "notes": "Principles, convergences, Morphlings, Vanguards, and mortal expressions.",
+      "publicStatus": "internal",
+      "riskWarnings": [
+        "contains-unresolved-terminology",
+        "contains-historical-transcription"
+      ]
+    },
+    {
+      "id": "export.full-os",
+      "title": "Full Creative OS",
+      "createdAt": "build-time",
+      "exportType": "internal",
+      "includedCollections": [
+        "archive",
+        "artifacts",
+        "importBatches",
+        "pipelineTasks",
+        "remediation"
+      ],
+      "includedTags": [],
+      "includedProjects": [],
+      "format": "json",
+      "filePath": "/exports/full-creative-os.json",
+      "notes": "Complete portable snapshot for internal use.",
+      "publicStatus": "private",
+      "riskWarnings": [
+        "contains-internal-risks",
+        "contains-remediation",
+        "contains-private-notes"
+      ]
+    },
+    {
+      "id": "export.para-pack",
+      "title": "Para Pack",
+      "createdAt": "build-time",
+      "exportType": "project",
+      "includedCollections": [
+        "archive",
+        "artifacts",
+        "remediation"
+      ],
+      "includedTags": [
+        "Para"
+      ],
+      "includedProjects": [
+        "Para",
+        "Para Poker"
+      ],
+      "format": "json",
+      "filePath": "/exports/para-pack.json",
+      "notes": "Para-specific concepts, product cautions, and linked tasks.",
+      "publicStatus": "private-review",
+      "riskWarnings": [
+        "gambling-framing",
+        "paid-advancement",
+        "legal-review"
+      ]
+    },
+    {
+      "id": "export.project-starter",
+      "title": "Project Starter Pack",
+      "createdAt": "build-time",
+      "exportType": "template",
+      "includedCollections": [
+        "archive",
+        "remediation"
+      ],
+      "includedTags": [
+        "reuse"
+      ],
+      "includedProjects": [
+        "Future EGGS games"
+      ],
+      "format": "markdown",
+      "filePath": "/exports/project-starter-pack.md",
+      "notes": "A compact reuse checklist and starter concept selection.",
+      "publicStatus": "internal-template",
+      "riskWarnings": []
+    },
+    {
+      "id": "export.public-archive",
+      "title": "Public Archive",
+      "createdAt": "build-time",
+      "exportType": "public",
+      "includedCollections": [
+        "archive"
+      ],
+      "includedTags": [],
+      "includedProjects": [],
+      "format": "json",
+      "filePath": "/exports/public-archive.json",
+      "notes": "Filtered public-facing archive; excludes risky source artifacts and workbench details.",
+      "publicStatus": "public-candidate",
+      "riskWarnings": [
+        "requires-publish-review"
+      ]
+    },
+    {
+      "id": "export.remediation-report",
+      "title": "Remediation Report",
+      "createdAt": "build-time",
+      "exportType": "workbench",
+      "includedCollections": [
+        "remediation"
+      ],
+      "includedTags": [],
+      "includedProjects": [],
+      "format": "json",
+      "filePath": "/exports/remediation-report.json",
+      "notes": "Complete actionable remediation backlog.",
+      "publicStatus": "private",
+      "riskWarnings": [
+        "contains-internal-critique",
+        "contains-legal-risk-notes"
+      ]
+    }
+  ],
+  "pipelineTasks": [
+    {
+      "id": "pipeline.classify-prose",
+      "title": "Classify remaining prose and timeline files",
+      "type": "import-classification",
+      "status": "open",
+      "priority": "high",
+      "inputFiles": [
+        "Archive/Prose"
+      ],
+      "outputRecords": [
+        "artifact metadata"
+      ],
+      "relatedArchiveRecords": [
+        "reath"
+      ],
+      "relatedTasks": [
+        "CAN-01",
+        "CAN-05",
+        "HIS-01"
+      ],
+      "notes": "Current seed covers core sources, not every prose artifact."
+    },
+    {
+      "id": "pipeline.generate-bundles",
+      "title": "Generate static export bundles",
+      "type": "export-generation",
+      "status": "automated",
+      "priority": "high",
+      "inputFiles": [
+        "src/content",
+        "REMEDIATION_BACKLOG.md"
+      ],
+      "outputRecords": [
+        "public/exports"
+      ],
+      "relatedArchiveRecords": [
+        "foundation"
+      ],
+      "relatedTasks": [],
+      "notes": "Runs before every production build."
+    },
+    {
+      "id": "operation.historical-rewrite-plan",
+      "title": "Generate transformed civilization rewrite plans",
+      "type": "source-rewrite",
+      "status": "blocked-human-review",
+      "priority": "critical",
+      "inputFiles": [
+        "Archive/Prose/rumintimeline.txt",
+        "Archive/Prose/frumotimline.txt",
+        "Archive/Prose/bizitimeline.txt",
+        "Archive/Prose/sheentimeline.txt"
+      ],
+      "outputRecords": [
+        "rewrite plans",
+        "review diffs",
+        "follow-up tasks"
+      ],
+      "relatedArchiveRecords": [
+        "rumin",
+        "frumo",
+        "bizi",
+        "sheen"
+      ],
+      "relatedTasks": [
+        "HIS-01",
+        "HIS-02",
+        "DEC-06"
+      ],
+      "notes": "Do not automate prose replacement. Historical transformation and voice require human creative review."
+    },
+    {
+      "id": "pipeline.para-pack-review",
+      "title": "Review Para pack for public-safety exclusions",
+      "type": "publish-review",
+      "status": "open",
+      "priority": "critical",
+      "inputFiles": [
+        "export.para-pack"
+      ],
+      "outputRecords": [
+        "approved Para pack"
+      ],
+      "relatedArchiveRecords": [
+        "para-poker",
+        "competitive-circuit"
+      ],
+      "relatedTasks": [
+        "PPR-02",
+        "PPR-04",
+        "LGL-01"
+      ],
+      "notes": "Do not publish cashout, gambling, or paid-legitimacy framing."
+    },
+    {
+      "id": "pipeline.provenance-sweep",
+      "title": "Complete visual provenance sweep",
+      "type": "provenance-review",
+      "status": "open",
+      "priority": "critical",
+      "inputFiles": [
+        "Archive/Art"
+      ],
+      "outputRecords": [
+        "artifact metadata"
+      ],
+      "relatedArchiveRecords": [
+        "pressure-field"
+      ],
+      "relatedTasks": [
+        "PRV-01",
+        "PRV-02",
+        "PRV-03"
+      ],
+      "notes": "Unknown rights remain internal-only until verified."
+    },
+    {
+      "id": "pipeline.public-filter",
+      "title": "Approve public export exclusion rules",
+      "type": "publish-review",
+      "status": "blocked",
+      "priority": "critical",
+      "inputFiles": [
+        "archive",
+        "artifacts",
+        "remediation"
+      ],
+      "outputRecords": [
+        "export.public-archive"
+      ],
+      "relatedArchiveRecords": [
+        "foundation",
+        "para-poker"
+      ],
+      "relatedTasks": [
+        "LGL-02",
+        "PRV-03",
+        "DEC-11"
+      ],
+      "notes": "Blocked on rights default and product-risk decisions."
+    },
+    {
+      "id": "pipeline.tag-visual-sample",
+      "title": "Finish visual sample classification",
+      "type": "batch-tagging",
+      "status": "in-progress",
+      "priority": "high",
+      "inputFiles": [
+        "batch.visual-sample"
+      ],
+      "outputRecords": [
+        "artifact.bizi-constantinople",
+        "artifact.frumo-place",
+        "artifact.sheen-greenhouse"
+      ],
+      "relatedArchiveRecords": [
+        "bizi",
+        "frumo",
+        "sheen"
+      ],
+      "relatedTasks": [
+        "ART-01",
+        "ART-02"
+      ],
+      "notes": "Project use and motif extraction remain incomplete."
+    },
+    {
+      "id": "pipeline.workbook-migration",
+      "title": "Map workbook rows to stable artifact IDs",
+      "type": "metadata-migration",
+      "status": "open",
+      "priority": "critical",
+      "inputFiles": [
+        "Index/creative_asset_system_index.xlsx"
+      ],
+      "outputRecords": [
+        "artifact metadata",
+        "import batches"
+      ],
+      "relatedArchiveRecords": [
+        "index-workbook"
+      ],
+      "relatedTasks": [
+        "DAT-01",
+        "DAT-02",
+        "DAT-03"
+      ],
+      "notes": "Preserve legacy row references and quarantine shifted joins."
+    },
+    {
+      "id": "operation.zynarth-normalization",
+      "title": "Prepare Zynarth terminology normalization",
+      "type": "source-rewrite",
+      "status": "awaiting-decision",
+      "priority": "critical",
+      "inputFiles": [
+        "src/content/archive/zynarth.md",
+        "Archive/Prose/what are xynarth.txt"
+      ],
+      "outputRecords": [
+        "decision resolution",
+        "proposed source patch",
+        "change log"
+      ],
+      "relatedArchiveRecords": [
+        "zynarth"
+      ],
+      "relatedTasks": [
+        "DEC-01",
+        "FND-03"
+      ],
+      "notes": "Structured references may update after approval; raw source prose must remain historically preserved."
+    }
+  ],
+  "remediation": [
+    {
+      "id": "FND-01",
+      "title": "Resolve ecosystem name hierarchy",
+      "category": "Foundation / Vocabulary Issues",
+      "problem": "EGGS, Para, Paralleon, Reath, Mythic Strategies, Egghead University, and the competitive circuit are used as brands, worlds, products, and community spaces without one stable relationship model.",
+      "why": "Future records and projects cannot be scoped reliably if “world,” “game,” “brand,” and “community” are interchangeable.",
+      "affected": "`Index/readme.txt`; `Archive/Prose/EGGS MDP (1).pdf`; `Archive/Prose/THE EGGS MS WHOLISTIC DESIGNER ETHICS CODEX.pdf`; all project records.",
+      "fix": "Draft a one-page hierarchy defining owner brand, creative universe, setting, game/product, community program, and commercial venue. Record aliases and deprecated uses.",
+      "priority": "Critical",
+      "output": "Approved ecosystem map and glossary entries.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "FND-02",
+      "title": "Separate “faction” into precise entity types",
+      "category": "Foundation / Vocabulary Issues",
+      "problem": "“Faction” currently refers to alien principles, mortal civilizations, player identities, organizations, and browsing categories.",
+      "why": "This flattening obscures the system's strongest distinction and will produce confused app data and player messaging.",
+      "affected": "All `what are *.txt` files; `alien principle.txt`; index `Faction` column; future faction pages.",
+      "fix": "Define controlled subtypes: alien principle, mortal civilization, organization, player affiliation, and project faction. Keep “Faction” only as an optional umbrella label in UI.",
+      "priority": "Critical",
+      "output": "Controlled vocabulary and migration mapping for current faction labels.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "FND-03",
+      "title": "Normalize core term spellings and aliases",
+      "category": "Foundation / Vocabulary Issues",
+      "problem": "The archive uses Zynarth/Xynarth and Zendra/Xen’Dra inconsistently; other names also vary in capitalization.",
+      "why": "Naming drift breaks search, relationships, data imports, and player recognition.",
+      "affected": "`what are xynarth.txt`; `what are zendra.txt`; `zendrapoem.txt`; `what are morphlings.txt`; diagnostic and foundation documents.",
+      "fix": "Create a canonical-name and alias registry. Preserve original spellings inside source artifacts but normalize indexed entities and search aliases.",
+      "priority": "Critical",
+      "output": "Approved naming decision and alias table.",
+      "workType": "Data; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "FND-04",
+      "title": "Define minimum meaningful archive reuse",
+      "category": "Foundation / Vocabulary Issues",
+      "problem": "Every EGGS game should draw from the archive, but the threshold between meaningful derivation and decorative reference is unclear.",
+      "why": "Without a test, the archive will either be forced into every project or reduced to cosmetic name-dropping.",
+      "affected": "`Index/readme.txt`; `ARCHIVE_FOUNDATION_SPEC.md`; all future project briefs.",
+      "fix": "Require each project to document at least one material derivation with a source concept, translation mode, player promise, and evidence. Permit intentional omissions.",
+      "priority": "High",
+      "output": "Project reuse checklist and approval criterion.",
+      "workType": "Writing; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "FND-05",
+      "title": "Define boundaries of the three-principle grammar",
+      "category": "Foundation / Vocabulary Issues",
+      "problem": "The principles are described as always present and as defining what can happen, which risks making the system totalizing and unfalsifiable.",
+      "why": "Designers need freedom to use one principle, omit a principle, or recognize influences outside the triad.",
+      "affected": "`alien principle.txt`; all alien-principle files; `ARCHIVE_FOUNDATION_SPEC.md`.",
+      "fix": "Add explicit non-claims: principles are interpretive/design lenses, not mandatory explanations; `not applicable` and intentional absence are valid.",
+      "priority": "High",
+      "output": "Foundation clarification and examples of valid partial use.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CAN-01",
+      "title": "Classify every current prose and PDF artifact",
+      "category": "Canon Status Issues",
+      "problem": "Raw notes, polished essays, ethics guidance, product strategy, and project lore currently sit together without authority labels.",
+      "why": "File presence may be mistaken for canon or approved product policy.",
+      "affected": "All files in `Archive/Prose`; `Index/readme.txt`.",
+      "fix": "Assign each artifact a layer, authority status, review flags, project scope, and short rationale. Default to flexible inspiration or experimental unless explicitly approved.",
+      "priority": "Critical",
+      "output": "Artifact classification table covering every prose/PDF file.",
+      "workType": "Data",
+      "needsDecision": "No for provisional classification; Yes for canon promotion"
+    },
+    {
+      "id": "CAN-02",
+      "title": "Separate authority status from review state",
+      "category": "Canon Status Issues",
+      "problem": "“Canon,” “risky,” “contradictory,” and “needs decision” are being treated as one kind of status.",
+      "why": "A concept can be strong direction and risky at the same time; one field cannot express both accurately.",
+      "affected": "Current index `Status`; future schemas; all archive entities.",
+      "fix": "Store `authority_status` separately from `review_flags`, using the enums in `ARCHIVE_FOUNDATION_SPEC.md`.",
+      "priority": "Critical",
+      "output": "Approved status matrix and legacy-status migration rules.",
+      "workType": "Data; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CAN-03",
+      "title": "Establish canon promotion and retirement workflow",
+      "category": "Canon Status Issues",
+      "problem": "No process defines how material becomes foundation canon, project canon, or retired material.",
+      "why": "Unreviewed drafts can harden into canon, while rejected ideas may disappear without context.",
+      "affected": "Entire archive; future app workflows.",
+      "fix": "Define approvers, evidence requirements, mandatory decision-log fields, supersession behavior, and restrictions on silent reactivation.",
+      "priority": "High",
+      "output": "Canon governance procedure.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CAN-04",
+      "title": "Mark superseded and duplicate formulations",
+      "category": "Canon Status Issues",
+      "problem": "`what are morphlings.txt` contains repeated and expanded formulations, while other concepts recur with wording differences and no version chain.",
+      "why": "Designers cannot tell which statement is current or whether differences are meaningful.",
+      "affected": "`what are morphlings.txt`; alien-principle prose; future successor drafts.",
+      "fix": "Extract concept statements into versioned records, mark duplicates, and link superseded passages without deleting sources.",
+      "priority": "Medium",
+      "output": "Version map and duplicate/supersession report.",
+      "workType": "Data; writing",
+      "needsDecision": "No, unless choosing the authoritative formulation"
+    },
+    {
+      "id": "CAN-05",
+      "title": "Create project-scope boundaries for current lore",
+      "category": "Canon Status Issues",
+      "problem": "Rumin, Sheen, Bizi, Frumo, Reath, and their timelines are not consistently marked as project-specific.",
+      "why": "A setting-specific history may accidentally bind unrelated future games.",
+      "affected": "All civilization descriptions and timelines; associated art folders.",
+      "fix": "Create a provisional Reath/Paralleon project scope and place current civilizations, characters, and timelines inside it pending hierarchy approval.",
+      "priority": "High",
+      "output": "Project-scope assignment table.",
+      "workType": "Data; canon decision",
+      "needsDecision": "Yes for final scope; No for provisional tagging"
+    },
+    {
+      "id": "FAC-01",
+      "title": "Build a faction distinction matrix",
+      "category": "Faction Clarity Issues",
+      "problem": "Factions are described richly but not compared through consistent attributes.",
+      "why": "Overlap becomes visible only in prose review, and designers lack a reusable differentiation tool.",
+      "affected": "All principle and civilization descriptions.",
+      "fix": "Compare each entity by core pressure, signature verbs, constructive promise, failure mode, institutions, mechanics, player fantasy, motifs, and exclusions.",
+      "priority": "High",
+      "output": "Approved faction/principle distinction matrix.",
+      "workType": "Writing; data",
+      "needsDecision": "No for draft; Yes for approval"
+    },
+    {
+      "id": "FAC-02",
+      "title": "Define positive player-facing identity for every faction-like entity",
+      "category": "Faction Clarity Issues",
+      "problem": "Current descriptions emphasize critique and horror more clearly than honorable identification.",
+      "why": "Players cannot safely identify with a label that reads primarily as authoritarian, consumptive, or delusional.",
+      "affected": "Zynarth, Voltari, Zendra; Rumin, Sheen, Bizi, Frumo; onboarding material in `EGGS MDP (1).pdf`.",
+      "fix": "Add an aspirational promise, admired skills, healthy competitive behavior, shadow risk, and non-accusatory profile language to each entity.",
+      "priority": "Critical",
+      "output": "Player-facing identity briefs.",
+      "workType": "Writing; legal/design guardrail",
+      "needsDecision": "Yes for public wording"
+    },
+    {
+      "id": "FAC-03",
+      "title": "Replace single-faction onboarding with layered affinities",
+      "category": "Faction Clarity Issues",
+      "problem": "The MDP suggests choosing a faction, while the creative system says identity is positional and mixed.",
+      "why": "A single-team model contradicts the archive's strongest identity idea.",
+      "affected": "`Archive/Prose/EGGS MDP (1).pdf`; future profiles and onboarding.",
+      "fix": "Design an affinity model supporting primary, secondary, evolving, or project-specific identities without compulsory allegiance.",
+      "priority": "High",
+      "output": "Affinity model and revised onboarding copy.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "FAC-04",
+      "title": "Define mechanical signatures rather than color/team signatures",
+      "category": "Faction Clarity Issues",
+      "problem": "Faction reuse can collapse into names, emblems, or palettes without meaningful behavior.",
+      "why": "Cosmetic factioning becomes repetitive and forced across games.",
+      "affected": "Principle pages; achievement/card concepts; future game briefs.",
+      "fix": "Assign each principle and approved expression reusable verbs, resource dynamics, skill tests, and anti-patterns.",
+      "priority": "High",
+      "output": "Mechanical signature sheets.",
+      "workType": "Writing; data",
+      "needsDecision": "No for drafting; Yes for canon approval"
+    },
+    {
+      "id": "ALN-01",
+      "title": "Rewrite Zynarth as a complete design principle",
+      "category": "Alien Principle Issues",
+      "problem": "Zynarth is strong conceptually but weighted toward plague, greed, mob behavior, and runaway snowballing.",
+      "why": "It needs a durable constructive identity and balanced mechanical applications.",
+      "affected": "`what are xynarth.txt`; `alien principle.txt`; Morphling examples.",
+      "fix": "Produce a canonical-format brief covering core question, verbs, virtues, healthy play fantasy, failure modes, mechanic patterns, exclusions, and cross-genre examples.",
+      "priority": "High",
+      "output": "Zynarth principle specification.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes for approval"
+    },
+    {
+      "id": "ALN-02",
+      "title": "Rewrite Voltari as a complete design principle",
+      "category": "Alien Principle Issues",
+      "problem": "Voltari is clear but can collapse into generic robot order or authoritarian bureaucracy.",
+      "why": "Its positive value—reliability, fairness, discipline, and meaningful rules—must remain usable in competitive design.",
+      "affected": "`what are voltari.txt`; `alien principle.txt`; Bizi, Sheen, and Rumin descriptions.",
+      "fix": "Define precise verbs, constructive competitive expressions, failure modes, exclusions, and genre-independent uses.",
+      "priority": "High",
+      "output": "Voltari principle specification.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes for approval"
+    },
+    {
+      "id": "ALN-03",
+      "title": "Rewrite Zendra with concrete mechanical verbs",
+      "category": "Alien Principle Issues",
+      "problem": "Zendra is narratively memorable but mechanically less defined and can become generic psychic magic.",
+      "why": "Reuse across games requires specific player decisions and information structures.",
+      "affected": "`what are zendra.txt`; `zendrapoem.txt`; Morphling examples.",
+      "fix": "Define verbs such as reveal, conceal, predict, misread, reframe, bluff, and alter interpretation; distinguish information from supernatural spectacle.",
+      "priority": "High",
+      "output": "Zendra principle specification and mechanic map.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes for approval"
+    },
+    {
+      "id": "ALN-04",
+      "title": "Resolve Voltari “signal” versus Zendra interpretation",
+      "category": "Alien Principle Issues",
+      "problem": "Both principles claim signal-related territory.",
+      "why": "Unresolved semantic overlap will blur mechanics, motifs, and hybrid logic.",
+      "affected": "`what are voltari.txt`; known Zendra direction; foundation documents.",
+      "fix": "Assign Voltari transmission protocol, standardization, and legibility; assign Zendra reception, interpretation, meaning, and distortion. Test edge cases.",
+      "priority": "High",
+      "output": "Boundary note with examples and `should_not_be_confused_with` links.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "ALN-05",
+      "title": "Define principle absence, resistance, and agency",
+      "category": "Alien Principle Issues",
+      "problem": "The current cosmology gives little formal room for refusal, chance, or events that resist dominant pressures.",
+      "why": "Without resistance, the principles can feel deterministic and narratively airless.",
+      "affected": "`alien principle.txt`; Astral Vanguard concept; future game translations.",
+      "fix": "Define how actors resist, redirect, balance, or remain unreadable to a principle without inventing another principle prematurely.",
+      "priority": "Medium",
+      "output": "Agency and resistance design note.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "MOR-01",
+      "title": "Approve Convergence as the abstract hybrid layer",
+      "category": "Morphling / Convergence Issues",
+      "problem": "“Morphling” currently names abstract combinations, beings, identities, and design classifications.",
+      "why": "One overloaded term makes schemas and lore ambiguous.",
+      "affected": "`what are morphlings.txt`; foundation specification; all hybrid examples.",
+      "fix": "Use Convergence for abstract combinations and Morphling for embodied expressions, subject to approval.",
+      "priority": "Critical",
+      "output": "Terminology decision and updated definitions.",
+      "workType": "Canon decision; writing",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "MOR-02",
+      "title": "Create the three pairwise convergence specifications",
+      "category": "Morphling / Convergence Issues",
+      "problem": "The combinations have evocative phrases but no consistent design records.",
+      "why": "They are among the most reusable ideas in the archive and need more than examples.",
+      "affected": "`what are morphlings.txt`; Rumin, Sheen, Bizi, and Frumo mappings.",
+      "fix": "Specify Zynarth–Voltari, Voltari–Zendra, and Zynarth–Zendra using combined verbs, constructive forms, destructive forms, mechanics, motifs, and exclusions.",
+      "priority": "High",
+      "output": "Three convergence briefs.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes for approval"
+    },
+    {
+      "id": "MOR-03",
+      "title": "Define triple-convergence limits",
+      "category": "Morphling / Convergence Issues",
+      "problem": "Triple hybrids are described as “even stranger,” but their design value and constraints are undefined.",
+      "why": "An all-principle category can become a convenient explanation for anything.",
+      "affected": "`what are morphlings.txt`.",
+      "fix": "Define when a triple convergence is justified, what it must demonstrate, and why it is not merely a pile of traits.",
+      "priority": "Medium",
+      "output": "Triple-convergence rule and one approved example.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "MOR-04",
+      "title": "Create a Morphling validation template",
+      "category": "Morphling / Convergence Issues",
+      "problem": "There is no quality test preventing generic shapeshifters or arbitrary mixed creatures from being labeled Morphlings.",
+      "why": "Weak Morphlings would rapidly dilute the core hybrid system.",
+      "affected": "Future characters, cards, factions, and player identities; `what are morphlings.txt`.",
+      "fix": "Require component convergence, embodiment logic, stable and variable traits, narrative role, mechanical affordance, and explicit non-generic distinction.",
+      "priority": "High",
+      "output": "Morphling creation/review template.",
+      "workType": "Writing; data; legal/design guardrail",
+      "needsDecision": "No for draft; Yes for adoption"
+    },
+    {
+      "id": "AVG-01",
+      "title": "Establish Astral Vanguards as a separate ontological layer",
+      "category": "Astral Vanguard Issues",
+      "problem": "Astral Vanguards are presented alongside alien factions despite serving as outsiders and interpreters rather than principles.",
+      "why": "Treating them as a fourth faction breaks the layer model.",
+      "affected": "`what are morphlings.txt`; `EGGS MDP (1).pdf`; future Vanguard records.",
+      "fix": "Define them as cross-world roles or entities linked to projects, interventions, and observations—not as a principle.",
+      "priority": "High",
+      "output": "Astral Vanguard foundation brief and data subtype.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "AVG-02",
+      "title": "Define Vanguard roles without moral default",
+      "category": "Astral Vanguard Issues",
+      "problem": "Vanguards can be saviors, archivists, meddlers, or conquerors, but their operational distinctions are undeveloped.",
+      "why": "Without role clarity they risk becoming generic space adventurers or authorial mouthpieces.",
+      "affected": "`what are morphlings.txt`; `zendrapoem.txt`; MDP request for Vanguard seeds.",
+      "fix": "Define role families such as observer, courier, archivist, scout, intervener, and defector, each with consent and power tensions.",
+      "priority": "Medium",
+      "output": "Vanguard role taxonomy and three revised seed examples.",
+      "workType": "Writing; data",
+      "needsDecision": "No for draft; Yes for canon selection"
+    },
+    {
+      "id": "AVG-03",
+      "title": "Define Vanguard/player relationship",
+      "category": "Astral Vanguard Issues",
+      "problem": "It is unclear whether Vanguards are lore characters, player avatars, curators, or an interface metaphor.",
+      "why": "Each use carries different narrative authority and product implications.",
+      "affected": "`EGGS MDP (1).pdf`; future onboarding, profiles, archive UI, and games.",
+      "fix": "Document allowed usage modes per project and prohibit automatic equivalence between player and benevolent editor of worlds.",
+      "priority": "Medium",
+      "output": "Vanguard usage matrix.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CIV-01",
+      "title": "Differentiate Bizi and Sheen structurally",
+      "category": "Mortal Civilization Issues",
+      "problem": "Both are primarily Voltari–Zendra civilizations involving order, ritual, preservation, legitimacy, and sacred systems.",
+      "why": "Their thematic and mechanical identities can blur despite different aesthetics.",
+      "affected": "`what are bizi.txt`; `what are sheen.txt`; both timelines and art folders.",
+      "fix": "Establish Bizi around routing, powering, maintaining, access, and dependency; establish Sheen around inheritance, memory, healing, continuity, and legitimacy. Test conflicts and mechanics.",
+      "priority": "High",
+      "output": "Bizi/Sheen distinction brief and revised signature verbs.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CIV-02",
+      "title": "Preserve Rumin while removing Rome transcription",
+      "category": "Mortal Civilization Issues",
+      "problem": "Rumin's “procedural appetite” is strong, but its timeline and names reproduce Roman history closely.",
+      "why": "The best civilization concept is being weakened by derivative execution.",
+      "affected": "`what are rumin.txt`; `rumintimeline.txt`; Rumin art and characters.",
+      "fix": "Preserve finance, obligation, civic spectacle, and procedural extraction; redesign institutions, chronology, rulers, conflicts, and symbols from first principles.",
+      "priority": "High",
+      "output": "Rumin concept kernel and transformed timeline brief.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes before replacing current direction"
+    },
+    {
+      "id": "CIV-03",
+      "title": "Preserve Frumo while removing French Revolutionary transcription",
+      "category": "Mortal Civilization Issues",
+      "problem": "Frumo's emotional-weather and grief-legitimacy ideas are strong, but names and sequence closely mirror the French Revolution and Napoleon.",
+      "why": "Direct transcription creates originality and ethics conflicts.",
+      "affected": "`what are frumo.txt`; `frumotimline.txt`; Frumo character art.",
+      "fix": "Preserve grief economy, tribunals, frozen futurity, and revolutionary corruption; rebuild the political sequence, institutions, figures, and outcomes.",
+      "priority": "High",
+      "output": "Frumo concept kernel and transformed timeline brief.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CIV-04",
+      "title": "Rebuild Bizi beyond Byzantine/Constantinople analogy",
+      "category": "Mortal Civilization Issues",
+      "problem": "Bizi's sacred infrastructure is distinctive, but names, empire beats, and imagery lean on Byzantium and recognizable religious architecture.",
+      "why": "The direct analogy conflicts with the ethics codex and limits aesthetic originality.",
+      "affected": "`what are bizi.txt`; `bizitimeline.txt`; Bizi art, especially `Steampunk_constantinople_in_sepiaa.webp`.",
+      "fix": "Preserve maintenance-as-prayer, routes, access, Hub dependency, and fuel theology; redesign history, architecture, sacred interface, and names.",
+      "priority": "High",
+      "output": "Bizi concept kernel, transformed timeline, and motif reset brief.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CIV-05",
+      "title": "Rebuild Sheen beyond imperial-China analogy",
+      "category": "Mortal Civilization Issues",
+      "problem": "Sheen's rooted memory is strong, but its description explicitly maps to imperial China, examinations, dynasty, and state medicine.",
+      "why": "The concept risks flattening a real culture into a critical fantasy device.",
+      "affected": "`what are sheen.txt`; `sheentimeline.txt`; Sheen art and character names.",
+      "fix": "Preserve memory, inherited obligation, healing, continuity, and renewal; redesign governance, kinship, knowledge transmission, and ritual systems.",
+      "priority": "High",
+      "output": "Sheen concept kernel and transformed civilization brief.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "CIV-06",
+      "title": "Classify undeveloped civilizations and folders",
+      "category": "Mortal Civilization Issues",
+      "problem": "Jali, Mekan, Gracus, and Indela appear in prose or art without enough current definition to establish status.",
+      "why": "Unlabeled fragments create false expectations and pollute browsing.",
+      "affected": "`Archive/Art/jali`; `Archive/Art/mekan`; `Archive/Art/gracus`; mention of Indela in `what are morphlings.txt`.",
+      "fix": "Inventory each concept, summarize available evidence, and present options: active development, experimental fragment, merged concept, or retired.",
+      "priority": "Medium",
+      "output": "Unresolved civilization dossier and user decision list.",
+      "workType": "Data; writing; canon decision",
+      "needsDecision": "Yes for classification"
+    },
+    {
+      "id": "HIS-01",
+      "title": "Perform a historical-distance audit",
+      "category": "Historical Transcription Issues",
+      "problem": "The archive lacks a repeatable method for determining when inspiration has become transcription.",
+      "why": "Similar problems will recur even after current timelines are rewritten.",
+      "affected": "All civilization descriptions, timelines, names, and visual references; ethics codex.",
+      "fix": "Score name similarity, event sequence, institutional equivalence, symbol use, visual mimicry, and trauma proximity. Define blocking thresholds.",
+      "priority": "Critical",
+      "output": "Historical-distance rubric and completed audit of four developed civilizations.",
+      "workType": "Writing; data; legal/design guardrail",
+      "needsDecision": "No for audit; Yes for thresholds"
+    },
+    {
+      "id": "HIS-02",
+      "title": "Reconcile timelines with the ethics codex",
+      "category": "Historical Transcription Issues",
+      "problem": "The ethics codex says “transform, don't transcribe” and rejects reenactment, while current timelines openly follow real histories.",
+      "why": "The archive contains a direct internal policy contradiction.",
+      "affected": "All four timelines; `THE EGGS MS WHOLISTIC DESIGNER ETHICS CODEX.pdf`.",
+      "fix": "Flag the timelines as contradictory/risky, create decision links, and either rewrite them or narrow the codex through an explicit decision. Do not leave both unqualified.",
+      "priority": "Critical",
+      "output": "Contradiction resolution decision and remediation plan per timeline.",
+      "workType": "Canon decision; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "HIS-03",
+      "title": "Replace historical names and one-to-one figures",
+      "category": "Historical Transcription Issues",
+      "problem": "Names such as Kaiser, Brutus, Augustus, Robespier, Lafayette, Hera, and Constantinople-derived terms preserve source identity too directly.",
+      "why": "Even public-domain names can make the work feel like parody transcription rather than original worldbuilding.",
+      "affected": "All civilization timelines; associated character art filenames and metadata.",
+      "fix": "Rename only after transformed roles and institutions exist; preserve legacy aliases in source tracking.",
+      "priority": "High",
+      "output": "Character/function mapping followed by an approved naming pass.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes for final names"
+    },
+    {
+      "id": "HIS-04",
+      "title": "Define acceptable historical research use",
+      "category": "Historical Transcription Issues",
+      "problem": "The archive critiques real systems but lacks a standard for research, transformation, and attribution.",
+      "why": "Avoiding all history would make the work shallow; copying it would make the work derivative.",
+      "affected": "Ethics codex; future civilization and commentary work.",
+      "fix": "Create a research protocol emphasizing multiple sources, system-level synthesis, transformed causality, cultural sensitivity, and separation between commentary and fiction.",
+      "priority": "Medium",
+      "output": "Historical inspiration protocol.",
+      "workType": "Writing; legal/design guardrail",
+      "needsDecision": "Yes for adoption"
+    },
+    {
+      "id": "PID-01",
+      "title": "Create constructive identity language for the principles",
+      "category": "Player Identity Issues",
+      "problem": "Principle descriptions work better as critiques than as identities players would proudly display.",
+      "why": "Player affiliation must create aspiration and meaning rather than moral suspicion.",
+      "affected": "All alien-principle files; onboarding and profile concepts.",
+      "fix": "Write player promises, healthy behaviors, competitive strengths, honorable rivalries, and self-aware shadow risks for each principle.",
+      "priority": "Critical",
+      "output": "Three approved player identity cards.",
+      "workType": "Writing; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "PID-02",
+      "title": "Prohibit diagnostic and accusatory labels",
+      "category": "Player Identity Issues",
+      "problem": "Terms associated with authoritarianism, mob guilt, paranoia, cults, and delusion could be applied directly to players.",
+      "why": "This can alienate players and turn symbolic systems into personality judgments.",
+      "affected": "Future quizzes, profiles, archetypes, achievements, moderation language, marketing.",
+      "fix": "Create prohibited-language and safe-framing guidance. Describe observable play styles, not mental health, morality, or political identity.",
+      "priority": "High",
+      "output": "Player identity language guardrail.",
+      "workType": "Legal/design guardrail; writing",
+      "needsDecision": "No for draft; Yes for adoption"
+    },
+    {
+      "id": "PID-03",
+      "title": "Design affinities as earned, chosen, and revisable",
+      "category": "Player Identity Issues",
+      "problem": "Identity assignment mechanics are undefined.",
+      "why": "A quiz or automated label could feel deterministic, while purchasable identity could feel hollow.",
+      "affected": "MDP onboarding; future profiles and games.",
+      "fix": "Define how identities can be chosen, demonstrated through play, revised, combined, or left unset. Separate affinity from rank.",
+      "priority": "High",
+      "output": "Identity lifecycle specification.",
+      "workType": "Writing; data; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "PID-04",
+      "title": "Tie achievements to meaningful behavior",
+      "category": "Player Identity Issues",
+      "problem": "The archive values achievement but has no rule separating meaningful records from engagement farming or cosmetic accumulation.",
+      "why": "Empty badges would reproduce the shallow acquisition system EGGS is trying to avoid.",
+      "affected": "MDP Sparks/XP concepts; competitive circuit; future achievement gallery.",
+      "fix": "Require each achievement to identify skill, contribution, history, or rivalry meaning; prohibit purchase-only achievements from implying mastery.",
+      "priority": "High",
+      "output": "Achievement design standard and initial examples.",
+      "workType": "Writing; legal/design guardrail",
+      "needsDecision": "Yes for standard"
+    },
+    {
+      "id": "PID-05",
+      "title": "Define player contribution versus canon authorship",
+      "category": "Player Identity Issues",
+      "problem": "“Players are co-authors” and “players are canon” lack consent, review, ownership, and scope rules.",
+      "why": "Community work can create rights, privacy, moderation, and continuity problems.",
+      "affected": "`EGGS MDP (1).pdf`; community contribution plans.",
+      "fix": "Define contribution statuses, submission consent, attribution, licensing, review, rejection, project scope, and removal handling. Avoid promising automatic canonization.",
+      "priority": "Critical",
+      "output": "Community contribution and canon policy.",
+      "workType": "Legal/design guardrail; canon decision",
+      "needsDecision": "Yes; qualified legal review also required"
+    },
+    {
+      "id": "PPR-01",
+      "title": "Define Para Poker's non-gambling product premise",
+      "category": "Para Poker / Product Strategy Issues",
+      "problem": "Para Poker is framed as part of the desired reuse model, but its boundaries are not yet a settled product statement.",
+      "why": "Poker language can cause mechanics, marketing, or monetization to drift toward wagering assumptions.",
+      "affected": "Foundation specification; future Para Poker documents and prototypes.",
+      "fix": "Define Para Poker around reads, incomplete information, pressure, history, rivalry, and identity, with explicit exclusions for wagering, deposits, rake, and cash-equivalent chips.",
+      "priority": "Critical",
+      "output": "Approved Para Poker product premise and exclusions.",
+      "workType": "Writing; canon decision; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "PPR-02",
+      "title": "Remove paid-only competitive legitimacy",
+      "category": "Para Poker / Product Strategy Issues",
+      "problem": "The competitive circuit requires K-XP from paid events for major qualification while claiming payment is optional.",
+      "why": "This is structurally pay-to-advance and conflicts with the project's player-first philosophy.",
+      "affected": "`INTRODUCTION to Competetive circuit (2).pdf`.",
+      "fix": "Retire or rewrite paid-only XP, tickets, weighting, placement legitimacy, and required paid pathways. If paid events remain, ensure equivalent competitive qualification paths.",
+      "priority": "Critical",
+      "output": "Revised qualification philosophy and circuit model.",
+      "workType": "Product strategy writing; legal/design guardrail; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "PPR-03",
+      "title": "Reconcile symbolic recognition with XP architecture",
+      "category": "Para Poker / Product Strategy Issues",
+      "problem": "The MDP rejects automated points and favors human recognition, while the circuit proposes multiple grindable XP currencies.",
+      "why": "Product direction is internally inconsistent and may produce engagement farming.",
+      "affected": "`EGGS MDP (1).pdf`; competitive circuit PDF.",
+      "fix": "Decide which stages use human recognition, earned records, ratings, contribution evidence, or XP. Define what XP must never represent.",
+      "priority": "High",
+      "output": "Recognition and progression architecture decision.",
+      "workType": "Product strategy writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "PPR-04",
+      "title": "Define competitive prestige without spending proxies",
+      "category": "Para Poker / Product Strategy Issues",
+      "problem": "The circuit explicitly treats K-XP as a proxy for money spent and uses paid perks to create prestige.",
+      "why": "This reduces identity and legitimacy to transaction history.",
+      "affected": "Competitive circuit pages 3–6.",
+      "fix": "Base prestige on verified skill, sportsmanship, contribution, seasonal performance, difficult accomplishments, and recorded rivalry history.",
+      "priority": "Critical",
+      "output": "Prestige model and prohibited monetization patterns.",
+      "workType": "Product strategy writing; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "PPR-05",
+      "title": "Separate product strategy from creative canon",
+      "category": "Para Poker / Product Strategy Issues",
+      "problem": "MDP and circuit proposals are stored beside cosmology and lore without layer labels.",
+      "why": "Temporary operational ideas may be mistaken for evergreen creative commitments.",
+      "affected": "Both product PDFs; current index.",
+      "fix": "Reclassify them as dated business/product strategy artifacts, link relevant guardrails, and create successor documents rather than altering sources.",
+      "priority": "High",
+      "output": "Product artifact classifications and supersession links.",
+      "workType": "Data; writing",
+      "needsDecision": "No for provisional classification"
+    },
+    {
+      "id": "LGL-01",
+      "title": "Retract unsupported legal-safety claims",
+      "category": "Legal / Monetization Risk Issues",
+      "problem": "The competitive circuit declares ticket/XP structures legally clean without qualified analysis.",
+      "why": "Labels and non-cash terminology do not by themselves determine legal treatment.",
+      "affected": "`INTRODUCTION to Competetive circuit (2).pdf`, especially ticket and prize-funding sections.",
+      "fix": "Mark legal claims risky, prohibit reuse as guidance, and require jurisdiction-specific counsel for paid entry, prizes, chance, wagering, or redeemable value.",
+      "priority": "Critical",
+      "output": "Legal-review warning record and red-flag summary for counsel.",
+      "workType": "Legal/design guardrail",
+      "needsDecision": "No to flag; Yes plus qualified counsel before implementation"
+    },
+    {
+      "id": "LGL-02",
+      "title": "Create monetization guardrails",
+      "category": "Legal / Monetization Risk Issues",
+      "problem": "The archive lacks approved boundaries for paid events, cosmetics, progression, scarcity, and competitive advantage.",
+      "why": "Product proposals can silently recreate extraction or pay-to-win dynamics.",
+      "affected": "MDP; competitive circuit; Para Poker; future games.",
+      "fix": "Define prohibited, review-required, and presumptively acceptable patterns, including paid-only qualification and leaderboard weighting.",
+      "priority": "Critical",
+      "output": "Monetization and competitive-integrity guardrail.",
+      "workType": "Legal/design guardrail; canon decision",
+      "needsDecision": "Yes; counsel review where applicable"
+    },
+    {
+      "id": "LGL-03",
+      "title": "Define prize and tournament review triggers",
+      "category": "Legal / Monetization Risk Issues",
+      "problem": "No standard triggers review when a design adds entry fees, prizes, tickets, or cash equivalents.",
+      "why": "Risk depends on mechanics, jurisdiction, participant age, prize funding, and marketing—not terminology alone.",
+      "affected": "Competitive circuit; all future tournament plans.",
+      "fix": "Create a mandatory intake checklist and blocking review flag for any payment/prize/chance/value combination.",
+      "priority": "High",
+      "output": "Tournament legal/design review checklist.",
+      "workType": "Legal/design guardrail",
+      "needsDecision": "No for drafting; qualified counsel for final legal checklist"
+    },
+    {
+      "id": "LGL-04",
+      "title": "Define community content rights and consent",
+      "category": "Legal / Monetization Risk Issues",
+      "problem": "Co-creation is encouraged without submission terms, licenses, privacy rules, or withdrawal handling.",
+      "why": "EGGS may not have clear rights to store, modify, publish, or commercialize contributed work.",
+      "affected": "MDP community loop; future submissions and profiles.",
+      "fix": "Develop plain-language contribution terms and internal review procedure with qualified counsel.",
+      "priority": "Critical",
+      "output": "Contribution rights requirements and counsel-ready questions.",
+      "workType": "Legal/design guardrail",
+      "needsDecision": "Yes; qualified legal review required"
+    },
+    {
+      "id": "LGL-05",
+      "title": "Review cultural and symbolic harm controls",
+      "category": "Legal / Monetization Risk Issues",
+      "problem": "The ethics codex is principled but absolute in places, while current materials contradict it and use recognizable architecture/symbols.",
+      "why": "An unworkable rulebook may be ignored; a vague one may not prevent harm.",
+      "affected": "Ethics codex; civilization prose; concept art.",
+      "fix": "Convert the ethics codex into operational checks with escalation triggers, examples, and documented exceptions rather than unsupported assurances.",
+      "priority": "High",
+      "output": "Revised cultural/fiction design guardrail and review worksheet.",
+      "workType": "Legal/design guardrail; writing",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "ART-01",
+      "title": "Audit visual consistency by concept",
+      "category": "Visual Art Bible Issues",
+      "problem": "The art archive mixes watercolor, ink, generic fantasy rendering, steampunk, direct architecture, and varied AI aesthetics.",
+      "why": "Quantity can be mistaken for a coherent visual identity.",
+      "affected": "All folders under `Archive/Art`.",
+      "fix": "Review every asset for concept, style, motif value, distinctiveness, quality, provenance, and canon suitability.",
+      "priority": "High",
+      "output": "Visual audit table with keep/reference/rework/retire recommendations.",
+      "workType": "Data; writing",
+      "needsDecision": "No for audit; Yes for final selection"
+    },
+    {
+      "id": "ART-02",
+      "title": "Separate motif evidence from canonical depiction",
+      "category": "Visual Art Bible Issues",
+      "problem": "A useful texture, composition, or material cue may cause an entire image to be treated as canon.",
+      "why": "Strong fragments should be reusable without importing weak or risky imagery wholesale.",
+      "affected": "All concept art; future motif records.",
+      "fix": "Extract approved motifs into separate records linked by `inspires`, while leaving source images at their true authority and rights status.",
+      "priority": "High",
+      "output": "Initial motif library with source links.",
+      "workType": "Data; writing",
+      "needsDecision": "Yes for motif approval"
+    },
+    {
+      "id": "ART-03",
+      "title": "Create visual grammars for the three principles",
+      "category": "Visual Art Bible Issues",
+      "problem": "The alien principles have prose but no stable non-generic visual language.",
+      "why": "Without one, Zynarth becomes insects, Voltari becomes robots, and Zendra becomes purple psychic effects.",
+      "affected": "Alien principle prose; current and future art.",
+      "fix": "Define shapes, repetition, materials, motion, spatial behavior, contrast, sound relationships, and exclusions for each principle.",
+      "priority": "High",
+      "output": "Three visual grammar briefs.",
+      "workType": "Writing; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "ART-04",
+      "title": "Flag direct real-world architecture and symbols",
+      "category": "Visual Art Bible Issues",
+      "problem": "Some images use recognizable religious or cultural architecture, including the explicit “Steampunk Constantinople” reference.",
+      "why": "This conflicts with the current ethics direction and may create unintended cultural readings.",
+      "affected": "`Archive/Art/Bizi/Places/Steampunk_constantinople_in_sepiaa.webp`; other civilization place art.",
+      "fix": "Add cultural-reference review flags, restrict risky assets to internal reference, and commission or generate transformed replacements only after motif direction is approved.",
+      "priority": "High",
+      "output": "Flagged-asset list and replacement briefs.",
+      "workType": "Data; legal/design guardrail",
+      "needsDecision": "No to flag; Yes for replacement direction"
+    },
+    {
+      "id": "ART-05",
+      "title": "Define art curation standards",
+      "category": "Visual Art Bible Issues",
+      "problem": "The MDP simultaneously encourages messy AI output and calls for tight curation, without criteria.",
+      "why": "“Curated” can become subjective gatekeeping or fail to protect consistency and rights.",
+      "affected": "`EGGS MDP (1).pdf`; all art submissions.",
+      "fix": "Define review criteria for originality, concept relevance, craft, style fit, rights, cultural risk, AI disclosure, and intended use.",
+      "priority": "High",
+      "output": "Art intake and curation rubric.",
+      "workType": "Writing; data; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DAT-01",
+      "title": "Preserve the workbook as migration input, not final schema",
+      "category": "App/Data Model Issues",
+      "problem": "The index combines import data, stable metadata, formulas, and dashboard views in a structure that cannot represent the full archive model.",
+      "why": "Building directly on it would hard-code current ambiguity.",
+      "affected": "`Index/creative_asset_system_index.xlsx`; `Index/readme.txt`.",
+      "fix": "Freeze a migration snapshot, document sheet roles, and map workbook fields into the foundation schemas without changing source authority.",
+      "priority": "Critical",
+      "output": "Workbook-to-schema migration specification.",
+      "workType": "Data; app",
+      "needsDecision": "No for specification; app work remains deferred"
+    },
+    {
+      "id": "DAT-02",
+      "title": "Replace filenames as record keys",
+      "category": "App/Data Model Issues",
+      "problem": "Generic names such as `image.png` collide, while renamed files can shift metadata associations.",
+      "why": "Identity and relationships cannot safely depend on filenames.",
+      "affected": "Index `Name` columns; many art assets.",
+      "fix": "Generate immutable artifact IDs and checksums; retain filenames as mutable metadata and aliases.",
+      "priority": "Critical",
+      "output": "ID strategy and duplicate-detection report.",
+      "workType": "Data; app",
+      "needsDecision": "No for design; app execution deferred"
+    },
+    {
+      "id": "DAT-03",
+      "title": "Repair index name/path alignment",
+      "category": "App/Data Model Issues",
+      "problem": "Sampled workbook rows show stable metadata names shifted relative to imported filenames and paths.",
+      "why": "Incorrect joins can assign metadata to the wrong artwork.",
+      "affected": "`Files!AA:AK` and generated `assets` view in the workbook.",
+      "fix": "Validate each name against path basename and checksum, quarantine mismatches, and rebuild metadata joins by stable ID.",
+      "priority": "Critical",
+      "output": "Mismatch report and corrected migration table.",
+      "workType": "Data",
+      "needsDecision": "No; ambiguous matches require user review"
+    },
+    {
+      "id": "DAT-04",
+      "title": "Replace absolute machine paths",
+      "category": "App/Data Model Issues",
+      "problem": "The workbook stores `C:\\Users\\...` paths tied to one machine.",
+      "why": "The archive will not migrate cleanly to another computer or app environment.",
+      "affected": "Workbook filepath fields.",
+      "fix": "Store workspace-relative paths, normalized separators, and optional resolved local paths at runtime.",
+      "priority": "High",
+      "output": "Path normalization rule and converted migration field.",
+      "workType": "Data; app",
+      "needsDecision": "No"
+    },
+    {
+      "id": "DAT-05",
+      "title": "Normalize nulls and controlled values",
+      "category": "App/Data Model Issues",
+      "problem": "Empty Purpose/Tone/Status cells appear as zeros in the generated view, and tag completion is sparse.",
+      "why": "Zero values look meaningful and damage filtering and validation.",
+      "affected": "Workbook `assets` sheet and formulas.",
+      "fix": "Convert empty values to null, validate enums, and preserve unknown as unknown rather than inventing defaults.",
+      "priority": "High",
+      "output": "Data-cleaning rules and validation report.",
+      "workType": "Data",
+      "needsDecision": "No"
+    },
+    {
+      "id": "DAT-06",
+      "title": "Model entities separately from artifacts",
+      "category": "App/Data Model Issues",
+      "problem": "Current folders and rows make an artwork, faction, character, concept, and place look like variations of one record type.",
+      "why": "One concept can have many artifacts, and one artifact can depict many entities.",
+      "affected": "Entire index and archive filesystem.",
+      "fix": "Use separate entity, artifact, relationship, and project-usage records with many-to-many links.",
+      "priority": "Critical",
+      "output": "Approved logical data model and example migration records.",
+      "workType": "Data; app; canon decision",
+      "needsDecision": "Yes for final model; no app build yet"
+    },
+    {
+      "id": "DAT-07",
+      "title": "Define typed relationship governance",
+      "category": "App/Data Model Issues",
+      "problem": "Relationships are currently implied in prose or folder placement.",
+      "why": "Reuse, contradiction, derivation, and supersession cannot be queried reliably.",
+      "affected": "All concepts and artifacts; future app.",
+      "fix": "Adopt the relationship types in the foundation specification, define directionality and constraints, and require evidence for interpretive links.",
+      "priority": "High",
+      "output": "Relationship dictionary and validation rules.",
+      "workType": "Data; app",
+      "needsDecision": "Yes for adoption"
+    },
+    {
+      "id": "DAT-08",
+      "title": "Define first-build acceptance tests without building",
+      "category": "App/Data Model Issues",
+      "problem": "The future app can easily expand into graph visualization, generation, profiles, or marketplace features before basic archive work is proven.",
+      "why": "Overengineering would delay useful browsing and classification.",
+      "affected": "`ARCHIVE_FOUNDATION_SPEC.md`; future app plan.",
+      "fix": "Convert the first-build scope into testable stories for import, browsing, status visibility, search, relationships, project usage, and decisions. Keep deferred features explicit.",
+      "priority": "Medium",
+      "output": "App acceptance-test backlog, with all implementation tasks marked deferred.",
+      "workType": "App; writing",
+      "needsDecision": "Yes before app work begins"
+    },
+    {
+      "id": "PRV-01",
+      "title": "Inventory creator and source provenance",
+      "category": "Provenance / Rights / Source Tracking Issues",
+      "problem": "Many images have generic or generated filenames, and creator/source information is absent.",
+      "why": "Unknown origin blocks confident publication, modification, attribution, and commercial use.",
+      "affected": "All files under `Archive/Art`; Discord `.url` reference; deployable card images.",
+      "fix": "Capture creator, source URL, acquisition date, original filename, and known usage terms. Mark unknowns explicitly.",
+      "priority": "Critical",
+      "output": "Provenance inventory with unknown-source queue.",
+      "workType": "Data; legal/design guardrail",
+      "needsDecision": "No to inventory; Yes before risky commercial use"
+    },
+    {
+      "id": "PRV-02",
+      "title": "Track AI generation details",
+      "category": "Provenance / Rights / Source Tracking Issues",
+      "problem": "AI-generated assets appear in the archive without consistent model, prompt, date, editing, or contributor records.",
+      "why": "Rights, platform rules, reproducibility, curation, and public disclosure may depend on provenance.",
+      "affected": "DALL-E and ChatGPT-named files; other suspected AI images.",
+      "fix": "Add `ai_generated`, model, prompt, generation date, human edits, contributor, and confidence fields. Use unknown when evidence is missing.",
+      "priority": "High",
+      "output": "AI provenance report and metadata standard.",
+      "workType": "Data; legal/design guardrail",
+      "needsDecision": "No"
+    },
+    {
+      "id": "PRV-03",
+      "title": "Assign rights status and use restrictions",
+      "category": "Provenance / Rights / Source Tracking Issues",
+      "problem": "The archive lacks controlled rights statuses.",
+      "why": "Reference-only material may accidentally ship in games or marketing.",
+      "affected": "All art, community contributions, external references, and deployables.",
+      "fix": "Use statuses such as owned, licensed, permission-recorded, public-domain-verified, internal-reference-only, and unknown-needs-review. Default unknown to internal reference only.",
+      "priority": "Critical",
+      "output": "Rights-status taxonomy and artifact assignments.",
+      "workType": "Data; legal/design guardrail",
+      "needsDecision": "Yes for policy; counsel for uncertain cases"
+    },
+    {
+      "id": "PRV-04",
+      "title": "Detect duplicates and derivative chains",
+      "category": "Provenance / Rights / Source Tracking Issues",
+      "problem": "Similar images, format variants, renamed files, and source derivatives are not linked.",
+      "why": "Duplicates inflate archive size and obscure which version is approved or properly sourced.",
+      "affected": "Art folders, especially repeated numbered images and `.url` references.",
+      "fix": "Calculate checksums and perceptual similarity later during migration; meanwhile document obvious variants and designate parent/derivative relationships.",
+      "priority": "Medium",
+      "output": "Duplicate/variant report and derivative relationship rules.",
+      "workType": "Data; app",
+      "needsDecision": "No; destructive deduplication is not authorized"
+    },
+    {
+      "id": "PRV-05",
+      "title": "Create source citation requirements for concepts",
+      "category": "Provenance / Rights / Source Tracking Issues",
+      "problem": "Canon and design records may summarize ideas without traceability to source artifacts or decisions.",
+      "why": "Future sessions need to distinguish interpretation from documented origin.",
+      "affected": "All future structured records and rewrites.",
+      "fix": "Require source artifact IDs and decision IDs for canon claims, with optional passage/page locators.",
+      "priority": "High",
+      "output": "Concept-source citation standard.",
+      "workType": "Data; writing",
+      "needsDecision": "No for draft; Yes for adoption"
+    },
+    {
+      "id": "DEC-01",
+      "title": "Canonical spelling for Zynarth",
+      "category": "Decision Log Items",
+      "problem": "Zynarth and Xynarth coexist.",
+      "why": "Entity identity and search require one canonical display name.",
+      "affected": "`what are xynarth.txt`; all hybrid and foundation references.",
+      "fix": "Approve `Zynarth` as canonical and retain `Xynarth` as a source alias, unless the user chooses otherwise.",
+      "priority": "Critical",
+      "output": "Rename decision record.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-02",
+      "title": "Meaning of Xen’Dra relative to Zendra",
+      "category": "Decision Log Items",
+      "problem": "Xen’Dra may be a species, manifestation, title, or spelling variant.",
+      "why": "The poem cannot be indexed correctly without the distinction.",
+      "affected": "`zendrapoem.txt`; `what are zendra.txt`.",
+      "fix": "Choose one relation and document `should_not_be_confused_with` or alias behavior.",
+      "priority": "High",
+      "output": "Definition decision record.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-03",
+      "title": "Convergence versus Morphling terminology",
+      "category": "Decision Log Items",
+      "problem": "Abstract and embodied hybrids share one label.",
+      "why": "This blocks clean writing and schemas.",
+      "affected": "`what are morphlings.txt`; foundation specification.",
+      "fix": "Approve Convergence for abstract combinations and Morphling for embodiments.",
+      "priority": "Critical",
+      "output": "Terminology decision record.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-04",
+      "title": "Ecosystem hierarchy",
+      "category": "Decision Log Items",
+      "problem": "Brand, world, game, and community names overlap.",
+      "why": "Project canon and app navigation depend on scope.",
+      "affected": "MDP; ethics codex; index readme.",
+      "fix": "Approve the hierarchy produced by FND-01.",
+      "priority": "Critical",
+      "output": "Scope/hierarchy decision record.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-05",
+      "title": "Principle grammar limits",
+      "category": "Decision Log Items",
+      "problem": "It is unclear whether the three principles are exhaustive metaphysics or optional design lenses.",
+      "why": "This controls creative freedom across every future project.",
+      "affected": "`alien principle.txt`; foundation specification.",
+      "fix": "Approve a lens-based, non-totalizing interpretation unless exhaustive metaphysics is explicitly desired.",
+      "priority": "High",
+      "output": "Foundation interpretation decision.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-06",
+      "title": "Status of Rumin, Frumo, Bizi, and Sheen",
+      "category": "Decision Log Items",
+      "problem": "Their kernels are strong but their histories require substantial transformation.",
+      "why": "Teams need to know whether to rewrite, freeze, merge, or retire them.",
+      "affected": "Four civilization files, four timelines, and associated art.",
+      "fix": "Decide per civilization: active rewrite, flexible inspiration, experimental hold, merge, or retire.",
+      "priority": "High",
+      "output": "Four scoped status decisions.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-07",
+      "title": "Status of Jali, Mekan, Gracus, and Indela",
+      "category": "Decision Log Items",
+      "problem": "These concepts are present but undefined or unevenly documented.",
+      "why": "Their material cannot be curated or reused responsibly without status.",
+      "affected": "Corresponding art folders; Indela prose mention.",
+      "fix": "Decide active, experimental, merge candidate, or retired after CIV-06 dossier.",
+      "priority": "Medium",
+      "output": "Classification decisions.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-08",
+      "title": "Player affinity model",
+      "category": "Decision Log Items",
+      "problem": "Single-faction selection conflicts with layered identity.",
+      "why": "This shapes onboarding, profiles, achievements, and community language.",
+      "affected": "MDP; future player systems.",
+      "fix": "Approve layered, revisable affinities or explicitly choose a different model.",
+      "priority": "High",
+      "output": "Player identity model decision.",
+      "workType": "Canon decision; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-09",
+      "title": "Para Poker product boundaries",
+      "category": "Decision Log Items",
+      "problem": "Poker-inspired competition needs clear separation from gambling and pay-to-win design.",
+      "why": "Mechanics, marketing, progression, and legal review depend on the boundary.",
+      "affected": "Foundation specification; future Para Poker work.",
+      "fix": "Approve the non-gambling premise and prohibited mechanics from PPR-01.",
+      "priority": "Critical",
+      "output": "Product guardrail decision.",
+      "workType": "Canon decision; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-10",
+      "title": "Competitive circuit disposition",
+      "category": "Decision Log Items",
+      "problem": "The current circuit contains paid-only advancement and unsupported legal claims.",
+      "why": "It cannot safely guide implementation in its present form.",
+      "affected": "`INTRODUCTION to Competetive circuit (2).pdf`.",
+      "fix": "Choose retire-and-replace, major rewrite, or research-only archive status.",
+      "priority": "Critical",
+      "output": "Product artifact disposition decision.",
+      "workType": "Canon decision; legal/design guardrail",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-11",
+      "title": "Art rights default",
+      "category": "Decision Log Items",
+      "problem": "Unknown-source art lacks a default usage rule.",
+      "why": "Without one, risky material may ship accidentally.",
+      "affected": "Entire art archive.",
+      "fix": "Approve `unknown = internal reference only` until rights are verified.",
+      "priority": "Critical",
+      "output": "Rights policy decision.",
+      "workType": "Legal/design guardrail; canon decision",
+      "needsDecision": "Yes"
+    },
+    {
+      "id": "DEC-12",
+      "title": "Foundation specification approval",
+      "category": "Decision Log Items",
+      "problem": "`ARCHIVE_FOUNDATION_SPEC.md` is currently strong direction, not approved foundation canon.",
+      "why": "The archive needs an authoritative operating manual before large-scale remediation or app work.",
+      "affected": "`ARCHIVE_FOUNDATION_SPEC.md`; `AGENTS.md`; this backlog.",
+      "fix": "Review, amend, and approve selected sections; log any exclusions or provisional clauses.",
+      "priority": "Critical",
+      "output": "Approval decision with section-level exceptions if needed.",
+      "workType": "Canon decision",
+      "needsDecision": "Yes"
+    }
+  ]
+}

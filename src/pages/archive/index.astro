@@ -1,0 +1,39 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../../layouts/AppLayout.astro";
+import ArchiveCard from "../../components/ArchiveCard.astro";
+const archive = (await getCollection("archive")).sort((a,b) => a.data.title.localeCompare(b.data.title));
+const types = [...new Set(archive.map((entry) => entry.data.entityType))].sort();
+const statuses = [...new Set(archive.map((entry) => entry.data.canonStatus))].sort();
+---
+<AppLayout title="Archive library" section="archive">
+  <header class="page-head">
+    <div class="head-copy"><p class="eyebrow">Archive / system mode</p><h1>Creative library</h1><p class="lede">Browse principles, expressions, mechanics, identities, applications, and source artifacts. Every record carries its governance state with it.</p></div>
+    <div class="count-orbit"><div><b>{archive.length}</b><span>records</span></div></div>
+  </header>
+  <div class="toolbar" data-filter-root>
+    <div class="search"><input id="archive-search" type="search" placeholder="Search concepts, tags, or reuse…" /></div>
+    <select id="archive-type"><option value="all">All types</option>{types.map((type) => <option value={type}>{type.replaceAll("-"," ")}</option>)}</select>
+    <select id="archive-status"><option value="all">All canon labels</option>{statuses.map((status) => <option value={status}>{status.replaceAll("-"," ")}</option>)}</select>
+    <span class="result-count"><b id="archive-count">{archive.length}</b> shown</span>
+  </div>
+  <div class="grid grid-3" id="archive-grid">{archive.map((entry) => <ArchiveCard entry={entry} />)}</div>
+  <p id="archive-empty" class="empty" hidden>No archive items match those filters.</p>
+  <script is:inline>
+    const search = document.querySelector('#archive-search');
+    const type = document.querySelector('#archive-type');
+    const status = document.querySelector('#archive-status');
+    const cards = [...document.querySelectorAll('[data-card]')];
+    const count = document.querySelector('#archive-count');
+    const empty = document.querySelector('#archive-empty');
+    const filter = () => {
+      const query = search.value.trim().toLowerCase(); let visible = 0;
+      cards.forEach(card => {
+        const show = (!query || card.dataset.text.includes(query)) && (type.value === 'all' || card.dataset.type === type.value) && (status.value === 'all' || card.dataset.status === status.value);
+        card.hidden = !show; if (show) visible++;
+      });
+      count.textContent = visible; empty.hidden = visible !== 0;
+    };
+    [search,type,status].forEach(el => el.addEventListener('input', filter));
+  </script>
+</AppLayout>

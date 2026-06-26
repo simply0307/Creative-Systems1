@@ -1,0 +1,1 @@
+{"id":"pipeline.provenance-sweep","title":"Complete visual provenance sweep","type":"provenance-review","status":"open","priority":"critical","inputFiles":["Archive/Art"],"outputRecords":["artifact metadata"],"relatedArchiveRecords":["pressure-field"],"relatedTasks":["PRV-01","PRV-02","PRV-03"],"notes":"Unknown rights remain internal-only until verified."}

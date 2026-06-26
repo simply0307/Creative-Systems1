@@ -1,0 +1,49 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../../layouts/AppLayout.astro";
+import PipelineNav from "../../components/PipelineNav.astro";
+import Pill from "../../components/Pill.astro";
+const artifacts = await getCollection("artifacts");
+const batches = await getCollection("importBatches");
+const archive = (await getCollection("archive")).sort((a,b)=>a.data.title.localeCompare(b.data.title));
+const projects = ["EGGS ecosystem","Para","Para Poker","Paralleon","Reath","Future EGGS games"];
+const groups = [
+  ["Missing tags", artifacts.filter((a) => !a.data.tags.length), "Add descriptive system, subject, medium, and review tags."],
+  ["Missing rights status", artifacts.filter((a) => !a.data.rightsStatus || a.data.rightsStatus.includes("unknown")), "Unknown rights remain internal-only."],
+  ["Missing canon status", artifacts.filter((a) => !a.data.canonStatus || a.data.canonStatus === "unclassified"), "Files do not become canon through import."],
+  ["Missing archive relationships", artifacts.filter((a) => !a.data.relatedArchiveRecords.length), "Connect the file to concepts it evidences or depicts."],
+  ["Missing project use", artifacts.filter((a) => !a.data.relatedProjects.length), "Assign a known project use or explicitly mark it unassigned."],
+] as const;
+---
+<AppLayout title="Batch tagging" section="tagging">
+  <PipelineNav active="tagging" />
+  <header class="page-head"><div class="head-copy"><p class="eyebrow">Operations / metadata editing</p><h1>Batch tagging workbench</h1><p class="lede">Select artifacts, apply shared classification changes, preview the operation, and submit a logged change request.</p></div><div class="count-orbit"><div><b>{groups.reduce((sum,group)=>sum+group[1].length,0)}</b><span>open gaps</span></div></div></header>
+  <form class="bulk-editor" id="tagging-bulk-form">
+    <div class="bulk-head"><div><div class="card-kicker">Actionable batch operation</div><h3><span id="tag-selected-count">0</span> files selected</h3></div><button class="button secondary" type="button" id="clear-tag-selection">Clear selection</button></div>
+    <div class="form-grid">
+      <label>Add tags<input name="addTags" placeholder="comma-separated" /></label><label>Remove tags<input name="removeTags" placeholder="comma-separated" /></label>
+      <label>Project use<select name="project"><option value="">No project change</option>{projects.map((v)=><option>{v}</option>)}</select></label>
+      <label>Connect archive record<select name="archiveRecord"><option value="">No record change</option>{archive.map((v)=><option value={v.id}>{v.data.title}</option>)}</select></label>
+      <label>Canon status<select name="canonStatus"><option value="">No canon change</option>{["unclassified","foundation-canon","project-canon","strong-direction","flexible-inspiration","experimental","retired"].map((v)=><option>{v}</option>)}</select></label>
+      <label>Rights status<select name="rightsStatus"><option value="">No rights change</option>{["unknown-needs-review","owned-internal","licensed","permission-recorded","public-domain-verified","internal-reference-only","restricted"].map((v)=><option>{v}</option>)}</select></label>
+      <label>Review status<select name="reviewStatus"><option value="">No review change</option>{["intake","needs-provenance","needs-rights","rewrite-queued","classified","reviewed","approved","retired"].map((v)=><option>{v}</option>)}</select></label>
+      <label>Lifecycle stage<select name="lifecycleStage"><option value="">No stage change</option>{["Imported","Tagged","Classified","Reviewed","Connected","Decisioned","Rewritten","Exported","Published"].map((v)=><option>{v}</option>)}</select></label>
+    </div>
+    <div class="form-grid compact"><label>Employee / actor<input name="actor" placeholder="Your name" required /></label><label>Reason<input name="reason" placeholder="Why this batch should change" required /></label></div>
+    <div class="action-row"><button class="button secondary" type="button" id="preview-tag-batch">Preview batch</button><button class="button acid" type="submit">Save batch change</button><span class="save-state" aria-live="polite"></span></div><pre class="change-preview" hidden></pre>
+  </form>
+  <div class="section-head"><h2>By import batch</h2><span class="eyebrow">Shared context first</span></div>
+  <div class="grid grid-2">
+    {batches.map((batch) => { const items=artifacts.filter((a)=>a.data.importBatch===batch.data.id); return <section class="card"><div class="card-kicker">{batch.data.id} · {batch.data.status}</div><h3>{batch.data.title}</h3><p>{batch.data.notes}</p><div class="progress-track"><span style={`width:${Math.round(items.filter((a)=>a.data.reviewStatus==="reviewed"||a.data.reviewStatus==="classified").length/Math.max(items.length,1)*100)}%`}></span></div><ul class="mini-list">{items.map((item)=><li><label class="artifact-select"><input type="checkbox" data-tag-select value={item.data.id}/><span><b>{item.data.title}</b><br/>{item.data.reviewStatus} · {item.data.rightsStatus}</span></label></li>)}</ul><div class="card-meta"><Pill label={`${items.length} files`} />{batch.data.defaultTags.map((tag)=><Pill label={tag}/>)}</div></section>})}
+  </div>
+  <div class="section-head"><h2>Metadata gaps</h2><a href="/pipeline/artifacts">Open artifact library →</a></div>
+  <div class="grid grid-2">
+    {groups.map(([title, items, note]) => <section class="card"><div class="card-kicker">Guided queue</div><h3>{title}</h3><p>{note}</p>{items.length ? <ul class="mini-list">{items.map((item)=><li><span><b>{item.data.title}</b><br/><code>{item.data.id}</code></span></li>)}</ul> : <div class="empty-panel">No artifacts in this queue.</div>}</section>)}
+  </div>
+  <section class="card pipeline-card acid" style="margin-top:18px"><div class="card-kicker">Persistence truth</div><p>Saving submits a logged metadata operation. In a plain Astro preview it becomes a browser-local draft. Canonical JSON changes require the Netlify Git-backed adapter and review workflow described in <code>docs/OPERATIONS_API.md</code>.</p></section>
+  <script is:inline>
+    const form=document.querySelector('#tagging-bulk-form'),checks=[...document.querySelectorAll('[data-tag-select]')],count=document.querySelector('#tag-selected-count'),preview=form.querySelector('.change-preview'),state=form.querySelector('.save-state');const selected=()=>checks.filter(c=>c.checked).map(c=>c.value);const update=()=>count.textContent=selected().length;checks.forEach(c=>c.addEventListener('change',update));document.querySelector('#clear-tag-selection').addEventListener('click',()=>{checks.forEach(c=>c.checked=false);update();});
+    const payload=()=>{const fd=new FormData(form),changes={addTags:String(fd.get('addTags')||'').split(',').map(v=>v.trim()).filter(Boolean),removeTags:String(fd.get('removeTags')||'').split(',').map(v=>v.trim()).filter(Boolean)};['project','archiveRecord','canonStatus','rightsStatus','reviewStatus','lifecycleStage'].forEach(k=>{if(fd.get(k))changes[k]=fd.get(k)});return{action:'metadata.bulk-update',actor:String(fd.get('actor')||''),reason:String(fd.get('reason')||''),summary:`Batch classification for ${selected().length} artifacts`,targets:selected(),changes,sourceImpact:['metadata-only']};};
+    document.querySelector('#preview-tag-batch').addEventListener('click',()=>{preview.textContent=JSON.stringify(payload(),null,2);preview.hidden=false;});form.addEventListener('submit',async(event)=>{event.preventDefault();const data=payload();if(!data.targets.length){state.textContent='Select at least one artifact.';return;}if(!data.actor||!data.reason){state.textContent='Actor and reason are required.';return;}state.textContent='Submitting…';const result=await window.CreativeOperations.submit(data);preview.textContent=JSON.stringify(result,null,2);preview.hidden=false;window.CreativeOperations.renderStatus(state,result);});
+  </script>
+</AppLayout>

@@ -1,0 +1,1 @@
+{"id":"pipeline.generate-bundles","title":"Generate static export bundles","type":"export-generation","status":"automated","priority":"high","inputFiles":["src/content","REMEDIATION_BACKLOG.md"],"outputRecords":["public/exports"],"relatedArchiveRecords":["foundation"],"relatedTasks":[],"notes":"Runs before every production build."}

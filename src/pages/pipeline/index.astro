@@ -1,0 +1,60 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../../layouts/AppLayout.astro";
+import PipelineNav from "../../components/PipelineNav.astro";
+import Pill from "../../components/Pill.astro";
+import { getBacklog, isOpenDecision } from "../../lib/backlog";
+const artifacts = await getCollection("artifacts");
+const batches = await getCollection("importBatches");
+const bundles = await getCollection("exportBundles");
+const tasks = await getCollection("pipelineTasks");
+const changes = await getCollection("changeLog");
+const backlog = getBacklog();
+const provenance = artifacts.filter((item) => item.data.reviewStatus.includes("provenance") || !item.data.creator || !item.data.sourceUrl && item.data.sourceType !== "internal-file");
+const rightsRisk = artifacts.filter((item) => item.data.rightsStatus.includes("unknown") || item.data.riskFlags.length);
+const openTasks = tasks.filter((item) => !["complete","automated"].includes(item.data.status));
+const decisions = backlog.filter(isOpenDecision);
+const rewrites = tasks.filter((item)=>item.data.type==="source-rewrite");
+const publishReady = bundles.filter((item)=>item.data.publicStatus.includes("public"));
+const incomplete = tasks.filter((item)=>/blocked|open|awaiting/.test(item.data.status));
+const lifecycle = ["Imported","Tagged","Classified","Reviewed","Connected","Decisioned","Rewritten","Exported","Published"];
+---
+<AppLayout title="Operations overview" section="pipeline">
+  <PipelineNav active="pipeline" />
+  <section class="pipeline-hero">
+    <p class="eyebrow">Operations mode · Employee work terminal</p>
+    <h1>Move the system.</h1>
+    <p class="lede">Bring source files into view, classify what they mean, review what can travel, and emit portable bundles for Para and future EGGS projects.</p>
+    <div class="terminal-line">Repo-native · build-generated · Netlify-safe</div>
+  </section>
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="card stat-card pipeline-card acid"><div class="card-kicker">Artifacts tracked</div><b>{artifacts.length}</b><p>Structured metadata records linked back to source files.</p></div>
+    <div class="card stat-card pipeline-card"><div class="card-kicker">Import batches</div><b>{batches.length}</b><p>Grouped intake sessions with shared source and default tags.</p></div>
+    <div class="card stat-card pipeline-card violet"><div class="card-kicker">Export bundles</div><b>{bundles.length}</b><p>JSON, CSV, and Markdown packages generated at build time.</p></div>
+    <div class="card stat-card decision-card"><div class="card-kicker">Provenance review</div><b>{provenance.length}</b><p>Files missing confident creator or source provenance.</p></div>
+    <div class="card stat-card risk-card"><div class="card-kicker">Rights / risk flags</div><b>{rightsRisk.length}</b><p>Files requiring caution before publication or reuse.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Operations open</div><b>{openTasks.length}</b><p>Classification, review, tagging, rewrite, and publish operations.</p></div>
+    <div class="card stat-card decision-card"><div class="card-kicker">Decisions awaiting</div><b>{decisions.length}</b><p>Resolution gates that can trigger source and metadata work.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Rewrites awaiting approval</div><b>{rewrites.length}</b><p>Structured or prose rewrite plans with explicit review boundaries.</p></div>
+    <div class="card stat-card pipeline-card violet"><div class="card-kicker">Exports ready to regenerate</div><b>{bundles.length}</b><p>Build outputs that refresh after approved source changes.</p></div>
+    <div class="card stat-card pipeline-card acid"><div class="card-kicker">Bundles near publish</div><b>{publishReady.length}</b><p>Public candidates still subject to publication review.</p></div>
+    <div class="card stat-card risk-card"><div class="card-kicker">Failed / incomplete</div><b>{incomplete.length}</b><p>Open, blocked, or decision-dependent operations.</p></div>
+  </div>
+  <div class="section-head"><h2>Lifecycle</h2><span class="eyebrow">Items may skip irrelevant stages</span></div>
+  <div class="lifecycle-flow">{lifecycle.map((stage,index)=><div class="lifecycle-stage"><b>{String(index+1).padStart(2,"0")}</b><span>{stage}</span></div>)}</div>
+  <div class="section-head"><h2>Shipping lanes</h2><span class="eyebrow">Manual now · automatable later</span></div>
+  <div class="grid grid-3">
+    <a class="card card-link pipeline-card acid" href="/pipeline/import"><div class="card-kicker">01 · Intake</div><h3>Import source material</h3><p>Place raw files, create batches, and register one artifact record per source.</p></a>
+    <a class="card card-link pipeline-card" href="/pipeline/tagging"><div class="card-kicker">02 · Classify</div><h3>Tag and connect</h3><p>Find missing rights, canon, project, tag, and relationship metadata.</p></a>
+    <a class="card card-link pipeline-card violet" href="/pipeline/exports"><div class="card-kicker">03 · Emit</div><h3>Generate bundles</h3><p>Build portable JSON, CSV, and Markdown packages into public exports.</p></a>
+  </div>
+  <div class="section-head"><h2>Work moving now</h2><a href="/pipeline/tagging">Open batch workbench →</a></div>
+  <div class="grid grid-2">
+    {openTasks.map((task) => <div class="card review-row"><div><div class="card-kicker">{task.data.id} · {task.data.type}</div><h3>{task.data.title}</h3><p>{task.data.notes}</p></div><div class="review-flags"><Pill label={task.data.priority} tone={task.data.priority[0].toUpperCase()+task.data.priority.slice(1)} /><Pill label={task.data.status} /></div></div>)}
+  </div>
+  <div class="section-head"><h2>Recent movement</h2><a href="/changelog">Open the change log →</a></div>
+  <div class="grid grid-2">
+    <section class="card"><div class="card-kicker">Recently imported</div><ul class="mini-list">{batches.slice(0,4).map((batch)=><li><span><b>{batch.data.title}</b><br/>{batch.data.importedAt} · {batch.data.files.length} files</span></li>)}</ul></section>
+    <section class="card"><div class="card-kicker">Recently changed</div><ul class="mini-list">{changes.sort((a,b)=>b.data.timestamp.localeCompare(a.data.timestamp)).slice(0,4).map((change)=><li><span><b>{change.data.summary}</b><br/>{change.data.person} · {change.data.status}</span></li>)}</ul></section>
+  </div>
+</AppLayout>

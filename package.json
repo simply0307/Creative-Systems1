@@ -1,0 +1,34 @@
+{
+  "name": "eggs-para-creative-systems",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "exports": "node scripts/generate-exports.mjs",
+    "repo:manifest": "node scripts/generate-import-manifest.mjs",
+    "test:operations": "node --test scripts/operations-api.test.mjs",
+    "test:supabase": "node --test scripts/supabase-api.test.mjs scripts/setup-automation.test.mjs",
+    "setup": "node scripts/setup.mjs",
+    "setup:check": "node scripts/setup-check.mjs",
+    "setup:supabase": "node scripts/setup-supabase.mjs",
+    "setup:netlify": "node scripts/setup-netlify.mjs",
+    "setup:import": "node scripts/setup-import.mjs",
+    "setup:import:apply": "node scripts/setup-import-apply.mjs",
+    "setup:verify": "node scripts/setup-verify.mjs",
+    "supabase:seed": "node scripts/import-supabase.mjs",
+    "supabase:seed:dry": "node scripts/import-supabase.mjs --dry-run",
+    "supabase:files:dry": "node scripts/import-workspace-files.mjs",
+    "supabase:files": "node scripts/import-workspace-files.mjs --apply",
+    "build": "node scripts/generate-exports.mjs && node scripts/generate-import-manifest.mjs && astro check && astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@netlify/identity": "^1.2.0",
+    "@supabase/supabase-js": "^2.108.2",
+    "astro": "^5.9.3",
+    "gray-matter": "^4.0.3",
+    "typescript": "^5.8.3"
+  }
+}

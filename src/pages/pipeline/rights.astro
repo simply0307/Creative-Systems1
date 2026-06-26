@@ -1,0 +1,16 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../../layouts/AppLayout.astro";
+import PipelineNav from "../../components/PipelineNav.astro";
+import Pill from "../../components/Pill.astro";
+const artifacts = await getCollection("artifacts");
+const review = artifacts.filter((item)=>item.data.rightsStatus.includes("unknown") || item.data.reviewStatus.includes("provenance") || item.data.reviewStatus.includes("rights") || item.data.riskFlags.length);
+---
+<AppLayout title="Provenance and rights review" section="rights">
+  <PipelineNav active="rights" />
+  <header class="page-head"><div class="head-copy"><p class="eyebrow">Operations / publication safety</p><h1>Provenance & rights review</h1><p class="lede">Unknown does not mean forbidden—but it does mean internal-only until evidence, permission, and intended use are clear.</p></div><div class="count-orbit"><div><b>{review.length}</b><span>review items</span></div></div></header>
+  <div class="grid grid-2">
+    {review.map((item)=><article class="card review-row"><div><div class="card-kicker">{item.data.id} · {item.data.type}</div><h3>{item.data.title}</h3><p>{item.data.filePath}</p><p>{item.data.notes}</p></div><div class="review-flags"><Pill label={item.data.rightsStatus} tone={item.data.rightsStatus.includes("unknown")?"flag":""}/><Pill label={item.data.reviewStatus}/>{item.data.riskFlags.map((flag)=><Pill label={flag} tone="flag"/>)}</div></article>)}
+  </div>
+  {review.length===0 && <div class="empty-panel">No artifacts currently require provenance or rights review.</div>}
+</AppLayout>

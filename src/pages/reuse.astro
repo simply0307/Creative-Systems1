@@ -1,0 +1,17 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import AppLayout from "../layouts/AppLayout.astro";
+const archive = await getCollection("archive");
+const concepts = archive.filter((entry) => ["alien-principle","convergence","player-archetype","mechanic"].includes(entry.data.entityType));
+const channels = ["lore","mechanics","player identity","achievements","cards/badges","UI/HUD","profiles","competitive ladders","Para Poker"];
+const mark = (entry: CollectionEntry<"archive">, channel: string) => entry.data.reuseCategories.includes(channel) ? "yes" : entry.data.reuseCategories.some((value: string) => value.toLowerCase().includes(channel.toLowerCase().split("/")[0])) ? "maybe" : "no";
+---
+<AppLayout title="Project reuse map" section="reuse">
+  <header class="page-head"><div class="head-copy"><p class="eyebrow">Archive / translation layer</p><h1>Reuse without repetition</h1><p class="lede">See where foundational concepts can travel. A marked channel is a documented possibility, not a demand that every project use it.</p></div><div class="count-orbit"><div><b>{concepts.length}</b><span>mapped concepts</span></div></div></header>
+  <div class="matrix-wrap"><table class="matrix"><thead><tr><th>Concept</th>{channels.map((channel) => <th>{channel}</th>)}</tr></thead><tbody>{concepts.map((entry) => <tr><td><a href={`/archive/${entry.id}`}>{entry.data.title}</a></td>{channels.map((channel) => {const value=mark(entry,channel); return <td class:list={["mark",value]}>{value === "yes" ? "●" : value === "maybe" ? "◐" : "—"}</td>})}</tr>)}</tbody></table></div>
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="card"><div class="card-kicker">Explicit lore</div><h3>Name the system</h3><p>Principles or expressions appear directly as story, faction, character, or world logic.</p></div>
+    <div class="card"><div class="card-kicker">Visible system</div><h3>Make it playable</h3><p>Mechanics, UI, achievements, and profiles carry the behavior without requiring exposition.</p></div>
+    <div class="card"><div class="card-kicker">Hidden logic</div><h3>Let it shape design</h3><p>A project inherits pressure, structure, or interpretation without exposing archive terminology.</p></div>
+  </div>
+</AppLayout>

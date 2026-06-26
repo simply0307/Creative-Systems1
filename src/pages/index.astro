@@ -1,0 +1,70 @@
+---
+import { getCollection } from "astro:content";
+import AppLayout from "../layouts/AppLayout.astro";
+import ArchiveCard from "../components/ArchiveCard.astro";
+import Pill from "../components/Pill.astro";
+import { getBacklog, taskHref } from "../lib/backlog";
+
+const archive = await getCollection("archive");
+const artifacts = await getCollection("artifacts");
+const exportBundles = await getCollection("exportBundles");
+const pipelineTasks = await getCollection("pipelineTasks");
+const featured = archive.filter((entry) => entry.data.featured).slice(0, 6);
+const backlog = getBacklog();
+const critical = backlog.filter((item) => item.priority === "Critical");
+---
+<AppLayout title="Creative operating system" section="home">
+  <section class="hero-split">
+    <div class="hero-primary">
+      <div>
+        <p class="eyebrow">EGGS / PARA · Foundation archive</p>
+        <h1>One Creative OS.<br/>Three ways in.</h1>
+        <p class="lede">Understand the library. Repair and govern it. Move work through intake, source updates, exports, and publishing.</p>
+        <div class="cta-row">
+          <a class="button" href="/archive">Explore the archive <span>→</span></a>
+          <a class="button secondary" href="/workbench">Open the workbench</a>
+          <a class="button acid" href="/pipeline">Open operations</a>
+        </div>
+      </div>
+      <p class="eyebrow" style="margin:0">Browse → repair → move → publish</p>
+    </div>
+    <div class="hero-side">
+      <div>
+        <p class="eyebrow">System health</p>
+        <div class="signal-map" aria-hidden="true"><span class="ring"></span><span class="ring"></span><span class="ring"></span><span class="node"></span></div>
+      </div>
+      <div class="hero-stat">
+        <div><b>{archive.length}</b><span>system records</span></div>
+        <div><b>{backlog.length}</b><span>work items</span></div>
+        <div><b>{exportBundles.length}</b><span>export bundles</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid grid-3">
+    <a class="card card-link pipeline-card acid" href="/archive"><div class="card-kicker">01 · System mode</div><h2>Understand it.</h2><p>Browse principles, expressions, mechanics, identities, projects, and source-linked relationships.</p></a>
+    <a class="card card-link pipeline-card coral" href="/workbench"><div class="card-kicker">02 · Workbench mode</div><h2>Repair it.</h2><p>Resolve contradictions, govern canon, track risks, and keep every criticism attached to actionable work.</p></a>
+    <a class="card card-link pipeline-card violet" href="/pipeline"><div class="card-kicker">03 · Operations mode</div><h2>Move it.</h2><p>Intake, classify, tag, decide, rewrite, review, export, and publish through logged operations.</p></a>
+  </div>
+
+  <div class="grid grid-4" style="margin-top:16px">
+    <div class="card stat-card"><div class="card-kicker">Foundation</div><b>3</b><p>Alien principles form the current causal grammar.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Convergence</div><b>3</b><p>Pairwise hybrid spaces ready for deeper specification.</p></div>
+    <div class="card stat-card"><div class="card-kicker">Artifacts</div><b>{artifacts.length}</b><p>File metadata records tracked through employee operations.</p></div>
+    <div class="card stat-card risk-card"><div class="card-kicker">Operations tasks</div><b>{pipelineTasks.length}</b><p>Import, review, tagging, source, and publishing operations.</p></div>
+  </div>
+
+  <div class="section-head"><h2>Foundational signals</h2><a href="/archive">View all archive items →</a></div>
+  <div class="grid grid-3">{featured.map((entry) => <ArchiveCard entry={entry} />)}</div>
+
+  <div class="section-head"><h2>Critical repair queue</h2><a href="/workbench">View the full backlog →</a></div>
+  <div class="grid grid-2">
+    {critical.slice(0, 6).map((item) => (
+      <a class="card card-link work-card" href={taskHref(item.id)}>
+        <div class="work-id">{item.id}</div>
+        <div><h3>{item.title}</h3><p>{item.output}</p></div>
+        <div class="work-meta"><Pill label={item.priority} tone={item.priority} /></div>
+      </a>
+    ))}
+  </div>
+</AppLayout>

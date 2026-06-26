@@ -1,0 +1,36 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getCollection } from "astro:content";
+import { getBacklog } from "../lib/backlog";
+interface Props { artifact: CollectionEntry<"artifacts">; }
+const { artifact } = Astro.props;
+const d = artifact.data;
+const archive = (await getCollection("archive")).sort((a,b)=>a.data.title.localeCompare(b.data.title));
+const projects = ["EGGS ecosystem","Para","Para Poker","Paralleon","Reath","Future EGGS games"];
+const tasks = getBacklog();
+const risks = ["unknown-provenance","historical-transcription","legal-review","monetization","paid-advancement","private-note","real-world-symbol","rights-review","cultural-flattening"];
+const currentMetadata = { tags:d.tags, type:d.type, lifecycleStage:d.lifecycleStage, canonStatus:d.canonStatus, rightsStatus:d.rightsStatus, reviewStatus:d.reviewStatus, relatedProjects:d.relatedProjects, relatedArchiveRecords:d.relatedArchiveRecords, relatedTasks:d.relatedTasks, riskFlags:d.riskFlags, notes:d.notes };
+---
+<details class="edit-panel">
+  <summary>Edit metadata</summary>
+  <form data-artifact-form data-id={d.id} data-file={`src/content/artifacts/${artifact.id}.json`} data-current={JSON.stringify(currentMetadata)}>
+    <div class="form-section"><label>Existing tags</label><div class="editable-chips">{d.tags.length ? d.tags.map((tag)=><label class="tag-check"><input type="checkbox" name="keepTag" value={tag} checked/><span>{tag}</span></label>) : <span class="empty">No tags yet</span>}</div><label>Add tags<input name="addTags" placeholder="comma-separated tags" /></label></div>
+    <div class="form-grid">
+      <label>Artifact type<select name="type"><option selected>{d.type}</option>{["prose","pdf","image","spreadsheet","audio","video","link","other"].filter((v)=>v!==d.type).map((v)=><option>{v}</option>)}</select></label>
+      <label>Lifecycle stage<select name="lifecycleStage">{["Imported","Tagged","Classified","Reviewed","Connected","Decisioned","Rewritten","Exported","Published"].map((v)=><option selected={v===d.lifecycleStage}>{v}</option>)}</select></label>
+      <label>Canon status<select name="canonStatus">{["unclassified","foundation-canon","project-canon","strong-direction","flexible-inspiration","experimental","retired"].map((v)=><option selected={v===d.canonStatus}>{v}</option>)}</select></label>
+      <label>Rights status<select name="rightsStatus">{["unknown-needs-review","owned-internal","licensed","permission-recorded","public-domain-verified","internal-reference-only","restricted"].map((v)=><option selected={v===d.rightsStatus}>{v}</option>)}</select></label>
+      <label>Review status<select name="reviewStatus">{["intake","needs-provenance","needs-rights","needs-terminology","rewrite-queued","risky-needs-review","classified","reviewed","approved","retired"].map((v)=><option selected={v===d.reviewStatus}>{v}</option>)}</select></label>
+    </div>
+    <div class="form-grid">
+      <label>Project use<select name="relatedProjects" multiple>{projects.map((v)=><option value={v} selected={d.relatedProjects.includes(v)}>{v}</option>)}</select></label>
+      <label>Archive records<select name="relatedArchiveRecords" multiple>{archive.map((v)=><option value={v.id} selected={d.relatedArchiveRecords.includes(v.id)}>{v.data.title}</option>)}</select></label>
+      <label>Remediation tasks<select name="relatedTasks" multiple>{tasks.map((v)=><option value={v.id} selected={d.relatedTasks.includes(v.id)}>{v.id} — {v.title}</option>)}</select></label>
+      <label>Risk flags<select name="riskFlags" multiple>{risks.map((v)=><option value={v} selected={d.riskFlags.includes(v)}>{v}</option>)}</select></label>
+    </div>
+    <label>Notes<textarea name="notes" rows="3">{d.notes}</textarea></label>
+    <div class="form-grid compact"><label>Employee / actor<input name="actor" placeholder="Your name" required /></label><label>Reason for change<input name="reason" placeholder="Why this metadata should change" required /></label></div>
+    <div class="action-row"><button class="button secondary" type="button" data-preview-artifact>Preview change</button><button class="button acid" type="submit">Save change request</button><span class="save-state" aria-live="polite"></span></div>
+    <pre class="change-preview" hidden></pre>
+  </form>
+</details>

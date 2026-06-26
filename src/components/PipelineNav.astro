@@ -1,0 +1,12 @@
+---
+const { active = "pipeline" } = Astro.props;
+const links = [
+  ["pipeline", "/pipeline", "Overview"], ["import", "/pipeline/import", "Import"],
+  ["artifacts", "/pipeline/artifacts", "Artifacts"], ["tagging", "/pipeline/tagging", "Batch tagging"],
+  ["exports", "/pipeline/exports", "Export / download"], ["publish", "/pipeline/publish", "Publish"],
+  ["rights", "/pipeline/rights", "Rights"],
+];
+---
+<nav class="pipeline-subnav" aria-label="Operations navigation">
+  {links.map(([key, href, label]) => <a class:list={[active === key && "active"]} href={href}>{label}</a>)}
+</nav>

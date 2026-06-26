@@ -1,0 +1,1 @@
+{"id":"pipeline.classify-prose","title":"Classify remaining prose and timeline files","type":"import-classification","status":"open","priority":"high","inputFiles":["Archive/Prose"],"outputRecords":["artifact metadata"],"relatedArchiveRecords":["reath"],"relatedTasks":["CAN-01","CAN-05","HIS-01"],"notes":"Current seed covers core sources, not every prose artifact."}
