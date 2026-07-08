@@ -1,6 +1,6 @@
 # EGGS / Para Canon Bible
 
-Generated: 2026-07-08T17:54:09.335Z
+Generated: 2026-07-08T17:59:31.196Z
 
 > Strong direction remains visibly distinct from approved foundation canon.
 
