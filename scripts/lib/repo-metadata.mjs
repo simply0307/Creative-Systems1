@@ -15,10 +15,44 @@ const mimeFor = (name = "") => ({
   ".ppt": "application/vnd.ms-powerpoint", ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 }[path.extname(name).toLowerCase()] || "application/octet-stream");
 const checksum = (file) => createHash("sha256").update(fs.readFileSync(file)).digest("hex");
+const walkFiles = (root, relative) => {
+  const start = path.join(root, relative);
+  if (!fs.existsSync(start)) return [];
+  const output = [];
+  const walk = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.isFile()) output.push(full);
+    }
+  };
+  walk(start);
+  return output.sort((a, b) => a.localeCompare(b));
+};
+
+const artifactTypeFor = (mimeType = "", name = "") => {
+  const mime = String(mimeType).toLowerCase();
+  const extension = path.extname(name).toLowerCase();
+  if (mime.startsWith("image/")) return "image";
+  if (mime === "application/pdf") return "pdf";
+  if (extension === ".md" || extension === ".markdown") return "markdown";
+  if (mime.startsWith("text/") || [".txt", ".json", ".csv", ".yaml", ".yml"].includes(extension)) return "text";
+  if ([".doc", ".docx"].includes(extension)) return "doc";
+  if ([".xls", ".xlsx"].includes(extension)) return "spreadsheet";
+  if ([".ppt", ".pptx"].includes(extension)) return "presentation";
+  return "other";
+};
+
+const titleFromFile = (name = "") => path.basename(name, path.extname(name))
+  .replace(/[_-]+/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+  .replace(/\b\w/g, (letter) => letter.toUpperCase()) || "Untitled file";
 
 export const buildRepoMetadataManifest = (root) => {
   const artifactSources = readJsonDirectory(root, "src/content/artifacts");
   const archiveSources = readMarkdownDirectory(root, "src/content/archive");
+  const archiveFilesOnDisk = walkFiles(root, "Archive");
   const artifacts = artifactSources.map((item) => {
     const relativePath = item.filePath ? String(item.filePath).replaceAll("\\", "/") : null;
     const filePath = relativePath ? path.resolve(root, relativePath) : null;
@@ -101,6 +135,9 @@ export const buildRepoMetadataManifest = (root) => {
   const archiveIds = new Set(archiveRecords.map((record) => record.id));
   const relationships = artifactSources.flatMap((item) => (item.relatedArchiveRecords || []).filter((id) => archiveIds.has(id)).map((archiveRecordId) => ({ artifact_id: item.id, archive_record_id: archiveRecordId, relationship_type: "references", notes: "Imported from static artifact metadata." })));
   const artifactById = new Map(artifacts.map((item) => [item.id, item]));
+  const knownArtifactByPath = new Map(artifacts
+    .filter((item) => item.provenance?.workspaceRelativePath)
+    .map((item) => [item.provenance.workspaceRelativePath.replaceAll("\\", "/").toLowerCase(), item]));
   const expectedFiles = artifactSources.filter((item) => item.filePath).map((item) => {
     const artifact = artifactById.get(item.id);
     return {
@@ -114,7 +151,67 @@ export const buildRepoMetadataManifest = (root) => {
       filePresentInBuildWorkspace: artifact.file_status === "needs_import",
     };
   });
-  const core = { artifacts, archiveRecords, decisions, tags, artifactTags, categories, artifactCategories, relationships, expectedFiles };
+  const archiveFiles = archiveFilesOnDisk.map((fullPath) => {
+    const relativePath = path.relative(root, fullPath).replaceAll("\\", "/");
+    const known = knownArtifactByPath.get(relativePath.toLowerCase());
+    const stat = fs.statSync(fullPath);
+    const mimeType = mimeFor(relativePath);
+    const fileChecksum = checksum(fullPath);
+    const segments = relativePath.split("/");
+    const folder = segments.slice(0, -1).join("/");
+    const hashId = createHash("sha256").update(relativePath.toLowerCase()).digest("hex").slice(0, 16);
+    return {
+      id: known?.id || `artifact.archive-${hashId}`,
+      title: known?.title || titleFromFile(relativePath),
+      slug: known?.slug || slugify(`${folder}-${path.basename(relativePath)}`),
+      description: known?.description || "",
+      artifact_type: known?.artifact_type || artifactTypeFor(mimeType, relativePath),
+      source_type: "archive-folder",
+      storage_bucket: known?.storage_bucket || null,
+      storage_path: known?.storage_path || null,
+      original_file_name: path.basename(relativePath),
+      mime_type: mimeType,
+      file_size: stat.size,
+      file_status: known?.file_status || "needs_import",
+      external_url: known?.external_url || null,
+      rights_status: known?.rights_status || "unknown",
+      canon_status: known?.canon_status || "reference-only",
+      review_status: known?.review_status || "needs-tagging",
+      lifecycle_status: known?.lifecycle_status || "indexed",
+      visibility: known?.visibility || "internal",
+      ai_generated: known?.ai_generated ?? null,
+      ai_model: known?.ai_model || null,
+      prompt_used: known?.prompt_used || null,
+      provenance: {
+        ...(known?.provenance || {}),
+        workspaceRelativePath: relativePath,
+        checksumSha256: fileChecksum,
+        folder,
+        folderSegments: segments.slice(0, -1),
+        indexedFromArchiveFolder: true,
+      },
+      legacy_data: {
+        ...(known?.legacy_data || {}),
+        filePath: relativePath,
+        folder,
+        archiveFolderEntry: true,
+      },
+    };
+  });
+  const archiveFolders = [...new Set(archiveFiles.map((file) => file.provenance.folder).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b))
+    .map((folder) => ({ path: folder, depth: folder.split("/").length - 1, fileCount: archiveFiles.filter((file) => file.provenance.folder === folder).length }));
+  const archiveFolderCategories = archiveFolders.map((folder) => ({
+    name: folder.path,
+    slug: slugify(folder.path),
+    description: `Virtual Archive Index folder for ${folder.path}.`,
+    fileCount: folder.fileCount,
+  }));
+  const archiveFolderTags = [...new Set(archiveFiles.flatMap((file) => file.provenance.folderSegments || []))]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b))
+    .map((name) => ({ name, slug: `folder-${slugify(name)}`, tag_type: "folder", description: "Folder-derived standardized tag." }));
+  const core = { artifacts, archiveRecords, decisions, tags, artifactTags, categories, artifactCategories, relationships, expectedFiles, archiveFiles, archiveFolders, archiveFolderCategories, archiveFolderTags };
   const version = createHash("sha256").update(JSON.stringify(core)).digest("hex").slice(0, 16);
   return {
     schemaVersion: "1.0",

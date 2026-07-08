@@ -1,6 +1,34 @@
-# Creative OS live Supabase setup
+# Creative OS Archive Index setup
 
-This is the step-by-step deployment guide for the database-backed Creative OS. Normal uploads, tags, categories, metadata, reviews, decisions, audits, and live exports use Supabase. They do not create routine GitHub branches or pull requests.
+This is the step-by-step deployment guide for the solo-user Creative OS Archive Index. The live app is intentionally simple and focused on archive, index, tag, import, export, preview, and download operations.
+
+## Current implementation
+
+The app currently runs in solo archive mode. There are no accounts, employee roles, or Admin Portal requirements in the active product surface.
+
+Current behavior in this branch:
+
+- Every browser session is treated as the single `Archive operator`.
+- Folder moves, standardized tags, freeform tags, title, and note edits apply directly to Supabase and create audit events.
+- Folder paths become virtual categories.
+- Folder names/segments become standardized `folder` tags.
+- Non-folder controlled tags use the `standard` tag type.
+- Casual human tags use the `freeform` tag type.
+- Review queues, account roles, admin approval workflows, and multi-user permissions are deferred.
+- `/pipeline/artifacts` is the main working surface.
+- `npm run repo:manifest` scans the local `Archive/` folder and writes `src/generated/repo-import-manifest.json`.
+- The generated manifest includes both the old curated artifact metadata and the full Archive folder file list.
+- In the live app, the Archive page automatically syncs the GitHub/Netlify Archive snapshot into Supabase when it loads.
+- Files remain marked `needs_import` until the actual file is uploaded/attached through the browser.
+
+This does not publish raw archive files automatically. GitHub/Netlify provide the folder snapshot; Supabase stores live metadata and private file copies. Real previews/downloads appear only after files are uploaded into Supabase Storage.
+
+The current Supabase project for this redux is:
+
+```text
+SUPABASE_URL=https://uzderzjbitmghfvrllvz.supabase.co
+SUPABASE_PROJECT_REF=uzderzjbitmghfvrllvz
+```
 
 Do these sections in order. Do not upload archive files until the migration and metadata seed have completed successfully.
 
@@ -11,7 +39,7 @@ You need:
 - Access to the Creative Systems repository on this computer.
 - Access to the Netlify project that hosts Creative OS.
 - A Supabase account and permission to create a project.
-- A Netlify Identity account that can be assigned the `owner` role.
+- No Netlify Identity setup is required for the current solo-user app.
 
 Run all terminal commands from the repository root:
 
@@ -32,7 +60,7 @@ Do these once before running the guided command:
 1. Create the Supabase project in the Dashboard.
 2. Copy the Project URL, publishable/anon key, secret/service-role key, and project reference.
 3. Confirm the repository is linked to the correct Netlify site, or copy its site ID.
-4. Assign your Netlify Identity account `{"roles":["owner"]}` when you are ready to test login.
+4. Skip account setup for now. This app is intentionally running as a single-user archive tool.
 5. Copy `.env.example` to `.env` and enter the copied values. Never commit `.env`.
 
 The project reference is the value in the Dashboard URL after `/project/` and is also the subdomain in `https://PROJECT_REF.supabase.co`.
@@ -91,7 +119,6 @@ npm run setup:verify -- --url=https://YOUR-SITE.netlify.app
 - `setup:import:apply` displays the planned effect and requires you to type `IMPORT`. Non-interactive use requires the explicit `--confirm-import` flag.
 - `setup:netlify` sets variables but does not silently publish a dirty working tree. After inspecting the configuration, run `npm run setup:netlify -- --deploy` to build and deploy explicitly.
 - `setup:verify` checks the live/public health route plus direct server-side database, anon-key, bucket, audit, and temporary signed-file probes. Its temporary Storage probe is removed immediately.
-- CLI role verification is optional because the browser owns the Netlify Identity login session. Confirm the role in the Account panel after login. An ephemeral `NETLIFY_IDENTITY_TOKEN` can be supplied to the command environment when automated role verification is necessary; do not store a long-lived token.
 
 ### Safe migration fallback
 
@@ -317,28 +344,20 @@ Environment changes do not update an already-running Function.
 
 If this code has not been pushed yet, commit and push the repository first. A Git-connected Netlify site will then build it automatically.
 
-## Part 8 — Configure the owner account
+## Part 8 - Confirm solo archive mode
 
-Creative OS keeps Netlify Identity for employee login.
+No account setup is required for the current app. Creative OS runs as a single archive operator so the working surface stays focused on archive, index, tag, import, export, preview, and download operations.
 
-1. In Netlify, open **Project configuration → Identity** and enable Identity.
-2. Set registration to **Invite only**.
-3. Open **Identity → Users** and invite your employee email if it does not already exist.
-4. Assign your account the trusted role `owner` so its token contains:
-
-```json
-{"roles":["owner"]}
-```
-
-5. Log out of Creative OS and log back in after changing the role. An old session token may still contain the previous role.
-
-Supported roles are `viewer`, `contributor`, `editor`, `admin`, and `owner`. Authority comes from Netlify Identity `app_metadata.roles`; editing a Supabase profile row does not grant authority.
+1. Open `/pipeline/artifacts` on the deployed Netlify site.
+2. Confirm the left rail says **Solo archive mode**.
+3. Confirm the page loads the Archive folder snapshot and shows file states.
+4. Do not enable Netlify Identity for this version.
 
 ## Part 9 — Run the live setup health check
 
 The health responses expose booleans and counts only—never key values.
 
-1. Before login, open:
+1. Open:
 
 ```text
 https://YOUR-SITE.netlify.app/api/creative-os/health
@@ -346,9 +365,8 @@ https://YOUR-SITE.netlify.app/api/creative-os/health
 
 This confirms the API route exists and reports whether the URL, publishable/anon key, and secret/service-role key are configured.
 
-2. Log in to Creative OS.
-3. Expand **Deployed version / setup health** in the Account panel.
-4. Confirm:
+2. Expand **Supabase health** in the left rail.
+3. Confirm:
 
 - Supabase URL: yes
 - Anon key: yes
@@ -356,13 +374,13 @@ This confirms the API route exists and reports whether the URL, publishable/anon
 - Database connection: yes
 - Artifact read: yes, with a row count
 - Storage buckets: 5/5 private
-- Detected role: owner or admin
+- Detected role: owner
 - Routine GitHub writes: disabled
 
-5. As owner/admin, select **Run audit write probe** once. This intentionally creates one `health_check` audit event and proves audit inserts work.
-6. The panel should change Audit write to **verified**.
+4. Select **Run audit write probe** once. This intentionally creates one `health_check` audit event and proves audit inserts work.
+5. The panel should change Audit write to **verified**.
 
-The authenticated JSON equivalent is:
+The JSON equivalent is:
 
 ```text
 GET /api/creative-os/health/full
@@ -374,14 +392,13 @@ The write probe is:
 POST /api/creative-os/health/audit-probe
 ```
 
-The latter requires an authenticated `admin` or `owner`.
+The latter runs as the local archive operator in solo-user mode.
 
 ## Private file behavior
 
 - All five Storage buckets are private.
-- Artifact listing requires a Netlify Identity session.
-- `private` artifacts are returned only to `admin` and `owner` roles.
-- Other authenticated employees may read employee/internal artifacts according to the current visibility policy.
+- Artifact listing runs through the deployed Netlify Function and Supabase.
+- The current product assumes one trusted local archive operator.
 - The server creates one-hour signed preview and download URLs. The browser never constructs permanent public URLs.
 - Images display from signed preview URLs.
 - PDFs receive signed Open and Download links.
@@ -389,53 +406,46 @@ The latter requires an authenticated `admin` or `owner`.
 - Office/doc-like files receive signed Open/Download links; inline rendering depends on browser support.
 - Missing, metadata-only, external-only, internal-only, and archived records never receive a fake Storage URL.
 
-## Browser upload behavior
+## Browser add-file behavior
 
-`/pipeline/import` accepts multiple files, including PNG, JPG/JPEG, WebP, PDF, text, Markdown, JSON, CSV, and common Office document extensions.
+`/pipeline/artifacts` accepts added files from the browser. Use this for new files entering the Archive folder/web app, or to attach the actual file copy for a record that was already indexed from the Desktop Archive snapshot.
 
 The flow is:
 
-1. Authenticated contributor-or-higher requests a scoped signed upload token.
+1. The Archive Index requests a scoped signed upload token.
 2. The browser uploads directly to the private `artifacts` bucket.
-3. The server verifies that the Storage path belongs to that Identity user.
+3. The server verifies that the Storage path belongs to the current archive session.
 4. The server creates the artifact row with filename, MIME type, size, Storage path, rights, canon, review, visibility, provenance, tags, and categories.
 5. The server writes an audit event.
-6. Admin/owner uploads are immediately reviewed/live. Contributor/editor uploads create a review request.
-7. `/pipeline/artifacts` reads the new database row and requests signed preview/download URLs.
+6. `/pipeline/artifacts` reads the new database row and requests signed preview/download URLs.
 
-The app allows files up to 250 MB, but the Supabase project’s configured Storage/file-size limit may be lower.
+The app allows files up to 250 MB, but the Supabase project file-size limit may be lower.
 
-### Browser-first existing archive import
+### Existing archive folder sync
 
-The deployed `/pipeline/import` page no longer requires local npm/CLI access for the initial content migration:
+The deployed Archive page no longer requires a manual import button for the existing folder snapshot:
 
-1. Log in as `admin` or `owner`.
-2. Select **Import existing repo metadata**. The protected build manifest imports the 16 static artifact records, 22 archive records, 81 remediation/decision records, tags, categories, and known relationships.
-3. Review the created/updated/skipped counts. Repeating the action is safe; existing IDs and relationship keys are reused, stored file links are preserved, and live rights/canon/review/visibility/decision states are not reset.
-4. In the batch uploader, choose many files or choose the local `Archive` folder.
-5. Set batch defaults and start the upload. Each file receives checksum/progress/status reporting and can be retried independently.
+1. `npm run repo:manifest` scans the repository `Archive/` folder during build.
+2. Netlify deploys that generated snapshot with the app.
+3. `/pipeline/artifacts` compares the snapshot with Supabase on load.
+4. Missing snapshot records are synced into Supabase automatically.
+5. Individual files still need an uploaded/attached Storage copy before preview/download works in the browser.
 
 File matching order is SHA-256 checksum, original relative path, filename plus size, filename, then slug. An available checksum/name-size match is skipped as a duplicate. An ambiguous match stops with diagnostics instead of creating a likely duplicate.
 
-Each browser batch creates an `import_batches` row, per-file status entries in its manifest, and audit events. Admin/owner results apply immediately. Contributor uploads create `review_requests` and remain review-marked until an admin/owner applies them.
+Each browser upload creates or updates Supabase rows and audit events. Manual import workflows are reserved for setup scripts and recovery, not day-to-day use.
 
-## Database edit and review behavior
+## Database edit behavior
 
-### Owner/admin
+The active app assumes one trusted archive operator.
 
 - Add tag: applied immediately to `artifact_tags` and audited.
 - Remove tag: applied immediately and audited.
-- Add/remove category: applied immediately to `artifact_categories` and audited.
+- Add/remove category or folder: applied immediately to the artifact relationships and audited.
+- Title, notes, project, function, status, and rights fields save directly to Supabase.
 - Refresh: reads the same persisted Supabase rows; no Netlify rebuild is required.
 
-### Contributor
-
-- Tag/category/metadata proposals create a `review_requests` row.
-- Canonical tag/category joins remain unchanged until approval.
-- Admin approval applies the proposed database change, then marks the request `applied`.
-- Rejection marks the request `rejected` and does not mutate the artifact.
-
-`/admin` reads `review_requests` and `audit_events` from Supabase. It does not read GitHub pull requests for routine review.
+Review queues and multi-user approval are deferred until the archive/index workflow is proven useful.
 
 ## Artifact organization Phase 1
 
@@ -447,9 +457,9 @@ npx supabase db push
 
 The migration adds `project`, `intended_use`, and `notes`, widens the existing visibility values, and idempotently seeds the starter controlled tags. Existing `artifact_type` remains the medium field and `lifecycle_status` remains the workflow field. Categories and related archive records continue to use their existing join tables.
 
-`/pipeline/import` applies batch defaults for medium, project, category, related archive record, function, rights, review, canon, visibility, workflow, controlled tags, freeform tags, and notes. Images, PDFs, Markdown, text, and document-like files receive a medium automatically when **Detect from file** is selected.
+`/pipeline/artifacts` applies defaults for newly added files and supports medium, project, category, related archive record, function, rights, review, canon, visibility, workflow, controlled tags, freeform tags, and notes.
 
-`/pipeline/artifacts` supports direct editing and bulk organization. Admin/owner changes write immediately and create audit events. Contributor/editor controlled metadata changes create review requests. Low-risk editor freeform tags continue to follow the existing direct-apply policy.
+`/pipeline/artifacts` supports direct editing and bulk organization. Changes write immediately and create audit events in solo archive mode.
 
 Reusable artifact filters are available through either API route form:
 
@@ -466,9 +476,9 @@ Other supported parameters include `medium`, `artifact_type`, `workflow_status`,
 
 Categories and tags reuse the existing `categories`, `tags`, `artifact_categories`, and `artifact_tags` tables. Category and tag selectors submit stable UUIDs; renaming a value therefore preserves every artifact relationship. The migration adds `is_active` instead of deleting historical values and adds case-insensitive unique indexes so `Reference`, `reference`, and `REFERENCE` cannot become separate categories or same-family tags.
 
-Admin/owner users manage these values in **Admin Portal → Manage categories and tags**. They can create, rename, archive, or reactivate values and see their artifact usage counts. Project, function, medium, rights, review, canon, visibility, and workflow dropdowns are populated from active controlled tag families. Renaming one of those values also updates matching artifact metadata rows safely. Contributors do not receive controlled-value management authority; their artifact organization proposals continue through the review queue.
+Controlled values are managed from the Archive Index controls and setup data. Project, function, medium, rights, review, canon, visibility, and workflow dropdowns are populated from active controlled tag families. Renaming one of those values also updates matching artifact metadata rows safely.
 
-Controlled dropdowns are used by Import Center, artifact editing, and bulk organization for:
+Controlled dropdowns are used by artifact editing, add-file defaults, and bulk organization for:
 
 - Medium / `artifact_type`
 - Project / `project`
@@ -528,26 +538,26 @@ GitHub remains for code, SQL migrations, backup/snapshot tooling, releases, and 
 - [ ] G. `npm run supabase:files:dry` reviewed
 - [ ] H. `npm run supabase:files` completed
 - [ ] I. Netlify redeployed
-- [ ] J. Owner login shows the `owner` role
+- [ ] J. Solo archive mode shows the `owner` role
 - [ ] K. Artifact Library shows imported files
 - [ ] L. Uploaded image shows a thumbnail and download link
 - [ ] M. Uploaded PDF opens and downloads
 - [ ] N. Owner tag persists after refresh
-- [ ] O. Contributor tag creates a pending review without changing live tags
-- [ ] P. Admin approval makes the contributor tag live
+- [ ] O. Individual file download works from the Artifact Library
+- [ ] P. Folder/category/tag edits remain after refresh
 - [ ] Q. Database export generates and downloads
 
 ## Exact acceptance test
 
-1. Sign in as owner.
-2. Expand Account setup health and confirm every check except Audit write is green/yes.
+1. Open the deployed Archive Index as the solo archive operator.
+2. Expand Supabase health and confirm every check except Audit write is green/yes.
 3. Run the audit write probe once.
 4. Open `/pipeline/artifacts`; confirm imported images, PDFs, and text records show truthful file states.
-5. Open `/pipeline/import`; upload one PNG or WebP. Return to Artifact Library and confirm its thumbnail.
+5. Add one PNG or WebP from `/pipeline/artifacts`; confirm its thumbnail and download link.
 6. Upload one PDF. Confirm Open and Download work.
 7. Add tag `owner-live-test` to an artifact. Refresh the browser; confirm the tag remains under Live tags.
-8. Log in as a contributor and add `contributor-review-test`. Confirm it appears as pending while Live tags remain unchanged.
-9. Log back in as owner/admin, open `/admin`, and select **Approve & apply**.
+8. Move one artifact into a folder/category. Refresh and confirm the folder/category remains saved.
+9. Download one individual file from the Artifact Library.
 10. Refresh the artifact and confirm `contributor-review-test` is live.
 11. Create an Artifact Index export at `/pipeline/exports` and download it.
 12. Confirm no routine Creative OS pull request was created in GitHub.
@@ -566,13 +576,13 @@ GitHub remains for code, SQL migrations, backup/snapshot tooling, releases, and 
 - **Supabase URL/key says no:** verify the exact Netlify variable names, values, and deploy context, then redeploy.
 - **Database connection fails:** confirm the migration completed and the secret/service-role key belongs to the same project as the URL.
 - **Buckets missing:** rerun the bucket repair SQL or create them manually with Public bucket off.
-- **401/logged out:** test on the deployed Netlify site and log in again. Netlify Identity is not fully testable through ordinary Astro preview.
-- **Role shows viewer:** assign trusted `app_metadata.roles`, then log out and back in.
+- **401 or missing Function data:** test on the deployed Netlify site or through `netlify dev`; ordinary Astro preview does not run Netlify Functions.
+- **Role does not show owner:** confirm the deployed code includes solo archive mode and redeploy Netlify.
 - **Seed reports missing tables:** run the migration before the seed.
 - **Imported records show Internal only:** run `npm run supabase:files`; metadata seeding alone does not upload files.
 - **No photos after file import:** confirm `artifacts.file_status=available`, the bucket/path columns are populated, and Storage contains `workspace/Archive/...`.
 - **Upload object exists but row does not:** inspect Netlify Function logs for `creative-os`. The completion endpoint attempts to remove a just-uploaded object when row creation fails.
-- **Contributor tag is not live:** expected until admin approval; check `/admin`.
+- **Saved tag is not live after refresh:** check Function logs and Supabase audit events for the failed update.
 - **Signed link expired:** refresh Artifact Library or Exports to obtain a new one-hour link.
 - **Office document does not render inline:** use Download/Open in a compatible desktop or browser application.
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T08:19:43.470Z",
+  "generatedAt": "2026-07-08T17:54:09.335Z",
   "publicationStatus": "internal-review-required",
   "archive": [
     {
@@ -50,7 +50,7 @@
       "version": "source draft",
       "provenance": "Archived PDF reviewed during the Archive Diagnostic.",
       "featured": false,
-      "body": "## Why it remains in the archive\n\nThis proposal records an important product experiment and the tensions it revealed. It should be preserved as strategy history, not silently discarded.\n\n## Why it must not guide implementation\n\nK-XP from paid events is required for major qualification, paid participation becomes a proxy for legitimacy, and the document calls the structure legally clean without qualified review. Those elements contradict the player-first direction."
+      "body": "## Why it remains in the archive\r\n\r\nThis proposal records an important product experiment and the tensions it revealed. It should be preserved as strategy history, not silently discarded.\r\n\r\n## Why it must not guide implementation\r\n\r\nK-XP from paid events is required for major qualification, paid participation becomes a proxy for legitimacy, and the document calls the structure legally clean without qualified review. Those elements contradict the player-first direction."
     },
     {
       "id": "para-poker",
@@ -106,7 +106,7 @@
       "version": "0.1",
       "provenance": "Product boundary synthesized from user direction and diagnostic criticism.",
       "featured": true,
-      "body": "## Product premise\n\nPara Poker should use poker's durable competitive meanings—reads, pressure, incomplete information, identity, history, and rivalry—without importing deposits, wagering, rake, cash-equivalent chips, or paid competitive power.\n\n## Current caution\n\nThe archived competitive circuit requires paid-only K-XP for major qualification and makes unsupported claims of legal safety. That document is a risky product-strategy artifact, not an implementation specification."
+      "body": "## Product premise\r\n\r\nPara Poker should use poker's durable competitive meanings—reads, pressure, incomplete information, identity, history, and rivalry—without importing deposits, wagering, rake, cash-equivalent chips, or paid competitive power.\r\n\r\n## Current caution\r\n\r\nThe archived competitive circuit requires paid-only K-XP for major qualification and makes unsupported claims of legal safety. That document is a risky product-strategy artifact, not an implementation specification."
     },
     {
       "id": "reath",
@@ -156,7 +156,7 @@
       "version": "0.1",
       "provenance": "Provisional scope created to prevent world-specific lore from binding all EGGS games.",
       "featured": false,
-      "body": "## Provisional role\n\nReath currently functions as the safest scope for Rumin, Frumo, Bizi, Sheen, their characters, timelines, and locations. This prevents those materials from silently becoming ecosystem-wide foundation canon.\n\nIts relationship to Paralleon, Para, and EGGS still requires a user decision."
+      "body": "## Provisional role\r\n\r\nReath currently functions as the safest scope for Rumin, Frumo, Bizi, Sheen, their characters, timelines, and locations. This prevents those materials from silently becoming ecosystem-wide foundation canon.\r\n\r\nIts relationship to Paralleon, Para, and EGGS still requires a user decision."
     },
     {
       "id": "signal-reader",
@@ -201,7 +201,7 @@
       "version": "0.1",
       "provenance": "Prototype archetype translating Zendra into a constructive player promise.",
       "featured": false,
-      "body": "## Player promise\n\nYou notice what a changing situation is trying to say before others do.\n\nSignal Reader describes observable play—selective bluffing, adaptation, and information discipline. It must not label a player paranoid, manipulative, delusional, or morally suspect."
+      "body": "## Player promise\r\n\r\nYou notice what a changing situation is trying to say before others do.\r\n\r\nSignal Reader describes observable play—selective bluffing, adaptation, and information discipline. It must not label a player paranoid, manipulative, delusional, or morally suspect."
     },
     {
       "id": "zendra",
@@ -256,7 +256,7 @@
       "version": "0.1",
       "provenance": "Synthesized from Zendra principle prose and the Xen'Dra observer poem.",
       "featured": true,
-      "body": "## Core question\n\nWhat is real once enough minds obey it?\n\nZendra is the inner battlefield: attention, interpretation, prediction, memory, art, propaganda, empathy, belief, and mistrust.\n\n## Constructive expression\n\nImagination, empathy, insight, reframing, artistic transformation, and the ability to read unstable situations.\n\n## Failure mode\n\nFear becomes evidence. Symbols become commands. A population acts on ghosts because shared meaning has become heavier than observable reality.\n\n## Mechanical vocabulary\n\nReveal, conceal, predict, bluff, misread, reframe, signal, and distort."
+      "body": "## Core question\r\n\r\nWhat is real once enough minds obey it?\r\n\r\nZendra is the inner battlefield: attention, interpretation, prediction, memory, art, propaganda, empathy, belief, and mistrust.\r\n\r\n## Constructive expression\r\n\r\nImagination, empathy, insight, reframing, artistic transformation, and the ability to read unstable situations.\r\n\r\n## Failure mode\r\n\r\nFear becomes evidence. Symbols become commands. A population acts on ghosts because shared meaning has become heavier than observable reality.\r\n\r\n## Mechanical vocabulary\r\n\r\nReveal, conceal, predict, bluff, misread, reframe, signal, and distort."
     }
   ],
   "artifacts": [

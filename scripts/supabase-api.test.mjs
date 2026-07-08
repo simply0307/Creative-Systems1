@@ -200,17 +200,15 @@ test("routine browser client targets Supabase API and not operations PR endpoint
   assert.equal(slugify("Alien Principle"), "alien-principle");
 });
 
-test("uploads, reviews, exports, and Admin Portal use the Supabase client", () => {
+test("uploads, reviews, and exports still use the Supabase client helpers", () => {
   const client = read("src/scripts/creative-os-client.js");
-  const upload = read("src/pages/pipeline/import.astro");
-  const admin = read("src/pages/admin.astro");
   assert.match(client, /uploads\/sign/);
   assert.match(client, /uploads\/complete/);
   assert.match(client, /review-requests\/\$\{reviewId\}\/action/);
   assert.match(client, /createExport/);
-  assert.match(upload, /image\/\*,application\/pdf,text\/\*/);
-  assert.match(admin, /CreativeDatabase\.listReviews/);
-  assert.doesNotMatch(admin, /api\/operations/);
+  assert.match(client, /createFolder/);
+  assert.match(client, /moveArtifact/);
+  assert.doesNotMatch(client, /api\/operations/);
 });
 
 test("setup guide covers keys, migration, buckets, imports, deploy, health, and acceptance", () => {
@@ -218,55 +216,59 @@ test("setup guide covers keys, migration, buckets, imports, deploy, health, and 
   for (const phrase of ["Settings → API Keys", "SUPABASE_SERVICE_ROLE_KEY", "SQL Editor", "imports-raw", "npm run supabase:seed", "npm run supabase:files:dry", "npm run supabase:files", "Trigger deploy", "/api/creative-os/health/full", "Final live acceptance checklist"]) assert.match(guide, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
-test("artifact library renders real previews and truthful missing states", () => {
-  const page = read("src/pages/pipeline/artifacts.astro");
-  assert.match(page, /artifact\.signedUrl/);
-  assert.match(page, /artifact-thumbnail/);
-  assert.match(page, /Expected repo file is indexed; upload it through Import Center/);
-  assert.match(page, /Database write failed/);
+test("archive folder index renders previews and truthful import states", () => {
+  const source = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
+  assert.match(source, /repo-import-manifest\.json/);
+  assert.match(source, /archiveFiles/);
+  assert.match(source, /item\.signedUrl/);
+  assert.match(source, /archive-thumb/);
+  assert.match(source, /Found in the Desktop Archive snapshot/);
+  assert.match(source, /Add or attach the file to enable browser preview\/download/);
+  assert.match(source, /importArchiveFolderIndex/);
+  assert.match(source, /Refresh view/);
 });
 
-test("artifact organization UI exposes metadata, bulk editing, warnings, and all requested filters", () => {
-  const page = read("src/pages/pipeline/artifacts.astro");
-  for (const phrase of ["Controlled tags", "Freeform tags", "Needs metadata", "Bulk organize", "Related entity", "Workflow", "organizeArtifacts", "artifact_organization_update"]) assert.match(page, new RegExp(phrase));
-  for (const filter of ["artifact_type", "project", "category", "entity", "intended_use", "rights_status", "review_status", "canon_status", "visibility", "lifecycle_status", "controlled_tag", "freeform_tag", "metadata", "file"]) assert.match(page, new RegExp(`data-filter=[\\\"']${filter}[\\\"']`));
+test("archive folder index exposes simple folder, standard tag, freeform tag, and file filters", () => {
+  const source = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
+  for (const phrase of ["Folders", "Add files", "quick-index-form", "Save index fields", "Standard tags", "Freeform tags"]) assert.match(source, new RegExp(phrase));
+  for (const filter of ["type", "file", "folder", "standard", "freeform"]) assert.match(source, new RegExp(`data-filter=[\\\"']${filter}[\\\"']`));
+  assert.match(source, /type="file" multiple/);
+  assert.match(source, /uploadArtifact/);
 });
 
-test("artifact filters persist in the URL and empty results remain truthful", () => {
-  const page = read("src/pages/pipeline/artifacts.astro");
-  assert.match(page, /syncFilterUrl/);
-  assert.match(page, /restoreFilterUrl/);
-  assert.match(page, /No artifacts match these filters/);
-  assert.match(page, /CreativeDatabase\.filterArtifacts/);
-  assert.match(page, /effectiveArtifactType/);
+test("archive folder index filters combine locally and empty results remain truthful", () => {
+  const source = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
+  assert.match(source, /filteredRecords/);
+  assert.match(source, /filters\.search/);
+  assert.match(source, /filters\.folder/);
+  assert.match(source, /No files match these filters/);
+  assert.match(source, /effectiveArtifactType/);
 });
 
-test("category and tag selectors reuse stable database IDs across import, edit, and bulk", () => {
-  const artifacts = read("src/pages/pipeline/artifacts.astro");
-  const imports = read("src/pages/pipeline/import.astro");
-  for (const source of [artifacts, imports]) {
-    assert.match(source, /categoryId|setCategoryId/);
-    assert.match(source, /multiple/);
-    assert.match(source, /Search tags/);
-  }
-  assert.match(artifacts, /addTagIds/);
-  assert.match(artifacts, /removeTagIds/);
-  assert.match(imports, /name="tagIds"/);
+test("folder, standard tag, and freeform inputs reuse existing values across the archive index", () => {
+  const artifacts = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
+  assert.match(artifacts, /folder-values/);
+  assert.match(artifacts, /standard-tag-values/);
+  assert.match(artifacts, /freeform-tag-values/);
+  assert.match(artifacts, /moveArtifact/);
+  assert.match(artifacts, /organizeArtifact/);
+  assert.match(artifacts, /Create folder/);
+  assert.match(artifacts, /multiple/);
 });
 
-test("Admin Portal creates, renames, archives, and reports controlled-value usage", () => {
-  const admin = read("src/pages/admin.astro");
+test("controlled-value API can still create, rename, archive, and report usage", () => {
   const api = read("netlify/functions/creative-os.mjs");
-  for (const phrase of ["Manage categories and tags", "Create", "Rename", "Archive", "usageCount", "updateControlledValue"]) assert.match(`${admin}\n${api}`, new RegExp(phrase));
+  for (const phrase of ["handleCreateControlledValue", "handleUpdateControlledValue", "usageCount", "\\$\\{singular\\}_created"]) assert.match(api, new RegExp(phrase));
   assert.match(api, /controlled-values/);
   assert.match(api, /controlledValuesMatch/);
   assert.match(api, /artifactFieldByTagType/);
 });
 
-test("upload form accepts standardized batch organization metadata", () => {
-  const page = read("src/pages/pipeline/import.astro");
-  for (const field of ["title", "description", "project", "categoryId", "relatedEntityId", "intendedUse", "rightsStatus", "reviewStatus", "canonStatus", "visibility", "workflowStatus", "tagIds", "notes"]) assert.match(page, new RegExp(`name=[\\\"']${field}[\\\"']`));
-  assert.match(page, /selectedType==='auto'\?detectType\(file\):selectedType/);
+test("archive index accepts browser file upload and standardized/freeform metadata edits", () => {
+  const page = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
+  for (const field of ["title", "folder", "standardTags", "freeformTags", "notes"]) assert.match(page, new RegExp(`name=[\\\"']${field}[\\\"']`));
+  assert.match(page, /folder-upload/);
+  assert.match(page, /uploadArtifact/);
 });
 
 test("organization API supports audited single and bulk writes plus reusable filters", () => {
@@ -300,6 +302,9 @@ test("protected repo manifest contains the expected existing content", () => {
   assert.equal(repoImportManifest.archiveRecords.length, 22);
   assert.equal(repoImportManifest.decisions.length, 81);
   assert.equal(repoImportManifest.expectedFiles.length, 16);
+  assert.ok(repoImportManifest.archiveFiles.length >= repoImportManifest.expectedFiles.length);
+  assert.ok(repoImportManifest.archiveFolders.length > 0);
+  assert.ok(repoImportManifest.archiveFiles.every((file) => file.provenance?.workspaceRelativePath?.startsWith("Archive/")));
   assert.ok(repoImportManifest.expectedFiles.every((file) => file.artifactId && file.originalFileName && file.originalPath));
 });
 
@@ -360,17 +365,18 @@ test("import dashboard counts real availability and expected-file gaps", () => {
   assert.deepEqual(status.expectedFiles.map((file) => file.status), ["available", "needs-upload"]);
 });
 
-test("Import Center exposes admin metadata import and audited retryable browser batches", () => {
-  const page = read("src/pages/pipeline/import.astro");
+test("Archive Index exposes automatic metadata sync and audited browser uploads", () => {
+  const page = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
   const client = read("src/scripts/creative-os-client.js");
   const api = read("netlify/functions/creative-os.mjs");
-  assert.match(page, /Import existing repo metadata/);
-  assert.match(page, /webkitdirectory/);
-  assert.match(page, /Retry/);
-  assert.match(page, /data-import-metric="filesNeedingUpload"/);
+  assert.match(page, /Refresh view/);
+  assert.match(page, /importArchiveFolderIndex/);
+  assert.match(page, /type="file" multiple/);
+  assert.match(page, /Add files finished/);
+  assert.match(page, /Create folder/);
   assert.match(client, /crypto\.subtle\.digest/);
-  assert.match(client, /imports\/repo-metadata/);
-  assert.match(client, /import-batches\/\$\{batchId\}\/files/);
+  assert.match(client, /imports\/archive-folder/);
+  assert.match(api, /archive_folder_indexed/);
   assert.match(api, /handleRepoMetadataImport/);
   assert.match(api, /requireRole\(identity, "admin"\)/);
   assert.match(api, /repo_metadata_import/);

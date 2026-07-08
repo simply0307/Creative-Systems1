@@ -40,7 +40,7 @@ export const artifactOrganization = Object.freeze({
   canonStatuses: ["approved", "draft", "working", "deprecated", "conflict", "non-canon", "reference-only"],
   visibilities: ["private", "internal", "team", "public", "exportable"],
   workflowStatuses: ["uploaded", "imported", "needs-metadata", "categorized", "reviewed", "export-ready", "archived"],
-  controlledTagTypes: ["medium", "project", "entity", "function", "rights", "review", "canon", "visibility", "workflow", "style"],
+  controlledTagTypes: ["folder", "standard", "medium", "project", "entity", "function", "rights", "review", "canon", "visibility", "workflow", "style"],
   starterFreeformTags: ["favorite", "possible-drop", "needs-case", "strong-direction", "weird", "revisit"],
   requiredFields: ["artifact_type", "rights_status", "review_status", "visibility", "lifecycle_status"],
   recommendedFields: ["project", "category", "related_entity", "intended_use"],

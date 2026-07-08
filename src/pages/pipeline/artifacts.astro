@@ -1,130 +1,120 @@
 ---
 import AppLayout from "../../layouts/AppLayout.astro";
 import PipelineNav from "../../components/PipelineNav.astro";
-import { artifactOrganization } from "../../data/artifact-organization.mjs";
 ---
-<AppLayout title="Artifact library" section="artifacts">
+<AppLayout title="Archive folder index" section="artifacts">
   <PipelineNav active="artifacts" />
-  <header class="page-head">
-    <div class="head-copy"><p class="eyebrow">Operations / Supabase files</p><h1>Artifact library</h1><p class="lede">Browse real Storage objects and organize their database records. Metadata changes are immediate for admin/owner accounts; governed proposals appear in the Admin Portal.</p></div>
-    <div class="count-orbit"><div><b id="artifact-total">—</b><span>artifacts</span></div></div>
+
+  <header class="page-head compact-head">
+    <div class="head-copy">
+      <p class="eyebrow">Archive</p>
+      <h1>Your folder, searchable.</h1>
+      <p class="lede">Browse the Desktop <code>Archive/</code> snapshot, preview available files, download individual files, and organize everything with folders, standard tags, and quick personal tags.</p>
+    </div>
+    <div class="count-orbit">
+      <div><b id="shown-count">0</b><span>shown</span></div>
+      <div><b id="total-count">0</b><span>indexed</span></div>
+    </div>
   </header>
 
-  <section class="file-audit-summary" id="artifact-summary">
-    <span><b data-count="available">0</b> available files</span><span><b data-count="missing">0</b> missing files</span><span><b data-count="metadata_only">0</b> metadata-only</span><span><b data-count="needs_import">0</b> awaiting upload</span><span><b data-count="needs_metadata">0</b> need metadata</span>
+  <section class="index-actions">
+    <article>
+      <b>Archive folder</b>
+      <span id="manifest-summary">Reading Archive folder snapshot...</span>
+      <button class="button secondary" id="reload-index" type="button">Refresh view</button>
+    </article>
+    <article>
+      <b>New folder</b>
+      <span>Create a folder label for organizing files in this index.</span>
+      <button class="button secondary" id="create-folder" type="button">Create folder</button>
+    </article>
+    <article>
+      <b>Add files</b>
+      <span>Upload new files or attach real file bytes to indexed Archive entries for preview and download.</span>
+      <label class="button acid upload-button">Add files
+        <input id="folder-upload" type="file" multiple />
+      </label>
+    </article>
+    <article>
+      <b>Status</b>
+      <span id="index-status">Loading...</span>
+    </article>
   </section>
 
-  <details class="library-controls" open>
-    <summary>Search and filters · <b id="artifact-count">0</b> shown</summary>
-    <div class="toolbar artifact-toolbar">
-      <label class="search wide">Search<input id="artifact-search" type="search" placeholder="Title, filename, notes, tags…" /></label>
-      <label>Medium<select data-filter="artifact_type"><option value="">All</option></select></label>
-      <label>Project<select data-filter="project"><option value="">All</option></select></label>
-      <label>Category<select data-filter="category"><option value="">All</option></select></label>
-      <label>Related entity<select data-filter="entity"><option value="">All</option></select></label>
-      <label>Function<select data-filter="intended_use"><option value="">All</option></select></label>
-      <label>Rights<select data-filter="rights_status"><option value="">All</option></select></label>
-      <label>Review<select data-filter="review_status"><option value="">All</option></select></label>
-      <label>Canon<select data-filter="canon_status"><option value="">All</option></select></label>
-      <label>Visibility<select data-filter="visibility"><option value="">All</option></select></label>
-      <label>Workflow<select data-filter="lifecycle_status"><option value="">All</option></select></label>
-      <label>Controlled tag<select data-filter="controlled_tag"><option value="">All</option></select></label>
-      <label>Freeform tag<select data-filter="freeform_tag"><option value="">All</option></select></label>
-      <label>Metadata<select data-filter="metadata"><option value="">All</option><option value="needs">Needs required metadata</option><option value="complete">Required metadata complete</option></select></label>
-      <label>File / preview<select data-filter="file"><option value="">All</option><option value="preview">Has file preview</option><option value="missing">Missing file</option><option value="metadata_only">Metadata only</option><option value="needs_import">Needs upload</option></select></label>
-      <button class="button secondary" id="clear-filters" type="button">Clear filters</button>
+  <section class="file-audit-summary" id="artifact-summary">
+    <span><b data-count="available">0</b> available files</span>
+    <span><b data-count="needs_import">0</b> need file copy</span>
+    <span><b data-count="manifest_only">0</b> syncing</span>
+    <span><b data-count="folders">0</b> folders</span>
+    <span><b data-count="folder_tags">0</b> folder tags</span>
+    <span><b data-count="standard_tags">0</b> standard tags</span>
+    <span><b data-count="freeform_tags">0</b> freeform tags</span>
+  </section>
+
+  <details class="bulk-index-panel" open>
+    <summary>Bulk organize selected files - <b id="selected-count">0</b> selected</summary>
+    <div class="bulk-grid">
+      <div class="bulk-actions">
+        <button class="button secondary" id="select-visible" type="button">Select visible database files</button>
+        <button class="button secondary" id="clear-selection" type="button">Clear selection</button>
+      </div>
+      <label>Move to folder<select id="bulk-folder"><option value="">Choose folder</option></select></label>
+      <button class="button acid" id="bulk-move" type="button">Move selected</button>
+      <label>Standard tags<input id="bulk-standard-tags" list="standard-tag-values" placeholder="keeper, reference, needs-sort" /></label>
+      <div class="bulk-actions">
+        <button class="button secondary" id="bulk-add-standard" type="button">Add standard tags</button>
+        <button class="button secondary" id="bulk-remove-standard" type="button">Remove standard tags</button>
+      </div>
+      <label>Freeform tags<input id="bulk-freeform-tags" list="freeform-tag-values" placeholder="favorite, revisit, weird" /></label>
+      <div class="bulk-actions">
+        <button class="button secondary" id="bulk-add-freeform" type="button">Add freeform tags</button>
+        <button class="button secondary" id="bulk-remove-freeform" type="button">Remove freeform tags</button>
+      </div>
     </div>
+    <p id="bulk-status" class="bulk-status">Select files below, then move them or apply tags in one pass.</p>
   </details>
 
-  <details class="bulk-shell">
-    <summary>Bulk organize · <span id="selected-count">0</span> selected</summary>
-    <form id="bulk-database-form" class="bulk-editor">
-      <div class="form-grid compact" data-bulk-fields></div>
-      <label>Reason<input name="reason" required placeholder="Why this organization change is needed" /></label>
-      <div class="action-row"><button class="button acid" type="submit">Apply to selected</button><button class="button secondary" id="select-visible" type="button">Select visible</button><button class="button secondary" id="clear-selected" type="button">Clear selection</button><span class="save-state" aria-live="polite"></span></div>
-    </form>
-  </details>
+  <section class="folder-index-shell">
+    <aside class="folder-rail">
+      <div class="rail-head">
+        <b>Folders</b>
+        <button class="button secondary mini" data-folder="">All</button>
+      </div>
+      <div id="folder-list" class="folder-list"></div>
+    </aside>
 
-  <div id="artifact-loading" class="empty-panel">Log in to load the live Artifact Library.</div>
-  <div class="grid grid-3 artifact-database-grid" id="artifact-grid"></div>
-  <div id="artifact-empty" class="empty-panel" hidden><b>No artifacts match these filters.</b><p>Clear one or more filters to restore the full library.</p><button class="button secondary" data-clear-filters type="button">Clear filters</button></div>
-  <dialog id="text-preview-dialog" class="file-preview-dialog"><div class="dialog-head"><h2 data-preview-title>File preview</h2><button class="button secondary" type="button" data-close-preview>Close</button></div><pre data-preview-content>Loading…</pre></dialog>
+    <div class="index-main">
+      <details class="library-controls" open>
+        <summary>Search and filters - <b id="filter-count">0</b> results</summary>
+        <div class="toolbar archive-toolbar">
+          <label class="wide">Search<input id="artifact-search" type="search" placeholder="Filename, path, folder, tag, notes..." /></label>
+          <label>Type<select data-filter="type"><option value="">All</option></select></label>
+          <label>File state<select data-filter="file"><option value="">All</option><option value="available">Preview/download ready</option><option value="needs_import">Needs file copy</option><option value="manifest_only">Syncing</option><option value="metadata_only">Metadata only</option></select></label>
+          <label>Folder<select data-filter="folder"><option value="">All</option></select></label>
+          <label>Standard tag<select data-filter="standard"><option value="">All</option></select></label>
+          <label>Freeform tag<select data-filter="freeform"><option value="">All</option></select></label>
+          <button class="button secondary" id="clear-filters" type="button">Clear</button>
+        </div>
+      </details>
 
-  <script is:inline define:vars={{ organization: artifactOrganization }}>
-    const esc=(value)=>String(value??'').replace(/[&<>"']/g,(character)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[character]));
-    const state={artifacts:[],pending:[],selected:new Set(),failures:new Map(),role:'viewer',options:{tags:[],categories:[],archiveRecords:[],values:{}}};
-    const grid=document.querySelector('#artifact-grid'),loading=document.querySelector('#artifact-loading'),empty=document.querySelector('#artifact-empty');
-    const required=['artifact_type','rights_status','review_status','visibility','lifecycle_status'];
-    const fieldLabels={artifact_type:'Medium',project:'Project',intended_use:'Function',rights_status:'Rights',review_status:'Review',canon_status:'Canon',visibility:'Visibility',lifecycle_status:'Workflow'};
-    const values={artifact_type:organization.media,project:organization.projects,intended_use:organization.functions,rights_status:organization.rightsStatuses,review_status:organization.reviewStatuses,canon_status:organization.canonStatuses,visibility:organization.visibilities,lifecycle_status:organization.workflowStatuses};
-    const optionHtml=(items,current='',blank='No change')=>`<option value="">${esc(blank)}</option>${items.map((value)=>`<option value="${esc(value)}" ${String(value)===String(current)?'selected':''}>${esc(value)}</option>`).join('')}`;
-    const relationalOptions=(items,current='',blank='No change')=>`<option value="">${esc(blank)}</option>${items.map((item)=>`<option value="${esc(item.id)}" ${String(item.id)===String(current)?'selected':''}>${esc(item.name)}</option>`).join('')}`;
-    const tagOption=(tag)=>`<option value="${esc(tag.id)}">${esc(`${tag.tag_type} / ${tag.name}`)}</option>`;
-    const tagPicker=(name,label,tags,create=false)=>`<label class="tag-picker">${label}<input type="search" data-tag-search placeholder="Search tags"/><select name="${name}" multiple size="6">${tags.map(tagOption).join('')}</select>${create&&['admin','owner'].includes(state.role)?'<button class="button secondary" type="button" data-create-tag>Create tag</button>':''}</label>`;
-    const tagNames=(artifact,type)=>artifact.tags?.filter((tag)=>type==='freeform'?tag.tag_type==='freeform':tag.tag_type!=='freeform').map((tag)=>tag.name)||[];
-    const missingFields=(artifact)=>required.filter((field)=>!artifact[field]||['unknown','needs-review'].includes(artifact[field]));
-    const activeProposals=(artifactId)=>state.pending.filter((item)=>item.target_id===artifactId);
-    const currentCategoryId=(artifact)=>artifact.categories?.[0]?.id||'';
-    const currentEntity=(artifact)=>artifact.archiveRecords?.find((item)=>item.relationshipType==='organized-as')?.id||'';
-    const preview=(artifact)=>{
-      if(!artifact.fileAvailable)return `<div class="artifact-file-state ${esc(artifact.file_status)}"><b>${esc(String(artifact.file_status||'metadata_only').replaceAll('_',' '))}</b><small>${artifact.storageError?esc(artifact.storageError):artifact.file_status==='needs_import'?'Expected repo file is indexed; upload it through Import Center to attach the real Storage object.':artifact.file_status==='missing'?'The expected file does not exist at its recorded path.':'No stored file object is attached.'}</small>${artifact.legacy_data?.filePath?`<code>${esc(artifact.legacy_data.filePath)}</code>`:''}</div>`;
-      const media=artifact.mediaKind==='image'?`<img class="artifact-thumbnail" src="${esc(artifact.signedUrl)}" alt="Preview of ${esc(artifact.title)}" loading="lazy"/>`:artifact.mediaKind==='pdf'?`<a class="file-preview-tile" href="${esc(artifact.signedUrl)}" target="_blank" rel="noopener"><b>PDF</b><span>Open in browser</span></a>`:artifact.mediaKind==='text'?`<button class="file-preview-tile" type="button" data-read-file="${esc(artifact.id)}"><b>TEXT</b><span>Read in browser</span></button>`:`<div class="file-preview-tile"><b>FILE</b><span>${esc(artifact.mime_type||'Stored object')}</span></div>`;
-      return `<div class="artifact-file-state available">${media}<div class="file-actions"><a class="button secondary" href="${esc(artifact.signedUrl)}" target="_blank" rel="noopener">Open</a><a class="button secondary" href="${esc(artifact.downloadUrl||artifact.signedUrl)}">Download</a></div></div>`;
-    };
-    const proposals=(artifact)=>[...activeProposals(artifact.id).map((item)=>{const label=item.status==='failed'?'Failed organization change':item.operation_type==='artifact_tag_update'?'Pending tag review':'Pending organization review';return `<div class="pending-operation"><b>${label}</b><span>${esc(item.intent_summary)}</span>${item.error_message?`<small class="operation-error">${esc(item.error_message)}</small>`:''}</div>`;}),state.failures.has(artifact.id)?`<div class="pending-operation failed-operation"><b>Database write failed</b><small class="operation-error">${esc(state.failures.get(artifact.id))}</small></div>`:''].join('');
-    const metadataRows=(artifact)=>[
-      ['Medium',window.CreativeDatabase.effectiveArtifactType(artifact)],['Project',artifact.project],['Category',artifact.categories?.map((item)=>item.name).join(', ')||'unassigned'],['Related entity',artifact.archiveRecords?.map((item)=>item.title||item.id).join(', ')||'unassigned'],['Function',artifact.intended_use],['Rights',artifact.rights_status],['Review',artifact.review_status],['Canon',artifact.canon_status],['Visibility',artifact.visibility],['Workflow',artifact.lifecycle_status]
-    ].map(([label,value])=>`<div><dt>${esc(label)}</dt><dd>${esc(value||'unassigned')}</dd></div>`).join('');
-    const editor=(artifact)=>{
-      const select=(field)=>`<label>${fieldLabels[field]}<select name="${field}">${optionHtml(values[field],artifact[field],'Choose')}</select></label>`;
-      const entityOptions=state.options.archiveRecords;
-      return `<details class="artifact-editor"><summary>Edit organization</summary><form data-organize-artifact>
-        <div class="form-grid compact"><label>Title<input name="title" value="${esc(artifact.title)}" /></label><label>Description<textarea name="description">${esc(artifact.description||'')}</textarea></label>${select('artifact_type')}${select('project')}<label>Category<select name="setCategoryId">${relationalOptions(state.options.categories,currentCategoryId(artifact),'Unassigned')}</select>${['admin','owner'].includes(state.role)?'<button class="button secondary" type="button" data-create-category>Create category</button>':''}</label><label>Related entity<select name="relatedEntityId"><option value="">Unassigned</option>${entityOptions.map((item)=>`<option value="${esc(item.id)}" ${item.id===currentEntity(artifact)?'selected':''}>${esc(item.title)} · ${esc(item.type)}</option>`).join('')}</select></label>${select('intended_use')}${select('rights_status')}${select('review_status')}${select('canon_status')}${select('visibility')}${select('lifecycle_status')}<label>Notes<textarea name="notes">${esc(artifact.notes||'')}</textarea></label></div>
-        <div class="form-grid compact">${tagPicker('addTagIds','Add tags',state.options.tags,true)}${tagPicker('removeTagIds','Remove tags',artifact.tags||[])}<label>Reason<input name="reason" required placeholder="Why this change is useful" /></label></div>
-        <div class="action-row"><button class="button acid" type="submit">Save organization</button><span class="save-state" aria-live="polite"></span></div>
-      </form></details>`;
-    };
-    const card=(artifact)=>{const missing=missingFields(artifact),controlled=tagNames(artifact,'controlled'),freeform=tagNames(artifact,'freeform');return `<article class="card artifact-card" data-artifact-id="${esc(artifact.id)}">
-      <label class="artifact-select"><input type="checkbox" data-select-artifact ${state.selected.has(artifact.id)?'checked':''}/> Select · ${esc(artifact.id)}</label>
-      <div class="card-kicker">${esc(window.CreativeDatabase.effectiveArtifactType(artifact))} · ${esc(artifact.lifecycle_status)}</div><h3>${esc(artifact.title)}</h3><div class="file-line">${esc(artifact.original_file_name||'No filename')}</div>
-      ${missing.length?`<div class="metadata-warning"><b>Needs metadata</b><span>${esc(missing.map((field)=>fieldLabels[field]).join(', '))}</span></div>`:''}${preview(artifact)}
-      <dl class="artifact-metadata">${metadataRows(artifact)}</dl>
-      <div class="tag-state"><b>Controlled tags</b><div>${controlled.length?controlled.map((tag)=>`<span class="pill">${esc(tag)}</span>`).join(''):'<span>None</span>'}</div></div>
-      <div class="tag-state"><b>Freeform tags</b><div>${freeform.length?freeform.map((tag)=>`<span class="pill">${esc(tag)}</span>`).join(''):'<span>None</span>'}</div></div>
-      ${proposals(artifact)}${editor(artifact)}
-    </article>`};
-    const currentFilters=()=>{const filters={search:document.querySelector('#artifact-search').value.trim()};document.querySelectorAll('[data-filter]').forEach((element)=>{if(element.value)filters[element.dataset.filter]=element.value;});return window.CreativeDatabase.normalizeArtifactFilters(filters);};
-    const visibleArtifacts=()=>window.CreativeDatabase.filterArtifacts(state.artifacts,currentFilters());
-    const syncFilterUrl=()=>{const url=new URL(window.location.href);for(const key of ['search','artifact_type','project','category','entity','intended_use','rights_status','review_status','canon_status','visibility','lifecycle_status','controlled_tag','freeform_tag','metadata','file'])url.searchParams.delete(key);for(const [key,value] of Object.entries(currentFilters()))if(value)url.searchParams.set(key,value);history.replaceState({},'',url);};
-    const restoreFilterUrl=()=>{const filters=window.CreativeDatabase.normalizeArtifactFilters(new URLSearchParams(window.location.search));document.querySelector('#artifact-search').value=filters.search||'';document.querySelectorAll('[data-filter]').forEach((element)=>{element.value=filters[element.dataset.filter]||'';});};
-    const clearFilters=()=>{document.querySelector('#artifact-search').value='';document.querySelectorAll('[data-filter]').forEach((element)=>{element.value='';});syncFilterUrl();render();};
-    const render=()=>{const visible=visibleArtifacts();grid.innerHTML=visible.map(card).join('');document.querySelector('#artifact-total').textContent=state.artifacts.length;document.querySelector('#artifact-count').textContent=visible.length;['available','missing','metadata_only','needs_import'].forEach((status)=>document.querySelector(`[data-count="${status}"]`).textContent=state.artifacts.filter((artifact)=>artifact.file_status===status).length);document.querySelector('[data-count="needs_metadata"]').textContent=state.artifacts.filter((artifact)=>missingFields(artifact).length).length;document.querySelector('#selected-count').textContent=state.selected.size;empty.hidden=visible.length>0||!state.artifacts.length;};
-    const fill=(selector,items,getValue=(item)=>item,getLabel=(item)=>item)=>{const select=document.querySelector(selector),current=select.value;select.innerHTML='<option value="">All</option>'+items.map((item)=>`<option value="${esc(getValue(item))}">${esc(getLabel(item))}</option>`).join('');select.value=[...select.options].some((item)=>item.value===current)?current:'';};
-    const populateFilters=()=>{for(const [field,list] of Object.entries(values)){const existing=field==='artifact_type'?state.artifacts.map((item)=>window.CreativeDatabase.effectiveArtifactType(item)):state.artifacts.map((item)=>item[field]);fill(`[data-filter="${field}"]`,[...new Set([...list,...existing.filter(Boolean)])]);}fill('[data-filter="category"]',state.options.categories,(item)=>item.id,(item)=>item.name);fill('[data-filter="entity"]',state.options.archiveRecords,(item)=>item.id,(item)=>`${item.title} · ${item.type}`);fill('[data-filter="controlled_tag"]',state.options.tags.filter((item)=>item.tag_type!=='freeform'),(item)=>item.id,(item)=>`${item.tag_type} / ${item.name}`);fill('[data-filter="freeform_tag"]',state.options.tags.filter((item)=>item.tag_type==='freeform'),(item)=>item.id,(item)=>item.name);};
-    const bulkFields=()=>{const select=(name,label,list)=>`<label>${label}<select name="${name}">${optionHtml(list,'','No change')}</select></label>`;document.querySelector('[data-bulk-fields]').innerHTML=`${select('project','Set project',values.project)}<label>Set category<select name="setCategoryId">${relationalOptions(state.options.categories,'','No change')}</select>${['admin','owner'].includes(state.role)?'<button class="button secondary" type="button" data-create-category>Create category</button>':''}</label><label>Set related entity<select name="relatedEntityId"><option value="">No change</option>${state.options.archiveRecords.map((item)=>`<option value="${esc(item.id)}">${esc(item.title)} · ${esc(item.type)}</option>`).join('')}</select></label>${select('intended_use','Set function',values.intended_use)}${select('rights_status','Set rights',values.rights_status)}${select('review_status','Set review',values.review_status)}${select('canon_status','Set canon',values.canon_status)}${select('visibility','Set visibility',values.visibility)}${select('lifecycle_status','Set workflow',values.lifecycle_status)}${tagPicker('addTagIds','Add tags',state.options.tags,true)}${tagPicker('removeTagIds','Remove tags',state.options.managedTags||state.options.tags)}`;};
-    const replaceArtifact=(artifact)=>{const index=state.artifacts.findIndex((item)=>item.id===artifact.id);if(index>=0)state.artifacts[index]=artifact;else state.artifacts.unshift(artifact);};
-    const applyOptionValues=(options)=>{values.artifact_type=options.values?.media||organization.media;values.project=options.values?.projects||organization.projects;values.intended_use=options.values?.functions||organization.functions;values.rights_status=options.values?.rightsStatuses||organization.rightsStatuses;values.review_status=options.values?.reviewStatuses||organization.reviewStatuses;values.canon_status=options.values?.canonStatuses||organization.canonStatuses;values.visibility=options.values?.visibilities||organization.visibilities;values.lifecycle_status=options.values?.workflowStatuses||organization.workflowStatuses;};
-    const refreshOptions=async()=>{state.options=await window.CreativeDatabase.organizationOptions();applyOptionValues(state.options);populateFilters();bulkFields();render();};
-    const createCategory=async()=>{const name=window.prompt('New category name');if(!name?.trim())return;await window.CreativeDatabase.createControlledValue('categories',{name:name.trim(),reason:'Created from artifact organizer'});await refreshOptions();};
-    const createTag=async()=>{const name=window.prompt('New tag name');if(!name?.trim())return;const tagType=window.prompt(`Tag family: ${[...organization.controlledTagTypes,'freeform'].join(', ')}`,'freeform');if(!tagType?.trim())return;await window.CreativeDatabase.createControlledValue('tags',{name:name.trim(),tagType:tagType.trim().toLowerCase(),reason:'Created from artifact tag picker'});await refreshOptions();};
-    const load=async()=>{await window.CreativeAccount?.ready;const account=window.CreativeAccount?.current();if(!account?.authenticated){loading.hidden=false;loading.textContent='Log in to load real artifacts and files from Supabase.';return;}state.role=account.userRole;loading.hidden=false;loading.textContent='Loading live artifacts, organization options, and signed previews…';try{const [result,options]=await Promise.all([window.CreativeDatabase.listArtifacts(),window.CreativeDatabase.organizationOptions()]);state.artifacts=result.artifacts||[];state.pending=result.pendingRequests||[];state.options=options;applyOptionValues(options);loading.hidden=true;populateFilters();restoreFilterUrl();bulkFields();render();}catch(error){loading.hidden=false;loading.textContent=`Artifact Library unavailable: ${error.message}`;}};
-    const selectedTags=(form,name)=>[...form.querySelectorAll(`[name="${name}"] option:checked`)].map((option)=>[...(state.options.managedTags||state.options.tags),...state.artifacts.flatMap((item)=>item.tags||[])].find((tag)=>tag.id===option.value)).filter(Boolean).map((tag)=>({id:tag.id,name:tag.name,tagType:tag.tag_type}));
-    const formPayload=(form,artifact=null)=>{const data=new FormData(form),changes={};for(const field of Object.keys(values)){const value=String(data.get(field)||'');if(value&&(!artifact||value!==String(artifact[field]||'')))changes[field]=value;}for(const field of ['title','description','notes']){if(!data.has(field))continue;const value=String(data.get(field)||'');if(!artifact||value!==String(artifact[field]||''))changes[field]=value;}const additions=selectedTags(form,'addTagIds'),removals=selectedTags(form,'removeTagIds');const payload={changes,addControlledTags:additions.filter((tag)=>tag.tagType!=='freeform'),removeControlledTags:removals.filter((tag)=>tag.tagType!=='freeform'),addFreeformTags:additions.filter((tag)=>tag.tagType==='freeform'),removeFreeformTags:removals.filter((tag)=>tag.tagType==='freeform'),reason:String(data.get('reason')||'')};const category=String(data.get('setCategoryId')||''),entity=String(data.get('relatedEntityId')||'');if(data.has('setCategoryId')&&(artifact?category!==currentCategoryId(artifact):Boolean(category)))payload.setCategoryId=category;if(data.has('relatedEntityId')&&(artifact?entity!==currentEntity(artifact):Boolean(entity)))payload.relatedEntityId=entity;return payload;};
-    grid.addEventListener('change',(event)=>{const checkbox=event.target.closest('[data-select-artifact]');if(!checkbox)return;const id=checkbox.closest('[data-artifact-id]').dataset.artifactId;checkbox.checked?state.selected.add(id):state.selected.delete(id);document.querySelector('#selected-count').textContent=state.selected.size;});
-    grid.addEventListener('submit',async(event)=>{const form=event.target.closest('[data-organize-artifact]');if(!form)return;event.preventDefault();const artifactId=form.closest('[data-artifact-id]').dataset.artifactId,artifact=state.artifacts.find((item)=>item.id===artifactId),payload=formPayload(form,artifact),status=form.querySelector('.save-state');if(!payload.reason||(!Object.keys(payload.changes).length&&!payload.addControlledTags.length&&!payload.removeControlledTags.length&&!payload.addFreeformTags.length&&!payload.removeFreeformTags.length&&payload.setCategoryId===undefined&&payload.relatedEntityId===undefined)){status.textContent='Make a change and give a reason.';return;}status.textContent='Saving to Supabase…';try{const result=await window.CreativeDatabase.organizeArtifact(artifactId,payload);if(result.artifact)replaceArtifact(result.artifact);if(result.reviewRequestId||result.results?.[0]?.reviewRequestId)state.pending.unshift({id:result.reviewRequestId||result.results[0].reviewRequestId,target_id:artifactId,operation_type:'artifact_organization_update',status:'pending_review',intent_summary:'Organization change awaiting admin review.'});render();const next=document.querySelector(`[data-artifact-id="${CSS.escape(artifactId)}"] .save-state`);window.CreativeDatabase.renderStatus(next,result);}catch(error){state.failures.set(artifactId,error.message);render();}});
-    grid.addEventListener('click',async(event)=>{const button=event.target.closest('[data-read-file]');if(!button)return;const artifact=state.artifacts.find((item)=>item.id===button.dataset.readFile),dialog=document.querySelector('#text-preview-dialog'),content=dialog.querySelector('[data-preview-content]');dialog.querySelector('[data-preview-title]').textContent=artifact.title;content.textContent='Loading…';dialog.showModal();try{const response=await fetch(artifact.signedUrl);if(!response.ok)throw new Error(`HTTP ${response.status}`);content.textContent=(await response.text()).slice(0,500000);}catch(error){content.textContent=`Preview failed: ${error.message}`;}});
-    document.querySelector('[data-close-preview]').addEventListener('click',()=>document.querySelector('#text-preview-dialog').close());
-    document.querySelector('#bulk-database-form').addEventListener('submit',async(event)=>{event.preventDefault();const form=event.currentTarget,payload=formPayload(form),status=form.querySelector('.save-state');if(!state.selected.size||!payload.reason){status.textContent='Select artifacts and give a reason.';return;}status.textContent=`Organizing ${state.selected.size} artifacts…`;try{const result=await window.CreativeDatabase.organizeArtifacts([...state.selected],payload);for(const item of result.results||[])if(item.artifact)replaceArtifact(item.artifact);state.selected.clear();form.reset();bulkFields();render();window.CreativeDatabase.renderStatus(status,result);}catch(error){status.textContent=`Failed: ${error.message}`;}});
-    document.querySelector('#select-visible').addEventListener('click',()=>{visibleArtifacts().forEach((item)=>state.selected.add(item.id));render();});document.querySelector('#clear-selected').addEventListener('click',()=>{state.selected.clear();render();});
-    document.addEventListener('input',(event)=>{const input=event.target.closest('[data-tag-search]');if(!input)return;const query=input.value.trim().toLowerCase(),select=input.parentElement.querySelector('select');[...select.options].forEach((option)=>{option.hidden=Boolean(query&&!option.textContent.toLowerCase().includes(query));});});
-    document.addEventListener('click',async(event)=>{if(event.target.closest('[data-create-category]')){try{await createCategory();}catch(error){window.alert(error.message);}return;}if(event.target.closest('[data-create-tag]')){try{await createTag();}catch(error){window.alert(error.message);}return;}if(event.target.closest('[data-clear-filters]')||event.target.closest('#clear-filters'))clearFilters();});
-    document.querySelector('#artifact-search').addEventListener('input',()=>{syncFilterUrl();render();});document.querySelectorAll('[data-filter]').forEach((element)=>element.addEventListener('change',()=>{syncFilterUrl();render();}));window.addEventListener('creative-os-auth-changed',load);window.addEventListener('DOMContentLoaded',load);
-  </script>
+      <div id="upload-progress" class="upload-progress" hidden></div>
+      <div id="artifact-grid" class="archive-index-grid"></div>
+      <div id="artifact-empty" class="empty-panel" hidden>
+        <b>No files match these filters.</b>
+        <p>Clear filters or add a file to the Archive Index.</p>
+      </div>
+    </div>
+  </section>
+
+  <dialog id="text-preview-dialog" class="file-preview-dialog">
+    <div class="dialog-head"><h2 data-preview-title>File preview</h2><button class="button secondary" type="button" data-close-preview>Close</button></div>
+    <pre data-preview-content>Loading...</pre>
+  </dialog>
+
+  <script>import "../../scripts/archive-index-client.js";</script>
 
   <style>
-    .library-controls,.bulk-shell{position:relative;z-index:auto;margin-block:1rem;background:var(--paper,#f7f4ea)}
-    .artifact-toolbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));align-items:end;gap:.65rem;padding:1rem}
-    .artifact-toolbar label,.bulk-editor label,.artifact-editor label{display:grid;gap:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}.artifact-toolbar .wide{grid-column:span 2}
-    .artifact-database-grid{position:relative;clear:both;margin-top:1.5rem;align-items:start}.artifact-card{overflow:visible}.artifact-metadata{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem;margin:.8rem 0}.artifact-metadata div{padding:.4rem;background:rgba(0,0,0,.035)}.artifact-metadata dt{font-size:.62rem;text-transform:uppercase}.artifact-metadata dd{margin:0;overflow-wrap:anywhere}.metadata-warning{display:flex;justify-content:space-between;gap:.6rem;padding:.55rem;background:#fff1c8;border:1px solid #d49300;margin:.5rem 0}.artifact-editor{margin-top:.8rem}.artifact-editor form{padding-top:.75rem}.form-grid.compact{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.65rem}.form-grid textarea{min-height:4.5rem}.tag-picker select{min-height:8rem}.tag-picker input{margin-bottom:.25rem}.tag-state{margin-top:.65rem}.tag-state .pill{margin:.15rem .2rem .15rem 0}@media(max-width:700px){.artifact-toolbar .wide{grid-column:span 1}.artifact-metadata{grid-template-columns:1fr}}
+    .compact-head code{font-size:.9em}.index-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:1rem;margin:1rem 0}.index-actions article{display:grid;gap:.45rem;padding:1rem;border:1px solid var(--line);background:var(--paper)}
+    .upload-button{position:relative;overflow:hidden;width:max-content}.upload-button input{position:absolute;inset:0;opacity:0;cursor:pointer}.bulk-index-panel{margin:1rem 0;padding:1rem;border:1px solid var(--line);background:var(--paper)}.bulk-index-panel summary{cursor:pointer;font-weight:700}.bulk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(12rem,1fr));gap:.65rem;align-items:end;margin-top:.75rem}.bulk-grid label{display:grid;gap:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}.bulk-actions{display:flex;flex-wrap:wrap;gap:.45rem}.bulk-status{margin:.75rem 0 0;font-size:.85rem}.select-file{display:flex;align-items:center;gap:.4rem;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em}.folder-index-shell{display:grid;grid-template-columns:minmax(13rem,18rem) minmax(0,1fr);gap:1rem;align-items:start}.folder-rail{position:sticky;top:1rem;max-height:calc(100vh - 2rem);overflow:auto;border:1px solid var(--line);background:var(--paper);padding:.75rem}.rail-head{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.5rem}.mini{padding:.25rem .55rem}.folder-list{display:grid;gap:.25rem}.folder-list button{display:flex;justify-content:space-between;gap:.75rem;text-align:left;border:0;border-bottom:1px solid rgba(0,0,0,.08);background:transparent;padding:.45rem;cursor:pointer}.folder-list button.active{background:rgba(198,255,0,.28)}.folder-list span{overflow-wrap:anywhere}.archive-toolbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(10rem,1fr));align-items:end;gap:.65rem;padding:1rem}.archive-toolbar label{display:grid;gap:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}.archive-toolbar .wide{grid-column:span 2}.archive-index-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(18rem,1fr));gap:1rem;margin-top:1rem}.archive-file-card{display:grid;gap:.65rem;padding:1rem;border:1px solid var(--line);background:var(--paper);min-width:0}.archive-file-card.selected{outline:3px solid rgba(198,255,0,.85)}.file-card-top{display:flex;justify-content:space-between;gap:.5rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em}.state-badge{border:1px solid var(--line);padding:.2rem .4rem;border-radius:999px}.state-badge.available{background:#d9ffd2}.state-badge.needs_import,.state-badge.manifest_only{background:#fff2bf}.archive-thumb{width:100%;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);background:#eee}.archive-placeholder,.file-preview-tile{display:grid;place-items:center;text-align:center;min-height:9rem;border:1px dashed var(--line);padding:1rem;background:rgba(0,0,0,.035);color:inherit;text-decoration:none}.archive-placeholder span{max-width:26ch}.path-line{font-size:.75rem;white-space:normal;overflow-wrap:anywhere}.file-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem}.file-facts div{padding:.4rem;background:rgba(0,0,0,.035)}.file-facts dt{font-size:.62rem;text-transform:uppercase}.file-facts dd{margin:0;overflow-wrap:anywhere}.chip-line{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}.quick-index-form{display:grid;gap:.5rem;border-top:1px solid var(--line);padding-top:.75rem}.quick-index-form label{display:grid;gap:.25rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em}.quick-index-form textarea{min-height:4rem}.manifest-only-note{padding:.65rem;background:#fff2bf;border:1px solid #d49300}.upload-progress{display:grid;gap:.35rem;padding:1rem;background:var(--paper);border:1px solid var(--line);margin-top:1rem;max-height:16rem;overflow:auto}@media(max-width:850px){.folder-index-shell{grid-template-columns:1fr}.folder-rail{position:relative;top:auto;max-height:18rem}.archive-toolbar .wide{grid-column:span 1}.file-facts{grid-template-columns:1fr}}
   </style>
 </AppLayout>

@@ -1,31 +1,14 @@
 ---
 import "../styles/global.css";
-interface Props { title: string; section?: "home"|"archive"|"workbench"|"decisions"|"changelog"|"admin"|"reuse"|"pipeline"|"import"|"artifacts"|"tagging"|"exports"|"publish"|"rights"; description?: string; }
-const { title, section = "home", description = "EGGS / Para creative systems archive" } = Astro.props;
+
+interface Props {
+  title: string;
+  section?: string;
+  description?: string;
+}
+
+const { title, section = "artifacts", description = "Archive folder index" } = Astro.props;
 const buildTimestamp = new Date().toISOString();
-const systemMode = ["home","archive","reuse"].includes(section);
-const workbenchMode = ["workbench","decisions","changelog","admin"].includes(section);
-const pipelineMode = ["pipeline","import","artifacts","tagging","exports","publish","rights"].includes(section);
-const systemLinks = [
-  ["home", "/", "Overview"],
-  ["archive", "/archive", "Archive library"],
-  ["reuse", "/reuse", "Project reuse"],
-];
-const workbenchLinks = [
-  ["workbench", "/workbench", "Remediation"],
-  ["decisions", "/decisions", "Decision log"],
-  ["changelog", "/changelog", "Change log"],
-  ["admin", "/admin", "Admin portal"],
-];
-const pipelineLinks = [
-  ["pipeline", "/pipeline", "Operations overview"],
-  ["import", "/pipeline/import", "Import center"],
-  ["artifacts", "/pipeline/artifacts", "Artifact library"],
-  ["tagging", "/pipeline/tagging", "Batch tagging"],
-  ["exports", "/pipeline/exports", "Export / downloads"],
-  ["publish", "/pipeline/publish", "Publish OS"],
-  ["rights", "/pipeline/rights", "Rights review"],
-];
 ---
 <!doctype html>
 <html lang="en">
@@ -33,59 +16,72 @@ const pipelineLinks = [
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
-    <title>{title} · EGGS / Para</title>
+    <title>{title} - Archive Index</title>
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar">
-        <a class="brand" href="/">
-          <span class="brand-mark">E/P</span>
-          <span><strong>Creative Systems</strong><span>Creative OS 0.2</span></span>
+        <a class="brand" href="/pipeline/artifacts">
+          <span class="brand-mark">AI</span>
+          <span><strong>Archive Index</strong><span>Folders, files, tags</span></span>
         </a>
-        <div class="nav-label">System mode</div>
-        {systemLinks.map(([key,href,label]) => <a class:list={["nav-link", section === key && "active"]} href={href}>{label}</a>)}
-        <div class="nav-label">Workbench mode</div>
-        {workbenchLinks.map(([key,href,label]) => <a class:list={["nav-link", section === key && "active"]} href={href} data-admin-link={key === "admin" ? "" : undefined}>{label}</a>)}
-        <div class="nav-label">Operations mode</div>
-        {pipelineLinks.map(([key,href,label]) => <a class:list={["nav-link", section === key && "active"]} href={href}>{label}</a>)}
-        <section class="account-panel" aria-label="Account and operator" data-build-timestamp={buildTimestamp}>
-          <div class="nav-label">Account / operator</div><b data-account-state>Checking account…</b><p data-account-name></p>
-          <dl class="account-facts"><dt>Email</dt><dd data-account-email>—</dd><dt>Role</dt><dd data-account-role>viewer</dd><dt>Role source</dt><dd data-account-role-source>—</dd><dt>Privileges</dt><dd data-account-privileges>inactive</dd></dl>
-          <p data-account-authority>Browse only</p><p data-emergency-state>Emergency fallback inactive</p><p data-account-auto>Checking database authority…</p>
-          <a class="button acid" href="/admin" data-admin-portal-status>Checking Admin Portal access…</a>
-          <details class="deploy-status"><summary>Deployed version / setup health</summary><dl><dt>Build</dt><dd data-deploy-build>{buildTimestamp}</dd><dt>Branch</dt><dd data-deploy-branch>checking…</dd><dt>Auth enabled</dt><dd data-deploy-auth>checking…</dd><dt>Database API</dt><dd data-deploy-api>checking…</dd><dt>Supabase URL</dt><dd data-health-url>checking…</dd><dt>Anon key</dt><dd data-health-anon>checking…</dd><dt>Service role</dt><dd data-health-service>checking…</dd><dt>Database connection</dt><dd data-health-database>log in to test</dd><dt>Artifact read</dt><dd data-health-artifacts>log in to test</dd><dt>Storage buckets</dt><dd data-health-buckets>log in to test</dd><dt>Detected role</dt><dd data-health-role>log in to test</dd><dt>Audit write</dt><dd data-health-audit>not verified</dd><dt>Routine GitHub writes</dt><dd data-deploy-github>disabled</dd><dt>Admin route</dt><dd>yes · /admin</dd></dl><button class="button secondary" type="button" data-health-audit-probe hidden>Run audit write probe</button><p data-health-status></p></details>
-          <button class="button secondary" type="button" data-account-login>Log in</button><button class="button secondary" type="button" data-account-logout hidden>Log out</button><button class="account-fallback" type="button" data-emergency-toggle>Toggle emergency fallback</button>
+
+        <div class="nav-label">Current app</div>
+        <a class:list={["nav-link", section === "artifacts" && "active"]} href="/pipeline/artifacts">Archive</a>
+
+        <section class="account-panel" aria-label="Archive operator" data-build-timestamp={buildTimestamp}>
+          <div class="nav-label">Authority</div>
+          <b data-account-state>Solo archive mode</b>
+          <p data-account-name>Archive operator</p>
+          <dl class="account-facts">
+            <dt>Email</dt><dd data-account-email>archive-operator@creative-os.local</dd>
+            <dt>Role</dt><dd data-account-role>owner</dd>
+            <dt>Role source</dt><dd data-account-role-source>Solo user mode</dd>
+            <dt>Privileges</dt><dd data-account-privileges>owner active</dd>
+          </dl>
+          <p data-account-authority>Full archive indexing authority</p>
+          <p data-emergency-state>No account gate for solo-user mode.</p>
+          <p data-account-auto>Tag, folder, category, import, and export actions are available.</p>
+          <a class="button acid" href="/pipeline/artifacts" data-admin-portal-status>Open Archive</a>
+          <details class="deploy-status">
+            <summary>Supabase / setup health</summary>
+            <dl>
+              <dt>Build</dt><dd data-deploy-build>{buildTimestamp}</dd>
+              <dt>Branch</dt><dd data-deploy-branch>checking...</dd>
+              <dt>Auth mode</dt><dd data-deploy-auth>solo mode</dd>
+              <dt>Database API</dt><dd data-deploy-api>checking...</dd>
+              <dt>Supabase URL</dt><dd data-health-url>checking...</dd>
+              <dt>Anon key</dt><dd data-health-anon>checking...</dd>
+              <dt>Service role</dt><dd data-health-service>checking...</dd>
+              <dt>Database connection</dt><dd data-health-database>checking...</dd>
+              <dt>Artifact read</dt><dd data-health-artifacts>checking...</dd>
+              <dt>Storage buckets</dt><dd data-health-buckets>checking...</dd>
+              <dt>Detected role</dt><dd data-health-role>owner</dd>
+              <dt>Audit write</dt><dd data-health-audit>not verified</dd>
+              <dt>Routine GitHub writes</dt><dd data-deploy-github>disabled</dd>
+            </dl>
+            <button class="button secondary" type="button" data-health-audit-probe hidden>Run audit write probe</button>
+            <p data-health-status></p>
+          </details>
         </section>
-        <div class="sidebar-foot"><b>Living Creative OS</b><br/>Database-backed.<br/>Source-linked. Audited.</div>
+
+        <div class="sidebar-foot"><b>Archive Index</b><br/>Virtual folders.<br/>Standard + freeform tags.</div>
       </aside>
+
       <main class="main">
         <header class="topbar">
-          <div class="breadcrumbs">EGGS / PARA &nbsp;·&nbsp; {section}</div>
+          <div class="breadcrumbs">Archive - {section}</div>
           <div class="mode-switch">
-            <a class:list={[systemMode && "active"]} href="/archive">System</a>
-            <a class:list={[workbenchMode && "active"]} href="/workbench">Workbench</a>
-            <a class:list={[pipelineMode && "active"]} href="/pipeline">Operations</a>
+            <a class="active" href="/pipeline/artifacts">Index</a>
           </div>
         </header>
         <div class="content"><slot /></div>
       </main>
+
       <nav class="mobile-nav">
-        <a class:list={[section === "home" && "active"]} href="/">Overview</a>
-        <a class:list={[systemMode && section !== "home" && "active"]} href="/archive">System</a>
-        <a class:list={[workbenchMode && "active"]} href="/workbench">Workbench</a>
-        <a class:list={[pipelineMode && "active"]} href="/pipeline">Operations</a>
+        <a class="active" href="/pipeline/artifacts">Archive</a>
       </nav>
     </div>
-    <dialog id="account-dialog" class="account-dialog">
-      <form method="dialog" data-mode="login">
-        <div class="card-kicker">Employee account</div>
-        <h2>Log in to Creative OS</h2>
-        <label>Email<input name="email" type="email" autocomplete="email" required /></label>
-        <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
-        <p data-account-status aria-live="polite"></p>
-        <div class="action-row"><button class="button acid" type="submit">Log in</button><button class="button secondary" type="button" onclick="this.closest('dialog').close()">Cancel</button></div>
-      </form>
-    </dialog>
     <script>import "../scripts/account-client.js"; import "../scripts/creative-os-client.js";</script>
   </body>
 </html>
