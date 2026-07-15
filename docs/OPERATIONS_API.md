@@ -26,8 +26,8 @@ This does not publish raw archive files automatically. GitHub/Netlify provide th
 The current Supabase project for this redux is:
 
 ```text
-SUPABASE_URL=https://uzderzjbitmghfvrllvz.supabase.co
-SUPABASE_PROJECT_REF=uzderzjbitmghfvrllvz
+SUPABASE_URL=https://okqkljexfzolzxysjaha.supabase.co
+SUPABASE_PROJECT_REF=okqkljexfzolzxysjaha
 ```
 
 Do these sections in order. Do not upload archive files until the migration and metadata seed have completed successfully.

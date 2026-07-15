@@ -8,9 +8,11 @@ const envValue = (name, env = process.env) => {
   }
 };
 
+const envAny = (names, env = process.env) => names.map((name) => envValue(name, env)).find(Boolean) || "";
+
 export const supabaseConfig = (env = process.env) => {
-  const url = envValue("SUPABASE_URL", env);
-  const anonKey = envValue("SUPABASE_ANON_KEY", env);
+  const url = envAny(["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"], env);
+  const anonKey = envAny(["SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"], env);
   const serviceRoleKey = envValue("SUPABASE_SERVICE_ROLE_KEY", env);
   const artifactsBucket = envValue("SUPABASE_STORAGE_BUCKET_ARTIFACTS", env) || "artifacts";
   const exportsBucket = envValue("SUPABASE_STORAGE_BUCKET_EXPORTS", env) || "exports";

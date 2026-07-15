@@ -55,6 +55,16 @@ export const loadLocalEnv = (file = path.join(root, ".env")) => {
   for (const [name, value] of Object.entries(values)) {
     if (process.env[name] === undefined) process.env[name] = value;
   }
+  if (process.env.SUPABASE_URL === undefined && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    process.env.SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  }
+  if (process.env.SUPABASE_ANON_KEY === undefined && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+    process.env.SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  }
+  if (process.env.SUPABASE_PROJECT_REF === undefined && process.env.SUPABASE_URL) {
+    const match = String(process.env.SUPABASE_URL).match(/^https:\/\/([a-z0-9-]+)\.supabase\.co\/?$/i);
+    if (match) process.env.SUPABASE_PROJECT_REF = match[1];
+  }
   return { exists: fs.existsSync(file), file, values };
 };
 
