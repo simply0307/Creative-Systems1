@@ -31,24 +31,26 @@ const buildTimestamp = new Date().toISOString();
 
         <section class="account-panel" aria-label="Archive operator" data-build-timestamp={buildTimestamp}>
           <div class="nav-label">Authority</div>
-          <b data-account-state>Solo archive mode</b>
-          <p data-account-name>Archive operator</p>
+          <b data-account-state>Checking authentication…</b>
+          <p data-account-name>Not signed in</p>
           <dl class="account-facts">
-            <dt>Email</dt><dd data-account-email>archive-operator@creative-os.local</dd>
-            <dt>Role</dt><dd data-account-role>owner</dd>
-            <dt>Role source</dt><dd data-account-role-source>Solo user mode</dd>
-            <dt>Privileges</dt><dd data-account-privileges>owner active</dd>
+            <dt>Email</dt><dd data-account-email>—</dd>
+            <dt>Role</dt><dd data-account-role>viewer</dd>
+            <dt>Role source</dt><dd data-account-role-source>Waiting for a verified Netlify Identity session</dd>
+            <dt>Privileges</dt><dd data-account-privileges>not elevated</dd>
           </dl>
-          <p data-account-authority>Full archive indexing authority</p>
-          <p data-emergency-state>No account gate for solo-user mode.</p>
-          <p data-account-auto>Tag, folder, category, import, and export actions are available.</p>
-          <a class="button acid" href="/pipeline/artifacts" data-admin-portal-status>Open Archive</a>
+          <p data-account-authority>No application authority</p>
+          <p data-emergency-state>No automatic owner or emergency fallback is active.</p>
+          <p data-account-auto>Sign in with contributor authority or higher to change Creative OS state.</p>
+          <button class="button acid" type="button" data-account-login>Sign in</button>
+          <button class="button" type="button" data-account-logout hidden>Sign out</button>
+          <a class="button" href="/pipeline/artifacts" data-admin-portal-status>View sign-in status</a>
           <details class="deploy-status">
             <summary>Creative OS runtime readiness</summary>
             <dl>
               <dt>Build</dt><dd data-deploy-build>{buildTimestamp}</dd>
               <dt>Branch</dt><dd data-deploy-branch>checking...</dd>
-              <dt>Auth mode</dt><dd data-deploy-auth>solo mode</dd>
+              <dt>Auth mode</dt><dd data-deploy-auth>checking…</dd>
               <dt>Database API</dt><dd data-deploy-api>checking...</dd>
               <dt>Runtime context</dt><dd data-health-context>checking...</dd>
               <dt>Project identity</dt><dd data-health-project>checking...</dd>

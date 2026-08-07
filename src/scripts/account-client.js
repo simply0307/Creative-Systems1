@@ -1,42 +1,61 @@
-const ready = Promise.resolve();
+import { getUser, handleAuthCallback, login as identityLogin, logout as identityLogout, onAuthChange } from "@netlify/identity";
 
-const localOperator = {
-  authenticated: true,
-  userId: "local-archive-operator",
-  userEmail: "archive-operator@creative-os.local",
-  userName: "Archive operator",
-  userRole: "owner",
-  roleSource: "Open archive tool mode: solo user",
-  adminPrivilegesActive: true,
+const signedOut = {
+  authenticated: false,
+  userId: null,
+  userEmail: null,
+  userName: "Not signed in",
+  userRole: "viewer",
+  roleSource: "No verified Netlify Identity session",
+  adminPrivilegesActive: false,
   emergencyFallbackActive: false,
 };
 
+let account = { ...signedOut };
+let authError = "";
 let health = null;
 let healthRequest = null;
 
-const yesNo = (value) => value ? "yes" : "no";
-const snapshot = () => ({ ...localOperator });
-const authority = () => "Full archive indexing authority";
+const normalizeAccount = (user) => {
+  if (!user?.id) return { ...signedOut };
+  const roles = Array.isArray(user.roles) ? user.roles.map((role) => String(role).toLowerCase()) : [];
+  const roleOrder = ["viewer", "contributor", "editor", "admin", "owner"];
+  const userRole = roles.filter((role) => roleOrder.includes(role)).sort((a, b) => roleOrder.indexOf(b) - roleOrder.indexOf(a))[0] || "viewer";
+  return {
+    authenticated: true,
+    userId: user.id,
+    userEmail: user.email || "",
+    userName: user.name || user.email || "Employee",
+    userRole,
+    roleSource: "Netlify Identity app_metadata.roles (server verified for every API request)",
+    adminPrivilegesActive: ["admin", "owner"].includes(userRole),
+    emergencyFallbackActive: false,
+  };
+};
+
+const snapshot = () => ({ ...account });
+const canMutate = () => account.authenticated && ["contributor", "editor", "admin", "owner"].includes(account.userRole);
+const authority = () => account.authenticated ? `${account.userRole} Creative OS authority` : "No application authority";
 
 const render = () => {
   const state = snapshot();
-  document.querySelectorAll("[data-account-state]").forEach((el) => { el.textContent = "Solo archive mode"; });
+  document.querySelectorAll("[data-account-state]").forEach((el) => { el.textContent = state.authenticated ? "Authenticated" : "Authentication required"; });
   document.querySelectorAll("[data-account-name]").forEach((el) => { el.textContent = state.userName; });
-  document.querySelectorAll("[data-account-email]").forEach((el) => { el.textContent = state.userEmail; });
+  document.querySelectorAll("[data-account-email]").forEach((el) => { el.textContent = state.userEmail || "—"; });
   document.querySelectorAll("[data-account-role]").forEach((el) => { el.textContent = state.userRole; });
   document.querySelectorAll("[data-account-role-source]").forEach((el) => { el.textContent = state.roleSource; });
-  document.querySelectorAll("[data-account-privileges]").forEach((el) => { el.textContent = "owner active"; });
+  document.querySelectorAll("[data-account-privileges]").forEach((el) => { el.textContent = state.adminPrivilegesActive ? "admin active" : "not elevated"; });
   document.querySelectorAll("[data-account-authority]").forEach((el) => { el.textContent = authority(); });
-  document.querySelectorAll("[data-account-auto]").forEach((el) => { el.textContent = "Tag, folder, category, import, and export actions are available for the solo operator."; });
-  document.querySelectorAll("[data-account-login],[data-account-logout],[data-emergency-toggle]").forEach((el) => { el.hidden = true; });
-  document.querySelectorAll("[data-admin-link]").forEach((el) => { el.classList.add("admin-authorized"); });
-  document.querySelectorAll("[data-admin-portal-status]").forEach((el) => { el.textContent = "Open Archive"; });
-  document.querySelectorAll("[data-emergency-state]").forEach((el) => { el.textContent = "No account gate for solo-user mode."; });
-  document.querySelectorAll('[name="actor"]').forEach((input) => { if (!input.value) input.value = state.userName; });
+  document.querySelectorAll("[data-account-auto]").forEach((el) => { el.textContent = canMutate() ? "Available actions are enforced again by the Creative OS API." : "Sign in with contributor authority or higher to change Creative OS state."; });
+  document.querySelectorAll("[data-account-login]").forEach((el) => { el.hidden = state.authenticated; });
+  document.querySelectorAll("[data-account-logout]").forEach((el) => { el.hidden = !state.authenticated; });
+  document.querySelectorAll("[data-admin-link]").forEach((el) => { el.classList.toggle("admin-authorized", state.adminPrivilegesActive); });
+  document.querySelectorAll("[data-admin-portal-status]").forEach((el) => { el.textContent = state.authenticated ? "Open Archive" : "View sign-in status"; });
+  document.querySelectorAll("[data-emergency-state]").forEach((el) => { el.textContent = authError || "No automatic owner or emergency fallback is active."; });
+  document.querySelectorAll('[name="actor"]').forEach((input) => { if (!input.value && state.authenticated) input.value = state.userName; });
   document.querySelectorAll('[data-artifact-form] button[type="submit"],#bulk-editor button[type="submit"],#tagging-bulk-form button[type="submit"],[data-submit-decision]').forEach((button) => {
-    button.disabled = false;
-    button.title = "";
-    button.textContent = "Save to archive index";
+    button.disabled = !canMutate();
+    button.title = canMutate() ? "" : "Verified contributor authority or higher is required.";
   });
   window.dispatchEvent(new CustomEvent("creative-os-auth-changed", { detail: state }));
 };
@@ -44,7 +63,7 @@ const render = () => {
 const renderHealth = () => {
   const checks = health?.checks || {};
   document.querySelectorAll("[data-deploy-branch]").forEach((el) => { el.textContent = health?.deployedBranch || "unknown"; });
-  document.querySelectorAll("[data-deploy-auth]").forEach((el) => { el.textContent = "solo mode"; });
+  document.querySelectorAll("[data-deploy-auth]").forEach((el) => { el.textContent = account.authenticated ? "Netlify Identity verified" : "authentication required"; });
   document.querySelectorAll("[data-deploy-api]").forEach((el) => { el.textContent = health ? "reached" : "unavailable"; });
   document.querySelectorAll("[data-health-context]").forEach((el) => { el.textContent = health?.runtimeContext || "missing"; });
   document.querySelectorAll("[data-health-project]").forEach((el) => { el.textContent = checks.projectIdentityMatches ? "declared URL/ref match" : "not ready"; });
@@ -76,6 +95,50 @@ const refreshHealth = async () => {
   return healthRequest;
 };
 
+const login = async () => {
+  const email = window.prompt("Creative OS email");
+  if (!email) return;
+  const password = window.prompt("Creative OS password");
+  if (!password) return;
+  try {
+    authError = "";
+    account = normalizeAccount(await identityLogin(email, password));
+  } catch (error) {
+    account = { ...signedOut };
+    authError = error?.message || "Sign-in failed.";
+  }
+  render();
+};
+
+const logout = async () => {
+  try { await identityLogout(); }
+  finally {
+    account = { ...signedOut };
+    authError = "";
+    render();
+  }
+};
+
+const ready = (async () => {
+  try {
+    await handleAuthCallback();
+    account = normalizeAccount(await getUser());
+  } catch (error) {
+    account = { ...signedOut };
+    authError = error?.message || "Authentication is unavailable.";
+  }
+  render();
+  return account;
+})();
+
+onAuthChange((_event, user) => {
+  account = normalizeAccount(user);
+  authError = "";
+  render();
+});
+
+document.querySelectorAll("[data-account-login]").forEach((button) => button.addEventListener("click", login));
+document.querySelectorAll("[data-account-logout]").forEach((button) => button.addEventListener("click", logout));
 render();
 refreshHealth();
 
@@ -84,7 +147,7 @@ window.CreativeAccount = {
   current: snapshot,
   authHeaders: async () => ({}),
   refreshHealth,
-  login: () => {},
-  logout: async () => {},
+  login,
+  logout,
   emergencyFallbackEnabled: () => false,
 };

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { resolveIdentity } from "./lib/identity.mjs";
+import { ROLE_ORDER, resolveIdentity } from "./lib/identity.mjs";
+import { authorizeCreativeOsRoute, classifyCreativeOsRoute } from "./lib/authorization.mjs";
 import { databaseDisposition } from "./lib/database-policy.mjs";
 import repoImportManifest from "../../src/generated/repo-import-manifest.json" with { type: "json" };
 import { artifactOrganization, uploadDefaults } from "../../src/data/artifact-organization.mjs";
@@ -18,20 +19,20 @@ import {
   applyTypedTagChange,
   artifactSelect,
   ensureCategories,
+  ensureProfile,
   ensureTypedTags,
   getArtifact,
   getSupabaseAdmin,
+  loadLocalOwnerProfile,
   presentArtifact,
   requireData,
   safeFileName,
   slugify,
   syncControlledTag,
   supabaseConfig,
-  upsertProfile,
   writeAudit,
 } from "./lib/supabase.mjs";
 
-const ROLE_ORDER = ["viewer", "contributor", "editor", "admin", "owner"];
 const headers = { "content-type": "application/json", "cache-control": "no-store" };
 const json = (status, body) => Response.json(body, { status, headers });
 const roleAtLeast = (role, minimum) => ROLE_ORDER.indexOf(role) >= ROLE_ORDER.indexOf(minimum);
@@ -1108,6 +1109,7 @@ export const handleCreativeOsRequest = async (request, context = {}, overrides =
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...headers, "access-control-allow-methods": "GET,POST,PATCH,OPTIONS", "access-control-allow-headers": "authorization,content-type" } });
   const requestUrl = new URL(request.url);
   const path = requestUrl.searchParams.get("resource") || routePath(request);
+  const routePolicy = classifyCreativeOsRoute(request.method, path);
   const config = overrides.config || supabaseConfig();
   if (request.method === "GET" && path === "health") return json(200, {
     ok: true,
@@ -1170,11 +1172,26 @@ export const handleCreativeOsRequest = async (request, context = {}, overrides =
   });
 
   const identity = overrides.identity || await resolveIdentity(identityRequest(request), context);
-  try { requireRole(identity, "viewer"); }
-  catch (error) { return json(error.status || 401, { ok: false, error: error.message, authenticated: false, userRole: "viewer" }); }
+  try { authorizeCreativeOsRoute(identity, routePolicy); }
+  catch (error) {
+    return json(error.status || 401, {
+      ok: false,
+      error: error.message,
+      authenticated: Boolean(identity?.authenticated),
+      userRole: identity?.authenticated ? identity.userRole : "viewer",
+      authFailure: error.authFailure || null,
+      databaseWriteAttempted: false,
+      databaseWriteApplied: false,
+    });
+  }
   let profile;
-  try { profile = overrides.profile || await upsertProfile(supabase, identity); }
-  catch (error) { return json(502, { ok: false, error: error.message, authenticated: true, userRole: identity.userRole }); }
+  try {
+    profile = overrides.profile || (identity.authMethod === "explicit-local-owner"
+      ? await loadLocalOwnerProfile(supabase, identity)
+      : await ensureProfile(supabase, identity));
+  } catch (error) {
+    return json(503, { ok: false, error: error.message, authenticated: true, userRole: identity.userRole, databaseWriteAttempted: false, databaseWriteApplied: false });
+  }
 
   try {
     if (request.method === "GET" && path === "artifacts") {
