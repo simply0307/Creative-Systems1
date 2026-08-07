@@ -277,9 +277,9 @@ button.button { cursor:pointer; }
 .account-panel b { display:block; margin:5px 0 8px; font-size:12px; overflow-wrap:anywhere; }
 .account-panel p { margin:7px 0; color:rgba(255,255,255,.65); font-size:10px; }
 .account-panel .button { width:100%; margin-top:6px; }
-.identity-invite-form { margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,.13); }
-.identity-invite-form label { display:block; margin-top:8px; color:rgba(255,255,255,.8); font-size:9px; font-weight:700; }
-.identity-invite-form input { width:100%; margin-top:4px; padding:8px; border:1px solid rgba(255,255,255,.25); border-radius:6px; background:#fff; color:var(--ink); }
+.identity-login-form,.identity-invite-form { margin-top:10px; padding-top:8px; border-top:1px solid rgba(255,255,255,.13); }
+.identity-login-form label,.identity-invite-form label { display:block; margin-top:8px; color:rgba(255,255,255,.8); font-size:9px; font-weight:700; }
+.identity-login-form input,.identity-invite-form input { width:100%; margin-top:4px; padding:8px; border:1px solid rgba(255,255,255,.25); border-radius:6px; background:#fff; color:var(--ink); }
 .account-facts,.deploy-status dl,.queue-diagnostics dl { display:grid; grid-template-columns:minmax(75px,.7fr) 1fr; gap:5px 9px; margin:8px 0; font-size:9px; }
 .account-facts dt,.deploy-status dt,.queue-diagnostics dt { color:#8f9189; }
 .account-facts dd,.deploy-status dd,.queue-diagnostics dd { margin:0; overflow-wrap:anywhere; }

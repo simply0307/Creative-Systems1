@@ -96,17 +96,42 @@ const refreshHealth = async () => {
   return healthRequest;
 };
 
-const login = async () => {
-  const email = window.prompt("Creative OS email");
-  if (!email) return;
-  const password = window.prompt("Creative OS password");
-  if (!password) return;
+const showLoginForm = (visible) => {
+  document.querySelectorAll("[data-login-form]").forEach((form) => {
+    form.hidden = !visible;
+    if (visible) form.querySelector("[data-login-email]")?.focus();
+  });
+};
+
+const openLogin = () => {
+  authError = "";
+  showLoginForm(true);
+  render();
+};
+
+const closeLogin = () => {
+  document.querySelectorAll("[data-login-form]").forEach((form) => form.reset());
+  showLoginForm(false);
+  authError = "";
+  render();
+};
+
+const login = async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const email = form.querySelector("[data-login-email]")?.value.trim() || "";
+  const passwordInput = form.querySelector("[data-login-password]");
+  const password = passwordInput?.value || "";
+  if (!email || !password) return;
   try {
     authError = "";
     account = normalizeAccount(await identityLogin(email, password));
+    form.reset();
+    showLoginForm(false);
   } catch (error) {
     account = { ...signedOut };
     authError = error?.message || "Sign-in failed.";
+    if (passwordInput) passwordInput.value = "";
   }
   render();
 };
@@ -116,6 +141,7 @@ const logout = async () => {
   finally {
     account = { ...signedOut };
     authError = "";
+    showLoginForm(false);
     render();
   }
 };
@@ -170,11 +196,14 @@ const ready = (async () => {
 onAuthChange((_event, user) => {
   account = normalizeAccount(user);
   authError = "";
+  if (account.authenticated) showLoginForm(false);
   render();
 });
 
-document.querySelectorAll("[data-account-login]").forEach((button) => button.addEventListener("click", login));
+document.querySelectorAll("[data-account-login]").forEach((button) => button.addEventListener("click", openLogin));
 document.querySelectorAll("[data-account-logout]").forEach((button) => button.addEventListener("click", logout));
+document.querySelectorAll("[data-login-form]").forEach((form) => form.addEventListener("submit", login));
+document.querySelectorAll("[data-login-cancel]").forEach((button) => button.addEventListener("click", closeLogin));
 document.querySelectorAll("[data-invite-form]").forEach((form) => form.addEventListener("submit", acceptPendingInvite));
 render();
 refreshHealth();
@@ -184,7 +213,7 @@ window.CreativeAccount = {
   current: snapshot,
   authHeaders: async () => ({}),
   refreshHealth,
-  login,
+  login: openLogin,
   logout,
   emergencyFallbackEnabled: () => false,
 };

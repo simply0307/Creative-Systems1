@@ -81,6 +81,17 @@ test("account client completes invite callbacks with an explicit password accept
   assert.match(layout, /autocomplete="new-password"/);
 });
 
+test("account client uses an inline Identity login form instead of blocked browser prompts", () => {
+  const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
+  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
+  assert.doesNotMatch(accountClient, /window\.prompt/);
+  assert.match(accountClient, /identityLogin\(email, password\)/);
+  assert.match(accountClient, /\[data-login-form\].*addEventListener\("submit", login\)/);
+  assert.match(layout, /data-login-form/);
+  assert.match(layout, /autocomplete="username"/);
+  assert.match(layout, /autocomplete="current-password"/);
+});
+
 test("explicit local owner mode requires both local runtime and the flag", async () => {
   assert.equal(localOwnerModeEnabled(local), true);
   assert.equal(localOwnerModeEnabled({ CREATIVE_OS_RUNTIME_CONTEXT: "local" }), false);
