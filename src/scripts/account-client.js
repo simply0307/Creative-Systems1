@@ -1,4 +1,4 @@
-import { getUser, handleAuthCallback, login as identityLogin, logout as identityLogout, onAuthChange } from "@netlify/identity";
+import { acceptInvite, getUser, handleAuthCallback, login as identityLogin, logout as identityLogout, onAuthChange } from "@netlify/identity";
 
 const signedOut = {
   authenticated: false,
@@ -15,6 +15,7 @@ let account = { ...signedOut };
 let authError = "";
 let health = null;
 let healthRequest = null;
+let pendingInviteToken = null;
 
 const normalizeAccount = (user) => {
   if (!user?.id) return { ...signedOut };
@@ -119,10 +120,45 @@ const logout = async () => {
   }
 };
 
+const showInviteForm = (visible) => {
+  document.querySelectorAll("[data-invite-form]").forEach((form) => { form.hidden = !visible; });
+};
+
+const acceptPendingInvite = async (event) => {
+  event.preventDefault();
+  if (!pendingInviteToken) return;
+  const form = event.currentTarget;
+  const password = form.querySelector("[data-invite-password]")?.value || "";
+  const confirmation = form.querySelector("[data-invite-password-confirmation]")?.value || "";
+  if (!password || password !== confirmation) {
+    authError = "Invitation passwords must be present and match.";
+    render();
+    return;
+  }
+  try {
+    authError = "";
+    account = normalizeAccount(await acceptInvite(pendingInviteToken, password));
+    pendingInviteToken = null;
+    form.reset();
+    showInviteForm(false);
+  } catch (error) {
+    account = { ...signedOut };
+    authError = error?.message || "Invitation acceptance failed.";
+  }
+  render();
+};
+
 const ready = (async () => {
   try {
-    await handleAuthCallback();
-    account = normalizeAccount(await getUser());
+    const callback = await handleAuthCallback();
+    if (callback?.type === "invite") {
+      pendingInviteToken = callback.token;
+      authError = "Set and confirm a password to accept your Creative OS invitation.";
+      showInviteForm(true);
+      account = { ...signedOut };
+    } else {
+      account = normalizeAccount(callback?.user || await getUser());
+    }
   } catch (error) {
     account = { ...signedOut };
     authError = error?.message || "Authentication is unavailable.";
@@ -139,6 +175,7 @@ onAuthChange((_event, user) => {
 
 document.querySelectorAll("[data-account-login]").forEach((button) => button.addEventListener("click", login));
 document.querySelectorAll("[data-account-logout]").forEach((button) => button.addEventListener("click", logout));
+document.querySelectorAll("[data-invite-form]").forEach((form) => form.addEventListener("submit", acceptPendingInvite));
 render();
 refreshHealth();
 

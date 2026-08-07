@@ -70,6 +70,17 @@ test("valid Netlify Identity user is accepted and only trusted app metadata supp
   assert.equal(identity.authMethod, "netlify-identity");
 });
 
+test("account client completes invite callbacks with an explicit password acceptance flow", () => {
+  const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
+  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
+  assert.match(accountClient, /import \{[^}]*acceptInvite[^}]*handleAuthCallback[^}]*\} from "@netlify\/identity"/);
+  assert.match(accountClient, /callback\?\.type === "invite"/);
+  assert.match(accountClient, /pendingInviteToken = callback\.token/);
+  assert.match(accountClient, /acceptInvite\(pendingInviteToken, password\)/);
+  assert.match(layout, /data-invite-form/);
+  assert.match(layout, /autocomplete="new-password"/);
+});
+
 test("explicit local owner mode requires both local runtime and the flag", async () => {
   assert.equal(localOwnerModeEnabled(local), true);
   assert.equal(localOwnerModeEnabled({ CREATIVE_OS_RUNTIME_CONTEXT: "local" }), false);

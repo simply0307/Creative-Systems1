@@ -44,6 +44,18 @@ const buildTimestamp = new Date().toISOString();
           <p data-account-auto>Sign in with contributor authority or higher to change Creative OS state.</p>
           <button class="button acid" type="button" data-account-login>Sign in</button>
           <button class="button" type="button" data-account-logout hidden>Sign out</button>
+          <form class="identity-invite-form" data-invite-form hidden>
+            <p>Finish accepting your Creative OS invitation.</p>
+            <label>
+              New password
+              <input type="password" autocomplete="new-password" required data-invite-password />
+            </label>
+            <label>
+              Confirm password
+              <input type="password" autocomplete="new-password" required data-invite-password-confirmation />
+            </label>
+            <button class="button acid" type="submit">Accept invitation</button>
+          </form>
           <a class="button" href="/pipeline/artifacts" data-admin-portal-status>View sign-in status</a>
           <details class="deploy-status">
             <summary>Creative OS runtime readiness</summary>
