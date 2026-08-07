@@ -1,4 +1,4 @@
-import { acceptInvite, getUser, handleAuthCallback, login as identityLogin, logout as identityLogout, onAuthChange } from "@netlify/identity";
+import { AUTH_EVENTS, acceptInvite, getUser, handleAuthCallback, login as identityLogin, logout as identityLogout, onAuthChange, updateUser as updateIdentityUser } from "@netlify/identity";
 
 const signedOut = {
   authenticated: false,
@@ -16,6 +16,8 @@ let authError = "";
 let health = null;
 let healthRequest = null;
 let pendingInviteToken = null;
+let passwordFormVisible = false;
+let passwordSetupRequired = false;
 
 const normalizeAccount = (user) => {
   if (!user?.id) return { ...signedOut };
@@ -50,6 +52,9 @@ const render = () => {
   document.querySelectorAll("[data-account-auto]").forEach((el) => { el.textContent = canMutate() ? "Available actions are enforced again by the Creative OS API." : "Sign in with contributor authority or higher to change Creative OS state."; });
   document.querySelectorAll("[data-account-login]").forEach((el) => { el.hidden = state.authenticated; });
   document.querySelectorAll("[data-account-logout]").forEach((el) => { el.hidden = !state.authenticated; });
+  document.querySelectorAll("[data-password-open]").forEach((el) => { el.hidden = !state.authenticated || passwordFormVisible; });
+  document.querySelectorAll("[data-password-form]").forEach((el) => { el.hidden = !passwordFormVisible; });
+  document.querySelectorAll("[data-password-cancel]").forEach((el) => { el.hidden = passwordSetupRequired; });
   document.querySelectorAll("[data-admin-link]").forEach((el) => { el.classList.toggle("admin-authorized", state.adminPrivilegesActive); });
   document.querySelectorAll("[data-admin-portal-status]").forEach((el) => { el.textContent = state.authenticated ? "Open Archive" : "View sign-in status"; });
   document.querySelectorAll("[data-emergency-state]").forEach((el) => { el.textContent = authError || "No automatic owner or emergency fallback is active."; });
@@ -116,6 +121,55 @@ const closeLogin = () => {
   render();
 };
 
+const showPasswordForm = (visible) => {
+  passwordFormVisible = visible;
+  if (visible) document.querySelector("[data-password-new]")?.focus();
+};
+
+const openPasswordForm = () => {
+  if (!account.authenticated) return;
+  authError = "";
+  showPasswordForm(true);
+  render();
+};
+
+const closePasswordForm = () => {
+  if (passwordSetupRequired) return;
+  document.querySelectorAll("[data-password-form]").forEach((form) => form.reset());
+  showPasswordForm(false);
+  authError = "";
+  render();
+};
+
+const setPassword = async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const password = form.querySelector("[data-password-new]")?.value || "";
+  const confirmation = form.querySelector("[data-password-confirmation]")?.value || "";
+  if (!account.authenticated) {
+    authError = "An authenticated Netlify Identity session is required to set a password.";
+    render();
+    return;
+  }
+  if (!password || password !== confirmation) {
+    authError = "Passwords must be present and match.";
+    render();
+    return;
+  }
+  try {
+    authError = "";
+    account = normalizeAccount(await updateIdentityUser({ password }));
+    passwordSetupRequired = false;
+    form.reset();
+    showPasswordForm(false);
+    authError = "Password saved. Sign out and sign back in to verify it.";
+  } catch (error) {
+    authError = error?.message || "Password update failed.";
+    form.querySelectorAll('input[type="password"]').forEach((input) => { input.value = ""; });
+  }
+  render();
+};
+
 const login = async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -142,6 +196,8 @@ const logout = async () => {
     account = { ...signedOut };
     authError = "";
     showLoginForm(false);
+    passwordSetupRequired = false;
+    showPasswordForm(false);
     render();
   }
 };
@@ -182,6 +238,11 @@ const ready = (async () => {
       authError = "Set and confirm a password to accept your Creative OS invitation.";
       showInviteForm(true);
       account = { ...signedOut };
+    } else if (callback?.type === "recovery") {
+      account = normalizeAccount(callback.user);
+      passwordSetupRequired = true;
+      showPasswordForm(true);
+      authError = "Set and confirm a new password to complete account recovery.";
     } else {
       account = normalizeAccount(callback?.user || await getUser());
     }
@@ -193,10 +254,21 @@ const ready = (async () => {
   return account;
 })();
 
-onAuthChange((_event, user) => {
+onAuthChange((event, user) => {
   account = normalizeAccount(user);
+  if (event === AUTH_EVENTS.RECOVERY) {
+    passwordSetupRequired = true;
+    showPasswordForm(true);
+    authError = "Set and confirm a new password to complete account recovery.";
+    render();
+    return;
+  }
   authError = "";
   if (account.authenticated) showLoginForm(false);
+  else {
+    passwordSetupRequired = false;
+    showPasswordForm(false);
+  }
   render();
 });
 
@@ -204,6 +276,9 @@ document.querySelectorAll("[data-account-login]").forEach((button) => button.add
 document.querySelectorAll("[data-account-logout]").forEach((button) => button.addEventListener("click", logout));
 document.querySelectorAll("[data-login-form]").forEach((form) => form.addEventListener("submit", login));
 document.querySelectorAll("[data-login-cancel]").forEach((button) => button.addEventListener("click", closeLogin));
+document.querySelectorAll("[data-password-open]").forEach((button) => button.addEventListener("click", openPasswordForm));
+document.querySelectorAll("[data-password-form]").forEach((form) => form.addEventListener("submit", setPassword));
+document.querySelectorAll("[data-password-cancel]").forEach((button) => button.addEventListener("click", closePasswordForm));
 document.querySelectorAll("[data-invite-form]").forEach((form) => form.addEventListener("submit", acceptPendingInvite));
 render();
 refreshHealth();

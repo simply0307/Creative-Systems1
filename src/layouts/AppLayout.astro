@@ -44,6 +44,7 @@ const buildTimestamp = new Date().toISOString();
           <p data-account-auto>Sign in with contributor authority or higher to change Creative OS state.</p>
           <button class="button acid" type="button" data-account-login>Sign in</button>
           <button class="button" type="button" data-account-logout hidden>Sign out</button>
+          <button class="button" type="button" data-password-open hidden>Set or change password</button>
           <form class="identity-login-form" data-login-form hidden>
             <p>Sign in with your invited Creative OS account.</p>
             <label>
@@ -56,6 +57,19 @@ const buildTimestamp = new Date().toISOString();
             </label>
             <button class="button acid" type="submit">Sign in</button>
             <button class="button" type="button" data-login-cancel>Cancel</button>
+          </form>
+          <form class="identity-password-form" data-password-form hidden>
+            <p>Set a reusable password for this authenticated Creative OS account.</p>
+            <label>
+              New password
+              <input type="password" autocomplete="new-password" required data-password-new />
+            </label>
+            <label>
+              Confirm password
+              <input type="password" autocomplete="new-password" required data-password-confirmation />
+            </label>
+            <button class="button acid" type="submit">Save password</button>
+            <button class="button" type="button" data-password-cancel>Cancel</button>
           </form>
           <form class="identity-invite-form" data-invite-form hidden>
             <p>Finish accepting your Creative OS invitation.</p>

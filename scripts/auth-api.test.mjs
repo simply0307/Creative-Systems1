@@ -92,6 +92,19 @@ test("account client uses an inline Identity login form instead of blocked brows
   assert.match(layout, /autocomplete="current-password"/);
 });
 
+test("authenticated Identity users can set a reusable password without creating another account", () => {
+  const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
+  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
+  assert.match(accountClient, /updateUser as updateIdentityUser/);
+  assert.match(accountClient, /updateIdentityUser\(\{ password \}\)/);
+  assert.match(accountClient, /callback\?\.type === "recovery"/);
+  assert.match(accountClient, /event === AUTH_EVENTS\.RECOVERY/);
+  assert.match(layout, /data-password-open/);
+  assert.match(layout, /data-password-form/);
+  assert.match(layout, /Set or change password/);
+  assert.doesNotMatch(accountClient, /signup\(/);
+});
+
 test("explicit local owner mode requires both local runtime and the flag", async () => {
   assert.equal(localOwnerModeEnabled(local), true);
   assert.equal(localOwnerModeEnabled({ CREATIVE_OS_RUNTIME_CONTEXT: "local" }), false);
