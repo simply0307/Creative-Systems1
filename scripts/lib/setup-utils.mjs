@@ -2,37 +2,28 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { spawnSync } from "node:child_process";
+import { REQUIRED_SCHEMA, REQUIRED_STORAGE_BUCKETS } from "../../netlify/functions/lib/runtime-contract.mjs";
 
 export const root = process.cwd();
 
 export const REQUIRED_SUPABASE_ENV = [
+  "CREATIVE_OS_RUNTIME_CONTEXT",
+  "CREATIVE_OS_SCHEMA_CONTRACT_VERSION",
+  "CREATIVE_OS_MUTATION_AUTHORITY",
   "SUPABASE_URL",
   "SUPABASE_ANON_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
   "SUPABASE_PROJECT_REF",
   "SUPABASE_STORAGE_BUCKET_ARTIFACTS",
   "SUPABASE_STORAGE_BUCKET_EXPORTS",
+  "SUPABASE_STORAGE_BUCKET_IMPORTS_RAW",
+  "SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED",
+  "SUPABASE_STORAGE_BUCKET_THUMBNAILS",
 ];
 
-export const REQUIRED_TABLES = [
-  "profiles",
-  "artifacts",
-  "tags",
-  "artifact_tags",
-  "categories",
-  "artifact_categories",
-  "archive_records",
-  "artifact_archive_records",
-  "decisions",
-  "decision_resolutions",
-  "review_requests",
-  "review_notes",
-  "audit_events",
-  "import_batches",
-  "exports",
-];
+export const REQUIRED_TABLES = Object.freeze(Object.keys(REQUIRED_SCHEMA));
 
-export const REQUIRED_BUCKETS = ["artifacts", "exports", "imports-raw", "imports-processed", "thumbnails"];
+export const REQUIRED_BUCKETS = REQUIRED_STORAGE_BUCKETS;
 
 const unquote = (value) => {
   const trimmed = value.trim();
@@ -54,16 +45,6 @@ export const loadLocalEnv = (file = path.join(root, ".env")) => {
   const values = readEnvFile(file);
   for (const [name, value] of Object.entries(values)) {
     if (process.env[name] === undefined) process.env[name] = value;
-  }
-  if (process.env.SUPABASE_URL === undefined && process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    process.env.SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  }
-  if (process.env.SUPABASE_ANON_KEY === undefined && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
-    process.env.SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  }
-  if (process.env.SUPABASE_PROJECT_REF === undefined && process.env.SUPABASE_URL) {
-    const match = String(process.env.SUPABASE_URL).match(/^https:\/\/([a-z0-9-]+)\.supabase\.co\/?$/i);
-    if (match) process.env.SUPABASE_PROJECT_REF = match[1];
   }
   return { exists: fs.existsSync(file), file, values };
 };
@@ -130,12 +111,11 @@ export const printResult = (label, ok, detail = "") => {
 };
 
 export const printManualMigrationFallback = () => {
-  const migration = path.join(root, "supabase", "migrations", "202606180001_creative_os.sql");
-  console.log("\nSupabase CLI fallback:");
-  console.log("1. Open Supabase Dashboard > SQL Editor > New query.");
-  console.log(`2. Copy all SQL from: ${migration}`);
-  console.log("3. Run the query once, then rerun: npm run setup:supabase");
-  console.log("The migration uses CREATE IF NOT EXISTS/upserts and does not reset or drop the database.");
+  console.log("\nMigration safety stop:");
+  console.log("1. Install and authenticate the Supabase CLI.");
+  console.log("2. Confirm `supabase migration list --linked` matches docs/RUNTIME_AUTHORITY.md.");
+  console.log("3. Run `supabase db push --dry-run` and review the exact pending migration.");
+  console.log("Do not paste a partial historical migration into the SQL Editor; the canonical project has documented migration drift.");
 };
 
 export const safeJson = (value) => JSON.stringify(value, null, 2);

@@ -6,6 +6,13 @@ import { artifactOrganization, uploadDefaults } from "../../src/data/artifact-or
 import { filterArtifacts, normalizeArtifactFilters } from "../../src/lib/artifact-filters.mjs";
 import { matchArtifactForUpload, mergeStaticArtifact, rowsEqual, summarizeImportStatus } from "./lib/import-tools.mjs";
 import {
+  CANONICAL_SUPABASE_PROJECT_REF,
+  CREATIVE_OS_MUTATION_AUTHORITY,
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+  REQUIRED_STORAGE_BUCKETS,
+  runRuntimeReadiness,
+} from "./lib/runtime-contract.mjs";
+import {
   applyCategoryChange,
   applyTagChange,
   applyTypedTagChange,
@@ -31,7 +38,7 @@ const roleAtLeast = (role, minimum) => ROLE_ORDER.indexOf(role) >= ROLE_ORDER.in
 const privileged = (role) => ["admin", "owner"].includes(role);
 const asArray = (value) => Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean) : String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
 const cleanObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
-export const REQUIRED_STORAGE_BUCKETS = ["artifacts", "exports", "imports-raw", "imports-processed", "thumbnails"];
+export { REQUIRED_STORAGE_BUCKETS };
 
 const normalizeFolderPath = (value = "Archive") => {
   const parts = String(value || "Archive")
@@ -179,47 +186,7 @@ const operationResult = ({ identity, mode, message, riskLevel = "low", audit = n
   ...extra,
 });
 
-export const runSetupHealthCheck = async ({ supabase, config, identity }) => {
-  const errors = [];
-  const expectedBuckets = [...new Set([
-    config.artifactsBucket || "artifacts",
-    config.exportsBucket || "exports",
-    "imports-raw",
-    "imports-processed",
-    "thumbnails",
-  ])];
-  const artifactResult = await supabase.from("artifacts").select("id", { count: "exact", head: true });
-  if (artifactResult.error) errors.push(`Artifact read: ${artifactResult.error.message}`);
-  const auditResult = await supabase.from("audit_events").select("id,created_at").eq("action_type", "health_check").order("created_at", { ascending: false }).limit(1);
-  if (auditResult.error) errors.push(`Audit read: ${auditResult.error.message}`);
-  const bucketResult = await supabase.storage.listBuckets();
-  if (bucketResult.error) errors.push(`Storage buckets: ${bucketResult.error.message}`);
-  const buckets = bucketResult.data || [];
-  const bucketByName = new Map(buckets.map((bucket) => [bucket.name || bucket.id, bucket]));
-  const missingBuckets = expectedBuckets.filter((name) => !bucketByName.has(name));
-  const nonPrivateBuckets = expectedBuckets.filter((name) => bucketByName.has(name) && bucketByName.get(name).public !== false);
-  const lastAuditProbe = auditResult.data?.[0] || null;
-  return {
-    supabaseUrlConfigured: Boolean(config.url),
-    anonKeyConfigured: Boolean(config.anonKey),
-    serviceRoleConfigured: Boolean(config.serviceRoleKey),
-    databaseConnected: !artifactResult.error,
-    artifactsReadable: !artifactResult.error,
-    artifactCount: artifactResult.count ?? null,
-    auditTableReadable: !auditResult.error,
-    auditWriteVerified: Boolean(lastAuditProbe),
-    lastAuditProbeAt: lastAuditProbe?.created_at || null,
-    storageApiConnected: !bucketResult.error,
-    expectedBuckets,
-    bucketsFound: expectedBuckets.filter((name) => bucketByName.has(name)),
-    missingBuckets,
-    nonPrivateBuckets,
-    storageBucketsReady: !bucketResult.error && missingBuckets.length === 0 && nonPrivateBuckets.length === 0,
-    userRoleDetected: Boolean(identity?.authenticated && identity?.userRole),
-    userRole: identity?.userRole || "viewer",
-    errors,
-  };
-};
+export const runSetupHealthCheck = runRuntimeReadiness;
 
 const listArtifacts = async (supabase, identity, searchParams = new URLSearchParams()) => {
   const filters = normalizeArtifactFilters(searchParams);
@@ -1144,69 +1111,72 @@ export const handleCreativeOsRequest = async (request, context = {}, overrides =
   const config = overrides.config || supabaseConfig();
   if (request.method === "GET" && path === "health") return json(200, {
     ok: true,
-    architecture: "supabase-operational",
+    health: "reachable",
+    architecture: "creative-os-authoritative-runtime",
+    runtimeContext: config.runtimeContext || null,
+    declaredProjectRef: config.projectRef || null,
+    derivedProjectRef: config.derivedProjectRef || null,
+    canonicalProductionProjectRef: CANONICAL_SUPABASE_PROJECT_REF,
+    requiredSchemaContractVersion: CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+    requiredMutationAuthority: CREATIVE_OS_MUTATION_AUTHORITY,
     supabaseConfigured: config.configured,
+    configurationValid: config.configured,
     environment: {
       supabaseUrlConfigured: Boolean(config.url),
+      projectRefConfigured: Boolean(config.projectRef),
+      runtimeContextConfigured: Boolean(config.runtimeContext),
       anonKeyConfigured: Boolean(config.anonKey),
       serviceRoleConfigured: Boolean(config.serviceRoleKey),
     },
     missing: config.missing,
-    identityEnabled: false,
-    operationsEndpointConfigured: true,
+    configurationErrors: (config.configurationErrors || []).map(({ code, message }) => ({ code, message })),
     githubRoutineWrites: false,
-    requiredStorageBuckets: [...new Set([config.artifactsBucket || "artifacts", config.exportsBucket || "exports", ...REQUIRED_STORAGE_BUCKETS.slice(2)])],
+    requiredStorageBuckets: REQUIRED_STORAGE_BUCKETS,
+    readinessEndpoint: "/api/creative-os/ready",
     deployedBranch: process.env.BRANCH || process.env.HEAD || null,
     deployId: process.env.DEPLOY_ID || null,
     commitRef: process.env.COMMIT_REF || null,
   });
-  if (!config.configured) return json(503, { ok: false, error: `Supabase is not configured. Missing: ${config.missing.join(", ")}` });
+  if (path === "health/audit-probe") return json(410, { ok: false, error: "The mutating health audit probe was removed. Use the read-only readiness endpoint.", readinessEndpoint: "/api/creative-os/ready" });
+
+  let supabase;
+  let readiness;
+  try {
+    if (config.configured) supabase = overrides.supabase || getSupabaseAdmin(process.env, config);
+    readiness = overrides.readiness || await runRuntimeReadiness({ supabase, config });
+  } catch {
+    readiness = { ready: false, failures: [{ component: "runtime", code: "readiness_check_failed", message: "Creative OS readiness verification could not complete." }], checks: { configurationValid: config.configured } };
+  }
+
+  if (request.method === "GET" && ["ready", "health/full"].includes(path)) return json(readiness.ready ? 200 : 503, {
+    ok: readiness.ready,
+    ready: readiness.ready,
+    architecture: "creative-os-authoritative-runtime",
+    runtimeContext: config.runtimeContext || null,
+    declaredProjectRef: config.projectRef || null,
+    derivedProjectRef: config.derivedProjectRef || null,
+    requiredSchemaContractVersion: CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+    requiredMutationAuthority: CREATIVE_OS_MUTATION_AUTHORITY,
+    checks: readiness.checks,
+    failures: readiness.failures,
+    githubRoutineWrites: false,
+  });
+
+  if (!readiness.ready) return json(503, {
+    ok: false,
+    ready: false,
+    error: "Creative OS runtime is not ready for application requests.",
+    failures: readiness.failures,
+  });
+
   const identity = overrides.identity || await resolveIdentity(identityRequest(request), context);
   try { requireRole(identity, "viewer"); }
   catch (error) { return json(error.status || 401, { ok: false, error: error.message, authenticated: false, userRole: "viewer" }); }
-  const supabase = overrides.supabase || getSupabaseAdmin();
   let profile;
   try { profile = overrides.profile || await upsertProfile(supabase, identity); }
   catch (error) { return json(502, { ok: false, error: error.message, authenticated: true, userRole: identity.userRole }); }
 
   try {
-    if (request.method === "GET" && path === "health/full") {
-      const checks = await runSetupHealthCheck({ supabase, config, identity });
-      return json(checks.errors.length ? 503 : 200, {
-        ok: checks.errors.length === 0,
-        architecture: "supabase-operational",
-        authenticated: true,
-        userRole: identity.userRole,
-        roleSource: identity.authMethod === "open-archive-tool" ? "Open archive tool mode" : "Netlify Identity app_metadata.roles",
-        supabaseConfigured: config.configured,
-        environment: {
-          supabaseUrlConfigured: Boolean(config.url),
-          anonKeyConfigured: Boolean(config.anonKey),
-          serviceRoleConfigured: Boolean(config.serviceRoleKey),
-        },
-        identityEnabled: false,
-        githubRoutineWrites: false,
-        deployedBranch: process.env.BRANCH || process.env.HEAD || null,
-        deployId: process.env.DEPLOY_ID || null,
-        commitRef: process.env.COMMIT_REF || null,
-        checks,
-      });
-    }
-    if (request.method === "POST" && path === "health/audit-probe") {
-      requireRole(identity, "admin");
-      const audit = await writeAudit(supabase, profile, {
-        actionType: "health_check",
-        targetType: "system",
-        targetId: "supabase-setup",
-        intentSummary: "Verify that the Creative OS API can write audit events.",
-        reason: "Manual setup health check",
-        beforeSnapshot: {},
-        afterSnapshot: { databaseConnected: true, checkedAt: new Date().toISOString() },
-        result: "applied",
-      });
-      const checks = await runSetupHealthCheck({ supabase, config, identity });
-      return json(201, { ok: true, auditEventId: audit.id, message: "Audit write verified. A health_check audit event was intentionally recorded.", checks });
-    }
     if (request.method === "GET" && path === "artifacts") {
       const pendingRequests = requireData(await supabase.from("review_requests").select("id,operation_type,target_id,status,risk_level,intent_summary,reason,before_snapshot,after_snapshot,created_at").eq("submitted_by", profile.id).in("status", ["pending_review", "changes_requested", "failed"]).order("created_at", { ascending: false }), "Load employee proposals");
       return json(200, { ok: true, authenticated: true, userRole: identity.userRole, artifacts: await listArtifacts(supabase, identity, requestUrl.searchParams), pendingRequests });

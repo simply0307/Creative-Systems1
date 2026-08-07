@@ -6,6 +6,47 @@
 [functions]
   node_bundler = "esbuild"
 
+[context.production.environment]
+  CREATIVE_OS_RUNTIME_CONTEXT = "production"
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION = "1"
+  CREATIVE_OS_MUTATION_AUTHORITY = "creative-os-api"
+  SUPABASE_PROJECT_REF = "okqkljexfzolzxysjaha"
+  SUPABASE_STORAGE_BUCKET_ARTIFACTS = "artifacts"
+  SUPABASE_STORAGE_BUCKET_EXPORTS = "exports"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_RAW = "imports-raw"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED = "imports-processed"
+  SUPABASE_STORAGE_BUCKET_THUMBNAILS = "thumbnails"
+
+[context.deploy-preview.environment]
+  CREATIVE_OS_RUNTIME_CONTEXT = "deploy-preview"
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION = "1"
+  CREATIVE_OS_MUTATION_AUTHORITY = "creative-os-api"
+  SUPABASE_STORAGE_BUCKET_ARTIFACTS = "artifacts"
+  SUPABASE_STORAGE_BUCKET_EXPORTS = "exports"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_RAW = "imports-raw"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED = "imports-processed"
+  SUPABASE_STORAGE_BUCKET_THUMBNAILS = "thumbnails"
+
+[context.branch-deploy.environment]
+  CREATIVE_OS_RUNTIME_CONTEXT = "branch-deploy"
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION = "1"
+  CREATIVE_OS_MUTATION_AUTHORITY = "creative-os-api"
+  SUPABASE_STORAGE_BUCKET_ARTIFACTS = "artifacts"
+  SUPABASE_STORAGE_BUCKET_EXPORTS = "exports"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_RAW = "imports-raw"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED = "imports-processed"
+  SUPABASE_STORAGE_BUCKET_THUMBNAILS = "thumbnails"
+
+[context.dev.environment]
+  CREATIVE_OS_RUNTIME_CONTEXT = "local"
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION = "1"
+  CREATIVE_OS_MUTATION_AUTHORITY = "creative-os-api"
+  SUPABASE_STORAGE_BUCKET_ARTIFACTS = "artifacts"
+  SUPABASE_STORAGE_BUCKET_EXPORTS = "exports"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_RAW = "imports-raw"
+  SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED = "imports-processed"
+  SUPABASE_STORAGE_BUCKET_THUMBNAILS = "thumbnails"
+
 [[redirects]]
   from = "/api/operations"
   to = "/.netlify/functions/operations"

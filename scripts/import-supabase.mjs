@@ -1,12 +1,11 @@
 import process from "node:process";
-import { createClient } from "@supabase/supabase-js";
 import { loadLocalEnv, root } from "./lib/setup-utils.mjs";
 import { buildRepoMetadataManifest } from "./lib/repo-metadata.mjs";
+import { getSupabaseAdmin, supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
+import { runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
 
 loadLocalEnv();
 const dryRun = process.argv.includes("--dry-run");
-const url = process.env.SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const manifest = buildRepoMetadataManifest(root);
 const summary = {
   artifacts: manifest.artifacts.length,
@@ -21,12 +20,17 @@ if (dryRun) {
   console.log(JSON.stringify(summary, null, 2));
   process.exit(0);
 }
-if (!url || !serviceRoleKey) {
-  console.error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required. Use --dry-run to inspect without writing.");
+const config = supabaseConfig(process.env);
+if (!config.configured) {
+  console.error(`Creative OS runtime configuration is invalid: ${[...config.missing, ...config.configurationErrors.map((item) => item.message)].join("; ")}. Use --dry-run to inspect without writing.`);
   process.exit(1);
 }
-
-const supabase = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+const supabase = getSupabaseAdmin(process.env, config);
+const readiness = await runRuntimeReadiness({ supabase, config });
+if (!readiness.ready) {
+  console.error(`Creative OS runtime readiness failed: ${readiness.failures.join("; ")}.`);
+  process.exit(1);
+}
 const check = (label, result) => { if (result.error) throw new Error(`${label}: ${result.error.message}`); return result.data; };
 check("Archive records", await supabase.from("archive_records").upsert(manifest.archiveRecords, { onConflict: "id" }));
 check("Decisions", await supabase.from("decisions").upsert(manifest.decisions, { onConflict: "id" }));

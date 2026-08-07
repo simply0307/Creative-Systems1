@@ -1,13 +1,26 @@
 import process from "node:process";
 import { createInterface } from "node:readline/promises";
-import { createClient } from "@supabase/supabase-js";
 import { envIsSet, loadLocalEnv, resolveCommand, runCommand, safeJson } from "./lib/setup-utils.mjs";
+import { getSupabaseAdmin, supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
+import { runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
 
 loadLocalEnv();
 const required = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_PROJECT_REF"];
 const missing = required.filter((name) => !envIsSet(name));
 if (missing.length) {
   console.error(`Cannot import. Add ${missing.join(", ")} to .env first.`);
+  process.exit(1);
+}
+
+const config = supabaseConfig(process.env);
+if (!config.configured) {
+  console.error(`Cannot import: ${[...config.missing, ...config.configurationErrors.map((item) => item.message)].join("; ")}`);
+  process.exit(1);
+}
+const supabase = getSupabaseAdmin(process.env, config);
+const readiness = await runRuntimeReadiness({ supabase, config });
+if (!readiness.ready) {
+  console.error(`Cannot import: runtime readiness failed (${readiness.failures.join("; ")}).`);
   process.exit(1);
 }
 
@@ -35,7 +48,6 @@ console.log("Running checksum-aware private file import…");
 const files = runCommand(npm, ["run", "supabase:files"], { capture: false });
 if (files.status !== 0) process.exit(files.status || 1);
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
 const counts = {};
 for (const table of ["artifacts", "archive_records", "decisions", "import_batches"]) {
   const result = await supabase.from(table).select("*", { count: "exact", head: true });

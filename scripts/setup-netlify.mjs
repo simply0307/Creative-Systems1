@@ -1,6 +1,7 @@
 import process from "node:process";
+import { supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
 import {
-  envIsSet,
+  REQUIRED_SUPABASE_ENV,
   loadLocalEnv,
   maskSecrets,
   readNetlifySiteId,
@@ -10,23 +11,27 @@ import {
 
 loadLocalEnv();
 
-const names = [
-  "SUPABASE_URL",
-  "SUPABASE_ANON_KEY",
-  "SUPABASE_SERVICE_ROLE_KEY",
-  "SUPABASE_STORAGE_BUCKET_ARTIFACTS",
-  "SUPABASE_STORAGE_BUCKET_EXPORTS",
-];
-const missing = names.filter((name) => !envIsSet(name));
-if (missing.length) {
-  console.error(`Cannot configure Netlify. Add ${missing.join(", ")} to .env first.`);
+const requestedContext = process.argv.find((argument) => argument.startsWith("--context="))?.slice(10) || "";
+const allowedContexts = new Set(["production", "deploy-preview", "branch-deploy"]);
+if (!allowedContexts.has(requestedContext)) {
+  console.error("Choose one explicit Netlify context: --context=production, --context=deploy-preview, or --context=branch-deploy.");
+  process.exit(1);
+}
+
+const config = supabaseConfig(process.env);
+if (!config.configured) {
+  console.error(`Cannot configure Netlify. Runtime configuration is invalid: ${[...config.missing, ...config.configurationErrors.map((item) => item.code)].join(", ")}.`);
+  process.exit(1);
+}
+if (config.runtimeContext !== requestedContext) {
+  console.error(`CREATIVE_OS_RUNTIME_CONTEXT=${config.runtimeContext} does not match requested Netlify context ${requestedContext}.`);
   process.exit(1);
 }
 
 const cli = resolveCommand("netlify");
 if (!cli) {
   console.error("Netlify CLI is missing. Install it with: npm install --save-dev netlify-cli");
-  console.error("Then run: netlify login && netlify link && npm run setup:netlify");
+  console.error("Then run: netlify login && netlify link && npm run setup:netlify -- --context=production");
   process.exit(1);
 }
 
@@ -36,28 +41,28 @@ if (!siteId) {
   process.exit(1);
 }
 
-console.log("Setting the five Creative OS Supabase variables on the linked Netlify site…");
-for (const name of names) {
-  const args = ["env:set", name, process.env[name], "--site", siteId];
+console.log(`Setting Creative OS runtime variables only for Netlify context ${requestedContext}â€¦`);
+for (const name of REQUIRED_SUPABASE_ENV) {
+  const args = ["env:set", name, process.env[name], "--site", siteId, "--context", requestedContext];
   if (name === "SUPABASE_SERVICE_ROLE_KEY") args.push("--secret");
   const result = runCommand(cli, args, { print: false });
   const output = maskSecrets(`${result.stdout || ""}${result.stderr || ""}`);
   if (result.status !== 0) {
-    console.error(`Failed to set ${name}. ${output.trim()}`);
+    console.error(`Failed to set ${name} for ${requestedContext}. ${output.trim()}`);
     process.exit(1);
   }
-  console.log(`Set ${name} (value hidden).`);
+  console.log(`Set ${name} for ${requestedContext} (value hidden).`);
 }
 
-console.log("\nNetlify environment variables are configured. Environment changes require a new deploy.");
-const deployArgs = ["deploy", "--prod", "--build", "--site", siteId];
+console.log("\nContext-scoped Netlify variables are configured. Other contexts were not changed.");
 if (process.argv.includes("--deploy")) {
-  console.log("Running an explicitly requested production build and deploy…");
-  const deployed = runCommand(cli, deployArgs, { capture: false });
+  if (requestedContext !== "production") {
+    console.error("This setup command only supports an explicit production deploy. Use the normal Git preview flow for preview contexts.");
+    process.exit(1);
+  }
+  console.log("Running the explicitly requested production build and deployâ€¦");
+  const deployed = runCommand(cli, ["deploy", "--prod", "--build", "--site", siteId], { capture: false });
   if (deployed.status !== 0) process.exit(deployed.status || 1);
 } else {
-  console.log("Inspect the values in Netlify, then deploy with:");
-  console.log("  npm run setup:netlify -- --deploy");
-  console.log("or:");
-  console.log("  netlify deploy --prod --build");
+  console.log("No deploy was performed. Review the context-scoped values before a separately authorized deploy.");
 }

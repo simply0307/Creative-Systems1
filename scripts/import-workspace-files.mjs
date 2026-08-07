@@ -1,21 +1,29 @@
 import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import process from "node:process";
-import { createClient } from "@supabase/supabase-js";
 import { loadLocalEnv, root } from "./lib/setup-utils.mjs";
 import { buildWorkspaceImportPlan, summarizeWorkspacePlan } from "./lib/workspace-import-plan.mjs";
+import { getSupabaseAdmin, supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
+import { runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
 
 loadLocalEnv();
 const apply = process.argv.includes("--apply");
-const url = process.env.SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const bucket = process.env.SUPABASE_STORAGE_BUCKET_ARTIFACTS || "artifacts";
+const config = supabaseConfig(process.env);
+const bucket = config.artifactsBucket || "artifacts";
 const { plan, warnings, indexed } = buildWorkspaceImportPlan({ root, bucket });
 
 let supabase = null;
 let remoteById = new Map();
-if (url && serviceRoleKey) {
-  supabase = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+if (config.configured) {
+  supabase = getSupabaseAdmin(process.env, config);
+  const readiness = await runRuntimeReadiness({ supabase, config });
+  if (!readiness.ready) {
+    if (apply) throw new Error(`Creative OS runtime readiness failed: ${readiness.failures.join("; ")}`);
+    warnings.push(`Remote artifact comparison unavailable: runtime readiness failed (${readiness.failures.join("; ")})`);
+    supabase = null;
+  }
+}
+if (supabase) {
   const remote = await supabase.from("artifacts").select("id,storage_path,provenance").in("id", plan.map((item) => item.artifact.id));
   if (!remote.error) remoteById = new Map((remote.data || []).map((item) => [item.id, item]));
   else if (apply) throw new Error(`Read existing artifacts: ${remote.error.message}`);
@@ -29,7 +37,8 @@ if (!apply) {
   process.exit(0);
 }
 if (!supabase) {
-  console.error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required.");
+  const details = [...config.missing, ...config.configurationErrors.map((item) => item.message)].join("; ") || "readiness failed";
+  console.error(`Creative OS runtime configuration is invalid: ${details}.`);
   process.exit(1);
 }
 
