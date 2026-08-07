@@ -4,14 +4,68 @@ import path from "node:path";
 import test from "node:test";
 import { databaseDisposition, canViewArtifact } from "../netlify/functions/lib/database-policy.mjs";
 import { matchArtifactForUpload, mergeStaticArtifact, summarizeImportStatus } from "../netlify/functions/lib/import-tools.mjs";
+import {
+  CANONICAL_SUPABASE_PROJECT_REF,
+  CREATIVE_OS_MUTATION_AUTHORITY,
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+  REQUIRED_SCHEMA,
+  REQUIRED_STORAGE_BUCKETS,
+  runRuntimeReadiness,
+} from "../netlify/functions/lib/runtime-contract.mjs";
 import { mediaKind, presentArtifact, slugify, supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
-import { handleCreativeOsRequest, organizationDisposition, REQUIRED_STORAGE_BUCKETS, runSetupHealthCheck } from "../netlify/functions/creative-os.mjs";
+import { handleCreativeOsRequest, organizationDisposition } from "../netlify/functions/creative-os.mjs";
 import { controlledTagSlug, mediumForFile, uploadDefaults } from "../src/data/artifact-organization.mjs";
 import { effectiveArtifactType, filterArtifacts, normalizeArtifactFilters } from "../src/lib/artifact-filters.mjs";
 import repoImportManifest from "../src/generated/repo-import-manifest.json" with { type: "json" };
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
+const runtimeEnv = (overrides = {}) => ({
+  CREATIVE_OS_RUNTIME_CONTEXT: "production",
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION: String(CREATIVE_OS_SCHEMA_CONTRACT_VERSION),
+  CREATIVE_OS_MUTATION_AUTHORITY,
+  SUPABASE_URL: `https://${CANONICAL_SUPABASE_PROJECT_REF}.supabase.co`,
+  SUPABASE_PROJECT_REF: CANONICAL_SUPABASE_PROJECT_REF,
+  SUPABASE_ANON_KEY: "publishable-test-value",
+  SUPABASE_SERVICE_ROLE_KEY: "secret-test-value",
+  SUPABASE_STORAGE_BUCKET_ARTIFACTS: "artifacts",
+  SUPABASE_STORAGE_BUCKET_EXPORTS: "exports",
+  SUPABASE_STORAGE_BUCKET_IMPORTS_RAW: "imports-raw",
+  SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED: "imports-processed",
+  SUPABASE_STORAGE_BUCKET_THUMBNAILS: "thumbnails",
+  ...overrides,
+});
+const validConfig = (overrides = {}) => supabaseConfig(runtimeEnv(overrides));
+const validContract = (overrides = {}) => ({
+  id: "creative-os",
+  schema_contract_version: CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+  mutation_authority: CREATIVE_OS_MUTATION_AUTHORITY,
+  production_project_ref: CANONICAL_SUPABASE_PROJECT_REF,
+  required_storage_buckets: REQUIRED_STORAGE_BUCKETS,
+  created_at: "2026-08-07T00:00:00Z",
+  updated_at: "2026-08-07T00:00:00Z",
+  ...overrides,
+});
+const query = (result, mutations) => {
+  const chain = {
+    select() { return this; }, eq() { return this; }, limit() { return this; },
+    maybeSingle() { return Promise.resolve(result); },
+    insert() { mutations.push("insert"); return this; },
+    update() { mutations.push("update"); return this; },
+    upsert() { mutations.push("upsert"); return this; },
+    delete() { mutations.push("delete"); return this; },
+    then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
+  };
+  return chain;
+};
+const readinessSupabase = ({ contract = validContract(), schemaErrors = {}, buckets = REQUIRED_STORAGE_BUCKETS.map((id) => ({ id, name: id, public: false })), mutations = [] } = {}) => ({
+  mutations,
+  from(table) {
+    if (table === "creative_os_runtime_contract") return query(contract ? { data: contract, error: schemaErrors[table] || null } : { data: null, error: schemaErrors[table] || null }, mutations);
+    return query({ data: [], error: schemaErrors[table] || null }, mutations);
+  },
+  storage: { listBuckets: async () => ({ data: buckets, error: null }) },
+});
 
 test("owner low-risk tag changes apply directly", () => assert.equal(databaseDisposition({ role: "owner", operationType: "artifact_tag_update", riskLevel: "low" }).mode, "apply"));
 test("admin low-risk tag changes apply directly", () => assert.equal(databaseDisposition({ role: "admin", operationType: "artifact_tag_update", riskLevel: "low" }).mode, "apply"));
@@ -66,81 +120,80 @@ test("artifact filter aliases normalize frontend and API field names", () => {
   });
 });
 
-test("Supabase config reports all required secrets", () => {
-  const config = supabaseConfig({});
-  assert.deepEqual(config.missing.sort(), ["SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_URL"]);
+test("runtime configuration requires an explicit project ref and matching URL", () => {
+  assert.ok(supabaseConfig({}).missing.includes("SUPABASE_PROJECT_REF"));
+  const mismatch = validConfig({ SUPABASE_URL: "https://uzderzjbitmghfvrllvz.supabase.co" });
+  assert.equal(mismatch.configured, false);
+  assert.ok(mismatch.configurationErrors.some((item) => item.code === "supabase_project_ref_mismatch"));
 });
 
-test("health route is available before authentication", async () => {
-  const config = { configured: true, missing: [], url: "https://project.supabase.co", anonKey: "publishable-test-value", serviceRoleKey: "secret-test-value", artifactsBucket: "artifacts", exportsBucket: "exports" };
-  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/health"), {}, { config });
+test("correct URL, project ref, and contract pass readiness", async () => {
+  const result = await runRuntimeReadiness({ supabase: readinessSupabase(), config: validConfig() });
+  assert.equal(result.ready, true);
+  assert.equal(result.checks.projectIdentityMatches, true);
+  assert.equal(result.checks.schemaContractVersion, CREATIVE_OS_SCHEMA_CONTRACT_VERSION);
+  assert.equal(result.checks.requiredTableCount, Object.keys(REQUIRED_SCHEMA).length);
+});
+
+test("wrong schema-contract version fails readiness", async () => {
+  const result = await runRuntimeReadiness({ supabase: readinessSupabase({ contract: validContract({ schema_contract_version: 0 }) }), config: validConfig() });
+  assert.equal(result.ready, false);
+  assert.ok(result.failures.some((item) => item.code === "schema_contract_version_mismatch"));
+});
+
+test("missing required table or column fails readiness", async () => {
+  const result = await runRuntimeReadiness({ supabase: readinessSupabase({ schemaErrors: { artifacts: { message: "column intended_use does not exist" } } }), config: validConfig() });
+  assert.equal(result.ready, false);
+  assert.ok(result.failures.some((item) => item.code === "required_table_or_column_missing" && item.message.includes("public.artifacts")));
+});
+
+test("missing required bucket fails readiness", async () => {
+  const buckets = REQUIRED_STORAGE_BUCKETS.filter((name) => name !== "thumbnails").map((id) => ({ id, name: id, public: false }));
+  const result = await runRuntimeReadiness({ supabase: readinessSupabase({ buckets }), config: validConfig() });
+  assert.equal(result.ready, false);
+  assert.ok(result.failures.some((item) => item.code === "required_storage_bucket_missing"));
+});
+
+test("older Creative OS schema without the contract is rejected", async () => {
+  const result = await runRuntimeReadiness({ supabase: readinessSupabase({ contract: null, schemaErrors: { creative_os_runtime_contract: { message: "relation does not exist" } } }), config: validConfig() });
+  assert.equal(result.ready, false);
+  assert.ok(result.failures.some((item) => item.code === "runtime_contract_unreadable"));
+});
+
+test("shallow health is non-mutating and never exposes secrets", async () => {
+  const config = validConfig();
+  const supabase = readinessSupabase();
+  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/health"), {}, { config, supabase });
   const body = await response.json();
   assert.equal(response.status, 200);
-  assert.equal(body.architecture, "supabase-operational");
-  assert.equal(body.githubRoutineWrites, false);
-  assert.deepEqual(body.environment, { supabaseUrlConfigured: true, anonKeyConfigured: true, serviceRoleConfigured: true });
-  assert.deepEqual(body.requiredStorageBuckets, REQUIRED_STORAGE_BUCKETS);
+  assert.equal(body.health, "reachable");
+  assert.equal(body.configurationValid, true);
+  assert.deepEqual(supabase.mutations, []);
   assert.equal(JSON.stringify(body).includes(config.serviceRoleKey), false);
   assert.equal(JSON.stringify(body).includes(config.anonKey), false);
 });
 
-test("deep health check proves database reads and all private buckets", async () => {
-  const query = (result) => ({
-    select() { return this; }, eq() { return this; }, order() { return this; }, limit() { return this; },
-    then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); },
-  });
-  const supabase = {
-    from(table) { return query(table === "artifacts" ? { data: null, count: 23, error: null } : { data: [{ id: "audit-1", created_at: "2026-06-18T12:00:00Z" }], error: null }); },
-    storage: { listBuckets: async () => ({ data: REQUIRED_STORAGE_BUCKETS.map((name) => ({ id: name, name, public: false })), error: null }) },
-  };
-  const checks = await runSetupHealthCheck({ supabase, config: { url: "https://project.supabase.co", anonKey: "publishable", serviceRoleKey: "secret", artifactsBucket: "artifacts", exportsBucket: "exports" }, identity: { authenticated: true, userRole: "owner" } });
-  assert.equal(checks.databaseConnected, true);
-  assert.equal(checks.artifactsReadable, true);
-  assert.equal(checks.artifactCount, 23);
-  assert.equal(checks.storageBucketsReady, true);
-  assert.equal(checks.auditWriteVerified, true);
-  assert.equal(checks.userRole, "owner");
-  assert.deepEqual(checks.errors, []);
-});
-
-test("deep health check reports missing or public buckets", async () => {
-  const query = (result) => ({ select() { return this; }, eq() { return this; }, order() { return this; }, limit() { return this; }, then(resolve, reject) { return Promise.resolve(result).then(resolve, reject); } });
-  const supabase = { from: () => query({ data: [], count: 0, error: null }), storage: { listBuckets: async () => ({ data: [{ id: "artifacts", name: "artifacts", public: true }], error: null }) } };
-  const checks = await runSetupHealthCheck({ supabase, config: { url: "url", anonKey: "anon", serviceRoleKey: "secret", artifactsBucket: "artifacts", exportsBucket: "exports" }, identity: { authenticated: true, userRole: "admin" } });
-  assert.equal(checks.storageBucketsReady, false);
-  assert.deepEqual(checks.nonPrivateBuckets, ["artifacts"]);
-  assert.ok(checks.missingBuckets.includes("exports"));
-});
-
-test("admin audit probe writes one real health-check event without exposing keys", async () => {
-  const inserted = [];
-  const supabase = {
-    from(table) {
-      let insertMode = false;
-      const chain = {
-        insert(row) { insertMode = true; inserted.push(row); return this; },
-        select() { return this; }, eq() { return this; }, order() { return this; }, limit() { return this; },
-        single() { return Promise.resolve({ data: { id: "audit-probe-1", ...(insertMode ? inserted.at(-1) : {}) }, error: null }); },
-        then(resolve, reject) { return Promise.resolve(table === "artifacts" ? { data: null, count: 1, error: null } : { data: [{ id: "audit-probe-1", created_at: "2026-06-18T12:00:00Z" }], error: null }).then(resolve, reject); },
-      };
-      return chain;
-    },
-    storage: { listBuckets: async () => ({ data: REQUIRED_STORAGE_BUCKETS.map((name) => ({ id: name, name, public: false })), error: null }) },
-  };
-  const config = { configured: true, missing: [], url: "https://project.supabase.co", anonKey: "publishable", serviceRoleKey: "secret", artifactsBucket: "artifacts", exportsBucket: "exports" };
-  const identity = { authenticated: true, userId: "identity-owner", userEmail: "owner@example.test", userName: "Owner", userRole: "owner", authMethod: "netlify-identity" };
-  const profile = { id: "profile-owner", email: identity.userEmail, role: "owner" };
-  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/health/audit-probe", { method: "POST", body: "{}", headers: { "content-type": "application/json" } }), {}, { config, identity, profile, supabase });
+test("readiness is non-mutating and never exposes secrets", async () => {
+  const config = validConfig();
+  const supabase = readinessSupabase();
+  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/ready"), {}, { config, supabase });
   const body = await response.json();
-  assert.equal(response.status, 201);
-  assert.equal(body.auditEventId, "audit-probe-1");
-  assert.equal(inserted.length, 1);
-  assert.equal(inserted[0].action_type, "health_check");
+  assert.equal(response.status, 200);
+  assert.equal(body.ready, true);
+  assert.deepEqual(supabase.mutations, []);
   assert.equal(JSON.stringify(body).includes(config.serviceRoleKey), false);
+  assert.equal(JSON.stringify(body).includes(config.anonKey), false);
 });
 
-test("database routes reject unauthenticated requests", async () => {
-  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/artifacts"), {}, { config: { configured: true, missing: [], artifactsBucket: "artifacts", exportsBucket: "exports" }, identity: { authenticated: false, userRole: "viewer" } });
+test("mutating health audit probe is removed without side effects", async () => {
+  const supabase = readinessSupabase();
+  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/health/audit-probe", { method: "POST" }), {}, { config: validConfig(), supabase });
+  assert.equal(response.status, 410);
+  assert.deepEqual(supabase.mutations, []);
+});
+
+test("database routes reject unauthenticated requests after readiness", async () => {
+  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/artifacts"), {}, { config: validConfig(), readiness: { ready: true, failures: [], checks: {} }, identity: { authenticated: false, userRole: "viewer" } });
   assert.equal(response.status, 401);
 });
 
@@ -167,7 +220,7 @@ test("media kinds cover image, PDF, and browser-readable text", () => {
 });
 
 test("migration defines required operational tables and private buckets", () => {
-  const sql = read("supabase/migrations/202606180001_creative_os.sql");
+  const sql = read("supabase/migrations/20260715140231_creative_os.sql");
   for (const table of ["profiles", "artifacts", "tags", "artifact_tags", "categories", "archive_records", "decisions", "decision_resolutions", "review_requests", "audit_events", "import_batches", "exports"]) assert.match(sql, new RegExp(`create table if not exists public\\.${table}`));
   for (const bucket of ["artifacts", "imports-raw", "imports-processed", "exports", "thumbnails"]) assert.match(sql, new RegExp(`'${bucket}'`));
   assert.match(sql, /on conflict \(id\) do update set public = false/);
@@ -175,7 +228,7 @@ test("migration defines required operational tables and private buckets", () => 
 });
 
 test("organization migration is idempotent and seeds controlled tags without slug collisions", () => {
-  const sql = read("supabase/migrations/20260620032504_artifact_organization_phase1.sql");
+  const sql = read("supabase/migrations/20260715140306_artifact_organization_phase1.sql");
   assert.match(sql, /add column if not exists project/);
   assert.match(sql, /add column if not exists intended_use/);
   assert.match(sql, /add column if not exists notes/);
@@ -186,11 +239,24 @@ test("organization migration is idempotent and seeds controlled tags without slu
 });
 
 test("controlled-value migration prevents case duplicates and archives without deleting relationships", () => {
-  const sql = read("supabase/migrations/20260620040133_controlled_values_management.sql");
+  const sql = read("supabase/migrations/20260715140315_controlled_values_management.sql");
   assert.match(sql, /add column if not exists is_active boolean not null default true/);
   assert.match(sql, /categories_name_ci_unique[\s\S]*lower\(btrim\(name\)\)/);
   assert.match(sql, /tags_type_name_ci_unique[\s\S]*lower\(btrim\(tag_type\)\), lower\(btrim\(name\)\)/);
   assert.doesNotMatch(sql, /delete from public\.(tags|categories)/i);
+});
+
+test("runtime contract migration records authority, version, project, and private bucket contract", () => {
+  const sql = read("supabase/migrations/20260807101623_establish_runtime_contract.sql");
+  assert.match(sql, /create table if not exists public\.creative_os_runtime_contract/);
+  assert.match(sql, /schema_contract_version/);
+  assert.match(sql, /creative-os-api/);
+  assert.match(sql, /okqkljexfzolzxysjaha/);
+  for (const bucket of REQUIRED_STORAGE_BUCKETS) assert.match(sql, new RegExp(bucket));
+  assert.match(sql, /enable row level security/);
+  assert.match(sql, /revoke all[\s\S]*anon, authenticated/);
+  assert.match(sql, /grant select[\s\S]*service_role/);
+  assert.match(sql, /create policy[\s\S]*to service_role[\s\S]*using \(true\)/);
 });
 
 test("routine browser client targets Supabase API and not operations PR endpoint", () => {
@@ -385,9 +451,9 @@ test("Archive Index exposes automatic metadata sync and audited browser uploads"
 });
 
 test("repo metadata import rejects non-admin employees before any database write", async () => {
-  const config = { configured: true, missing: [], url: "https://project.supabase.co", anonKey: "publishable", serviceRoleKey: "secret", artifactsBucket: "artifacts", exportsBucket: "exports" };
+  const config = validConfig();
   const identity = { authenticated: true, userId: "editor-1", userEmail: "editor@example.test", userName: "Editor", userRole: "editor", authMethod: "netlify-identity" };
-  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/imports/repo-metadata", { method: "POST", body: "{}", headers: { "content-type": "application/json" } }), {}, { config, identity, profile: { id: "profile-editor", role: "editor" }, supabase: {} });
+  const response = await handleCreativeOsRequest(new Request("https://example.test/api/creative-os/imports/repo-metadata", { method: "POST", body: "{}", headers: { "content-type": "application/json" } }), {}, { config, readiness: { ready: true, failures: [], checks: {} }, identity, profile: { id: "profile-editor", role: "editor" }, supabase: {} });
   const body = await response.json();
   assert.equal(response.status, 403);
   assert.match(body.error, /requires admin authority/i);

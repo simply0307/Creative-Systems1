@@ -43,29 +43,27 @@ const render = () => {
 
 const renderHealth = () => {
   const checks = health?.checks || {};
-  const environment = health?.environment || {};
   document.querySelectorAll("[data-deploy-branch]").forEach((el) => { el.textContent = health?.deployedBranch || "unknown"; });
   document.querySelectorAll("[data-deploy-auth]").forEach((el) => { el.textContent = "solo mode"; });
   document.querySelectorAll("[data-deploy-api]").forEach((el) => { el.textContent = health ? "reached" : "unavailable"; });
-  document.querySelectorAll("[data-health-url]").forEach((el) => { el.textContent = yesNo(checks.supabaseUrlConfigured ?? environment.supabaseUrlConfigured); });
-  document.querySelectorAll("[data-health-anon]").forEach((el) => { el.textContent = yesNo(checks.anonKeyConfigured ?? environment.anonKeyConfigured); });
-  document.querySelectorAll("[data-health-service]").forEach((el) => { el.textContent = yesNo(checks.serviceRoleConfigured ?? environment.serviceRoleConfigured); });
-  document.querySelectorAll("[data-health-database]").forEach((el) => { el.textContent = checks.databaseConnected === undefined ? "not checked" : yesNo(checks.databaseConnected); });
-  document.querySelectorAll("[data-health-artifacts]").forEach((el) => { el.textContent = checks.artifactsReadable === undefined ? "not checked" : checks.artifactsReadable ? `yes - ${checks.artifactCount ?? "?"} rows` : "no"; });
-  document.querySelectorAll("[data-health-buckets]").forEach((el) => { el.textContent = checks.storageBucketsReady === undefined ? "not checked" : checks.storageBucketsReady ? `${checks.bucketsFound.length}/${checks.expectedBuckets.length} private` : (checks.missingBuckets || []).length ? `missing: ${checks.missingBuckets.join(", ")}` : `must be private: ${(checks.nonPrivateBuckets || []).join(", ") || "check failed"}`; });
-  document.querySelectorAll("[data-health-role]").forEach((el) => { el.textContent = "owner"; });
-  document.querySelectorAll("[data-health-audit]").forEach((el) => { el.textContent = checks.auditWriteVerified ? `verified${checks.lastAuditProbeAt ? ` - ${new Date(checks.lastAuditProbeAt).toLocaleString()}` : ""}` : "not yet verified"; });
+  document.querySelectorAll("[data-health-context]").forEach((el) => { el.textContent = health?.runtimeContext || "missing"; });
+  document.querySelectorAll("[data-health-project]").forEach((el) => { el.textContent = checks.projectIdentityMatches ? "declared URL/ref match" : "not ready"; });
+  document.querySelectorAll("[data-health-contract]").forEach((el) => { el.textContent = checks.contractCompatible ? `version ${checks.schemaContractVersion}` : "not compatible"; });
+  document.querySelectorAll("[data-health-schema]").forEach((el) => { el.textContent = checks.schemaCompatible ? `${checks.requiredTableCount} table/column probes passed` : "not compatible"; });
+  document.querySelectorAll("[data-health-buckets]").forEach((el) => { el.textContent = checks.storageCompatible ? `${checks.bucketsFound?.length || 0}/${checks.requiredBuckets?.length || 0} private` : (checks.missingBuckets || []).length ? `missing: ${checks.missingBuckets.join(", ")}` : `must be private: ${(checks.nonPrivateBuckets || []).join(", ") || "check failed"}`; });
+  document.querySelectorAll("[data-health-authority]").forEach((el) => { el.textContent = checks.mutationAuthority || health?.requiredMutationAuthority || "not verified"; });
   document.querySelectorAll("[data-deploy-github]").forEach((el) => { el.textContent = health?.githubRoutineWrites === false ? "disabled" : "unknown"; });
-  document.querySelectorAll("[data-health-status]").forEach((el) => { el.textContent = checks.errors?.length ? checks.errors.join(" - ") : health?.ok ? "Setup checks passed." : "Complete Supabase configuration, then refresh."; });
-  document.querySelectorAll("[data-health-audit-probe]").forEach((el) => { el.hidden = false; });
+  document.querySelectorAll("[data-health-status]").forEach((el) => { el.textContent = health?.ready ? "Runtime is ready; all checks were read-only." : (health?.failures || []).map((item) => item.message).join(" - ") || "Complete runtime configuration, then refresh."; });
 };
 
 const refreshHealth = async () => {
   if (healthRequest) return healthRequest;
-  healthRequest = fetch("/api/creative-os/health/full")
-    .then((response) => response.json())
-    .then((body) => {
-      health = body;
+  healthRequest = Promise.all([
+    fetch("/api/creative-os/health").then((response) => response.json()),
+    fetch("/api/creative-os/ready").then((response) => response.json()),
+  ])
+    .then(([shallow, readiness]) => {
+      health = { ...shallow, ...readiness };
       renderHealth();
       return health;
     })
@@ -77,25 +75,6 @@ const refreshHealth = async () => {
     .finally(() => { healthRequest = null; });
   return healthRequest;
 };
-
-document.addEventListener("click", async (event) => {
-  const healthProbe = event.target.closest("[data-health-audit-probe]");
-  if (!healthProbe) return;
-  const healthStatus = document.querySelector("[data-health-status]");
-  healthProbe.disabled = true;
-  healthStatus.textContent = "Writing one intentional health-check audit event...";
-  try {
-    const response = await fetch("/api/creative-os/health/audit-probe", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
-    const body = await response.json();
-    if (!response.ok) throw new Error(body.error || "Audit write probe failed.");
-    healthStatus.textContent = body.message;
-    await refreshHealth();
-  } catch (error) {
-    healthStatus.textContent = error instanceof Error ? error.message : "Audit write probe failed.";
-  } finally {
-    healthProbe.disabled = false;
-  }
-});
 
 render();
 refreshHealth();

@@ -1,4 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
+import {
+  CREATIVE_OS_MUTATION_AUTHORITY,
+  CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+  validateRuntimeConfiguration,
+} from "./runtime-contract.mjs";
 
 const envValue = (name, env = process.env) => {
   try {
@@ -8,25 +13,63 @@ const envValue = (name, env = process.env) => {
   }
 };
 
-const envAny = (names, env = process.env) => names.map((name) => envValue(name, env)).find(Boolean) || "";
-
 export const supabaseConfig = (env = process.env) => {
-  const url = envAny(["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"], env);
-  const anonKey = envAny(["SUPABASE_ANON_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"], env);
+  const url = envValue("SUPABASE_URL", env);
+  const projectRef = envValue("SUPABASE_PROJECT_REF", env);
+  const runtimeContext = envValue("CREATIVE_OS_RUNTIME_CONTEXT", env);
+  const schemaContractVersion = envValue("CREATIVE_OS_SCHEMA_CONTRACT_VERSION", env);
+  const mutationAuthority = envValue("CREATIVE_OS_MUTATION_AUTHORITY", env);
+  const allowCanonicalNonProduction = envValue("CREATIVE_OS_ALLOW_CANONICAL_NON_PRODUCTION", env).toLowerCase() === "true";
+  const anonKey = envValue("SUPABASE_ANON_KEY", env);
   const serviceRoleKey = envValue("SUPABASE_SERVICE_ROLE_KEY", env);
-  const artifactsBucket = envValue("SUPABASE_STORAGE_BUCKET_ARTIFACTS", env) || "artifacts";
-  const exportsBucket = envValue("SUPABASE_STORAGE_BUCKET_EXPORTS", env) || "exports";
+  const artifactsBucket = envValue("SUPABASE_STORAGE_BUCKET_ARTIFACTS", env);
+  const exportsBucket = envValue("SUPABASE_STORAGE_BUCKET_EXPORTS", env);
+  const importsRawBucket = envValue("SUPABASE_STORAGE_BUCKET_IMPORTS_RAW", env);
+  const importsProcessedBucket = envValue("SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED", env);
+  const thumbnailsBucket = envValue("SUPABASE_STORAGE_BUCKET_THUMBNAILS", env);
   const missing = [
     ["SUPABASE_URL", url],
+    ["SUPABASE_PROJECT_REF", projectRef],
+    ["CREATIVE_OS_RUNTIME_CONTEXT", runtimeContext],
+    ["CREATIVE_OS_SCHEMA_CONTRACT_VERSION", schemaContractVersion],
+    ["CREATIVE_OS_MUTATION_AUTHORITY", mutationAuthority],
     ["SUPABASE_ANON_KEY", anonKey],
     ["SUPABASE_SERVICE_ROLE_KEY", serviceRoleKey],
+    ["SUPABASE_STORAGE_BUCKET_ARTIFACTS", artifactsBucket],
+    ["SUPABASE_STORAGE_BUCKET_EXPORTS", exportsBucket],
+    ["SUPABASE_STORAGE_BUCKET_IMPORTS_RAW", importsRawBucket],
+    ["SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED", importsProcessedBucket],
+    ["SUPABASE_STORAGE_BUCKET_THUMBNAILS", thumbnailsBucket],
   ].filter(([, value]) => !value).map(([name]) => name);
-  return { configured: missing.length === 0, missing, url, anonKey, serviceRoleKey, artifactsBucket, exportsBucket };
+  const config = {
+    missing,
+    url,
+    projectRef,
+    runtimeContext,
+    schemaContractVersion: schemaContractVersion || String(CREATIVE_OS_SCHEMA_CONTRACT_VERSION),
+    mutationAuthority: mutationAuthority || CREATIVE_OS_MUTATION_AUTHORITY,
+    allowCanonicalNonProduction,
+    anonKey,
+    serviceRoleKey,
+    artifactsBucket,
+    exportsBucket,
+    importsRawBucket,
+    importsProcessedBucket,
+    thumbnailsBucket,
+    requiredBuckets: [artifactsBucket, exportsBucket, importsRawBucket, importsProcessedBucket, thumbnailsBucket].filter(Boolean),
+  };
+  const validation = validateRuntimeConfiguration(config);
+  return { ...config, configured: validation.valid, derivedProjectRef: validation.derivedProjectRef, configurationErrors: validation.errors };
 };
 
-export const getSupabaseAdmin = (env = process.env) => {
-  const config = supabaseConfig(env);
-  if (!config.configured) throw new Error(`Supabase is not configured. Missing: ${config.missing.join(", ")}`);
+export const getSupabaseAdmin = (env = process.env, configured = null) => {
+  const config = configured || supabaseConfig(env);
+  if (!config.configured) {
+    const detail = config.missing.length
+      ? `Missing: ${config.missing.join(", ")}`
+      : `Invalid runtime configuration: ${(config.configurationErrors || []).map((item) => item.code).join(", ")}`;
+    throw new Error(`Supabase is not configured. ${detail}`);
+  }
   return createClient(config.url, config.serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });

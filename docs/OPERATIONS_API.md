@@ -100,7 +100,7 @@ The guided command runs, in order:
 
 1. `setup:check` — validates Node/npm, both CLIs, `.env`, required variable names, migration/import files, and Netlify linkage. It never prints credential values.
 2. `setup:supabase` — links the project, dry-checks and pushes pending migrations, verifies all required tables, creates or secures all five buckets, and inserts or updates one setup audit event.
-3. `setup:netlify` — copies only the five required runtime variables to the linked Netlify site. It hides values and reminds you to redeploy.
+3. `setup:netlify` — copies the explicit runtime identity, project, credential, and bucket variables only to the selected Netlify context. It hides values and does not deploy by default.
 4. `setup:import` — runs metadata and file dry runs and prints counts. It does not write records or upload files.
 
 The wrapper then stops. It never starts the real import automatically.
@@ -110,19 +110,19 @@ The wrapper then stops. It never starts the real import automatically.
 ```powershell
 npm run setup:check
 npm run setup:supabase
-npm run setup:netlify
+npm run setup:netlify -- --context=production
 npm run setup:import
 npm run setup:import:apply
 npm run setup:verify -- --url=https://YOUR-SITE.netlify.app
 ```
 
 - `setup:import:apply` displays the planned effect and requires you to type `IMPORT`. Non-interactive use requires the explicit `--confirm-import` flag.
-- `setup:netlify` sets variables but does not silently publish a dirty working tree. After inspecting the configuration, run `npm run setup:netlify -- --deploy` to build and deploy explicitly.
-- `setup:verify` checks the live/public health route plus direct server-side database, anon-key, bucket, audit, and temporary signed-file probes. Its temporary Storage probe is removed immediately.
+- `setup:netlify` requires `--context=production`, `--context=deploy-preview`, or `--context=branch-deploy`; it never flattens values across contexts. A deploy remains separately authorized.
+- `setup:verify` performs read-only project-identity, runtime-contract, required-table/column, private-bucket, credential, health, and readiness checks.
 
 ### Safe migration fallback
 
-If the Supabase CLI is unavailable or cannot authenticate, `setup:supabase` prints the exact migration path. Open **Supabase Dashboard → SQL Editor → New query**, copy all of `supabase/migrations/202606180001_creative_os.sql`, run it once, then rerun `npm run setup:supabase` to verify it.
+If the Supabase CLI is unavailable or cannot authenticate, stop. Install/authenticate it, compare `supabase migration list --linked` with `docs/RUNTIME_AUTHORITY.md`, and review `supabase db push --dry-run`. Do not paste a partial historical migration into the SQL Editor: canonical migration history contains documented drift.
 
 The setup scripts never call `supabase db reset`, drop the production database, or delete tables. Existing tables/buckets continue safely. File imports use content checksums and immutable Storage paths: unchanged files are skipped, changed files receive a new object path, and an old Storage object is not overwritten.
 
@@ -191,22 +191,26 @@ git status --short
 
 `.env` must not appear in the output. `.env.example` is safe to commit because it contains no real keys.
 
-## Part 4 — Run the SQL migration
+## Part 4 — Apply reviewed migrations
 
-The migration creates the Postgres tables, indexes, triggers, Row Level Security settings, and five private Storage buckets.
+The ordered migrations create the Postgres tables, indexes, triggers, Row Level Security settings, five private Storage buckets, and the Creative OS runtime contract.
 
-1. In Supabase Dashboard, open **SQL Editor**.
-2. Select **New query**.
-3. On this computer, open:
+1. Confirm the linked project ref is the intended target.
+2. Compare local and remote history:
 
-```text
-supabase/migrations/202606180001_creative_os.sql
+```powershell
+npx supabase migration list --linked
 ```
 
-4. Copy the entire SQL file into the Supabase query editor.
-5. Select **Run**.
-6. Wait for a successful completion message. Stop here if any SQL error appears; do not run imports against a partial schema.
-7. Open **Table Editor** and confirm these tables exist:
+3. Review the pending migration without applying it:
+
+```powershell
+npx supabase db push --dry-run
+```
+
+4. Apply only after the dry run names the reviewed forward migration.
+5. Stop if any SQL or migration-history error appears; never use `db reset` against production.
+6. Confirm these tables exist, including the contract singleton:
 
 ```text
 profiles
@@ -224,6 +228,7 @@ review_notes
 audit_events
 import_batches
 exports
+creative_os_runtime_contract
 ```
 
 ### Storage buckets
@@ -293,7 +298,7 @@ The workspace importer scans `Archive/`, preserves the original files, uploads p
 npm run supabase:files:dry
 ```
 
-2. Review the output before continuing. The current repository reports approximately 181 files: 163 images, 3 PDFs, and 15 text files.
+2. Review the output before continuing. At the Step 2 audit point, the current repository reported 367 files: 351 images, 1 PDF, and 15 text files. Treat the live dry-run output as authoritative when the archive changes.
 3. Run the real import:
 
 ```powershell
@@ -353,9 +358,9 @@ No account setup is required for the current app. Creative OS runs as a single a
 3. Confirm the page loads the Archive folder snapshot and shows file states.
 4. Do not enable Netlify Identity for this version.
 
-## Part 9 — Run the live setup health check
+## Part 9 — Run health and readiness checks
 
-The health responses expose booleans and counts only—never key values.
+Health and readiness are read-only and never expose key values.
 
 1. Open:
 
@@ -363,36 +368,31 @@ The health responses expose booleans and counts only—never key values.
 https://YOUR-SITE.netlify.app/api/creative-os/health
 ```
 
-This confirms the API route exists and reports whether the URL, publishable/anon key, and secret/service-role key are configured.
+This shallow check confirms the Function is reachable and reports non-secret configuration presence. It does not contact Supabase.
 
-2. Expand **Supabase health** in the left rail.
-3. Confirm:
+2. Open the readiness endpoint:
 
-- Supabase URL: yes
-- Anon key: yes
-- Service role: yes
-- Database connection: yes
-- Artifact read: yes, with a row count
-- Storage buckets: 5/5 private
-- Detected role: owner
+```text
+https://YOUR-SITE.netlify.app/api/creative-os/ready
+```
+
+3. Confirm readiness reports:
+
+- URL-derived and declared project refs match
+- Production project is `okqkljexfzolzxysjaha`
+- Schema contract version is `1`
+- Mutation authority is `creative-os-api`
+- Every required table/column probe passes
+- Storage buckets are 5/5 private
 - Routine GitHub writes: disabled
 
-4. Select **Run audit write probe** once. This intentionally creates one `health_check` audit event and proves audit inserts work.
-5. The panel should change Audit write to **verified**.
-
-The JSON equivalent is:
+The compatibility alias is:
 
 ```text
 GET /api/creative-os/health/full
 ```
 
-The write probe is:
-
-```text
-POST /api/creative-os/health/audit-probe
-```
-
-The latter runs as the local archive operator in solo-user mode.
+The former mutating audit probe has been removed. Neither endpoint upserts a profile, creates an audit event, nor writes a Storage probe.
 
 ## Private file behavior
 
@@ -550,24 +550,22 @@ GitHub remains for code, SQL migrations, backup/snapshot tooling, releases, and 
 ## Exact acceptance test
 
 1. Open the deployed Archive Index as the solo archive operator.
-2. Expand Supabase health and confirm every check except Audit write is green/yes.
-3. Run the audit write probe once.
-4. Open `/pipeline/artifacts`; confirm imported images, PDFs, and text records show truthful file states.
-5. Add one PNG or WebP from `/pipeline/artifacts`; confirm its thumbnail and download link.
-6. Upload one PDF. Confirm Open and Download work.
-7. Add tag `owner-live-test` to an artifact. Refresh the browser; confirm the tag remains under Live tags.
-8. Move one artifact into a folder/category. Refresh and confirm the folder/category remains saved.
-9. Download one individual file from the Artifact Library.
-10. Refresh the artifact and confirm `contributor-review-test` is live.
-11. Create an Artifact Index export at `/pipeline/exports` and download it.
-12. Confirm no routine Creative OS pull request was created in GitHub.
+2. Confirm shallow health is reachable and readiness is green without creating a profile, audit event, or Storage object.
+3. Open `/pipeline/artifacts`; confirm imported images, PDFs, and text records show truthful file states.
+4. Add one PNG or WebP from `/pipeline/artifacts`; confirm its thumbnail and download link.
+5. Upload one PDF. Confirm Open and Download work.
+6. Add tag `owner-live-test` to an artifact. Refresh the browser; confirm the tag remains under Live tags.
+7. Move one artifact into a folder/category. Refresh and confirm the folder/category remains saved.
+8. Download one individual file from the Artifact Library.
+9. Create an Artifact Index export at `/pipeline/exports` and download it.
+10. Confirm no routine Creative OS pull request was created in GitHub.
 
 ## Troubleshooting
 
-- **Setup says Supabase CLI missing:** run `npm install --save-dev supabase`; do not install Supabase globally with npm. Alternatively, use the SQL Editor fallback printed by the command.
+- **Setup says Supabase CLI missing:** run `npm install --save-dev supabase`; do not install Supabase globally with npm. Stop rather than applying a partial migration manually.
 - **Setup says Netlify CLI missing:** run `npm install --save-dev netlify-cli`, then `npx netlify login` and `npx netlify link`.
 - **Supabase link asks for credentials:** complete `npx supabase login`. The database password may be requested when linking; retrieve it from your password manager or reset it in Supabase.
-- **Migration dry run fails:** no migration was applied. Read the CLI error, or use the SQL Editor fallback. Never solve this with `db reset` against production.
+- **Migration dry run fails:** no migration was applied. Compare local/remote history with `docs/RUNTIME_AUTHORITY.md`. Never solve this with `db reset` against production.
 - **Netlify site is not linked:** run `npx netlify link` or add `NETLIFY_SITE_ID` to `.env`.
 - **Netlify variables changed but health remains red:** redeploy; existing Functions do not receive new environment values until a new deploy.
 - **Real import immediately exits:** type exactly `IMPORT` at the prompt. This guard prevents an accidental file upload.

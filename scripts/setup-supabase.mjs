@@ -2,10 +2,11 @@ import process from "node:process";
 import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
+import { supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
 import {
   REQUIRED_BUCKETS,
   REQUIRED_TABLES,
-  envIsSet,
   loadLocalEnv,
   printManualMigrationFallback,
   printResult,
@@ -17,10 +18,9 @@ import {
 
 loadLocalEnv();
 
-const required = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_PROJECT_REF"];
-const missing = required.filter((name) => !envIsSet(name));
-if (missing.length) {
-  console.error(`Cannot prepare Supabase. Add ${missing.join(", ")} to .env, then rerun npm run setup:supabase.`);
+const config = supabaseConfig(process.env);
+if (!config.configured) {
+  console.error(`Cannot prepare Supabase. Runtime configuration is invalid: ${[...config.missing, ...config.configurationErrors.map((item) => item.code)].join(", ")}.`);
   process.exit(1);
 }
 
@@ -60,7 +60,7 @@ if (cli) {
   printManualMigrationFallback();
 }
 
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+const supabase = createClient(config.url, config.serviceRoleKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
@@ -94,6 +94,12 @@ for (const name of REQUIRED_BUCKETS) {
   printResult(name, !error, error ? error.message : current ? "exists and is private" : "created as private");
 }
 
+const readiness = await runRuntimeReadiness({ supabase, config });
+if (!readiness.ready) {
+  console.error(`Runtime readiness failed: ${readiness.failures.map((item) => `${item.component}/${item.code}`).join(", ")}.`);
+  process.exit(1);
+}
+
 const auditTarget = `supabase-project:${process.env.SUPABASE_PROJECT_REF}`;
 const auditPayload = {
   actor_email: "setup-automation@creative-os.local",
@@ -121,5 +127,6 @@ console.log(safeJson({
   requiredTablesFound: REQUIRED_TABLES.length,
   requiredBucketsFound: REQUIRED_BUCKETS.length,
   bucketsPrivate: true,
+  runtimeReady: readiness.ready,
   setupAuditEvent: previous.data?.id ? "updated" : "inserted",
 }));

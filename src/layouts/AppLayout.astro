@@ -44,23 +44,20 @@ const buildTimestamp = new Date().toISOString();
           <p data-account-auto>Tag, folder, category, import, and export actions are available.</p>
           <a class="button acid" href="/pipeline/artifacts" data-admin-portal-status>Open Archive</a>
           <details class="deploy-status">
-            <summary>Supabase / setup health</summary>
+            <summary>Creative OS runtime readiness</summary>
             <dl>
               <dt>Build</dt><dd data-deploy-build>{buildTimestamp}</dd>
               <dt>Branch</dt><dd data-deploy-branch>checking...</dd>
               <dt>Auth mode</dt><dd data-deploy-auth>solo mode</dd>
               <dt>Database API</dt><dd data-deploy-api>checking...</dd>
-              <dt>Supabase URL</dt><dd data-health-url>checking...</dd>
-              <dt>Anon key</dt><dd data-health-anon>checking...</dd>
-              <dt>Service role</dt><dd data-health-service>checking...</dd>
-              <dt>Database connection</dt><dd data-health-database>checking...</dd>
-              <dt>Artifact read</dt><dd data-health-artifacts>checking...</dd>
+              <dt>Runtime context</dt><dd data-health-context>checking...</dd>
+              <dt>Project identity</dt><dd data-health-project>checking...</dd>
+              <dt>Schema contract</dt><dd data-health-contract>checking...</dd>
+              <dt>Required schema</dt><dd data-health-schema>checking...</dd>
               <dt>Storage buckets</dt><dd data-health-buckets>checking...</dd>
-              <dt>Detected role</dt><dd data-health-role>owner</dd>
-              <dt>Audit write</dt><dd data-health-audit>not verified</dd>
+              <dt>Mutation authority</dt><dd data-health-authority>checking...</dd>
               <dt>Routine GitHub writes</dt><dd data-deploy-github>disabled</dd>
             </dl>
-            <button class="button secondary" type="button" data-health-audit-probe hidden>Run audit write probe</button>
             <p data-health-status></p>
           </details>
         </section>

@@ -14,16 +14,17 @@ test("package exposes the complete guarded setup command suite", () => {
 
 test("environment template includes setup inputs without real credentials", () => {
   const template = read(".env.example");
-  for (const name of ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_PROJECT_REF", "SUPABASE_STORAGE_BUCKET_ARTIFACTS", "SUPABASE_STORAGE_BUCKET_EXPORTS", "NETLIFY_SITE_ID", "CREATIVE_OS_SITE_URL"]) assert.match(template, new RegExp(`^${name}=`, "m"));
+  for (const name of ["CREATIVE_OS_RUNTIME_CONTEXT", "CREATIVE_OS_SCHEMA_CONTRACT_VERSION", "CREATIVE_OS_MUTATION_AUTHORITY", "SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_PROJECT_REF", "SUPABASE_STORAGE_BUCKET_ARTIFACTS", "SUPABASE_STORAGE_BUCKET_EXPORTS", "SUPABASE_STORAGE_BUCKET_IMPORTS_RAW", "SUPABASE_STORAGE_BUCKET_IMPORTS_PROCESSED", "SUPABASE_STORAGE_BUCKET_THUMBNAILS", "NETLIFY_SITE_ID", "CREATIVE_OS_SITE_URL"]) assert.match(template, new RegExp(`^${name}=`, "m"));
   assert.doesNotMatch(template, /sb_secret_[A-Za-z0-9_-]{8,}/);
 });
 
-test("Supabase setup pushes migrations safely and has a SQL Editor fallback", () => {
+test("Supabase setup pushes migrations safely and stops instead of using a partial SQL fallback", () => {
   const script = read("scripts/setup-supabase.mjs");
+  const contract = read("netlify/functions/lib/runtime-contract.mjs");
   assert.match(script, /"db", "push", "--dry-run"/);
   assert.match(script, /printManualMigrationFallback/);
   assert.doesNotMatch(script, /runCommand\([^\n]+["']reset["']|drop database|truncate/i);
-  for (const bucket of ["artifacts", "exports", "imports-raw", "imports-processed", "thumbnails"]) assert.match(read("scripts/lib/setup-utils.mjs"), new RegExp(bucket));
+  for (const bucket of ["artifacts", "exports", "imports-raw", "imports-processed", "thumbnails"]) assert.match(contract, new RegExp(bucket));
 });
 
 test("Netlify setup sends only named runtime values and does not print them", () => {
@@ -31,6 +32,8 @@ test("Netlify setup sends only named runtime values and does not print them", ()
   assert.match(script, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(script, /--secret/);
   assert.match(script, /value hidden/);
+  assert.match(script, /--context/);
+  assert.match(script, /requestedContext/);
   assert.doesNotMatch(script, /console\.log\([^\n]*process\.env\[/);
 });
 
@@ -50,7 +53,18 @@ test("real import requires explicit confirmation", () => {
   assert.match(script, /--confirm-import/);
   assert.match(script, /supabase:seed/);
   assert.match(script, /supabase:files/);
+  assert.match(script, /supabaseConfig/);
+  assert.match(script, /runRuntimeReadiness/);
   assert.match(script, /setup_import_complete/);
+});
+
+test("all direct import writers fail closed on runtime identity and readiness", () => {
+  for (const file of ["scripts/import-supabase.mjs", "scripts/import-workspace-files.mjs"]) {
+    const script = read(file);
+    assert.match(script, /supabaseConfig/);
+    assert.match(script, /runRuntimeReadiness/);
+  }
+  assert.match(read("scripts/import-workspace-files.mjs"), /config\.artifactsBucket/);
 });
 
 test("workspace file plan uses immutable checksum paths and skips exact reruns", () => {
@@ -69,10 +83,10 @@ test("workspace file plan uses immutable checksum paths and skips exact reruns",
   assert.match(importer, /Update batch review/);
 });
 
-test("verification covers API, database, buckets, audit, signed files, role, and GitHub routine-write status", () => {
+test("verification covers the read-only runtime, schema, Storage, API, and GitHub routine-write status", () => {
   const script = read("scripts/setup-verify.mjs");
-  for (const phrase of ["/api/creative-os/health", "serviceRoleWorksServerSide", "anonKeyWorks", "storageBucketsExist", "auditEventWritable", "signedFileOpenDownloadWorks", "currentUserRoleDetected", "apiReportsGitHubRoutineWritesDisabled"]) assert.match(script, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  assert.match(script, /\.remove\(\[probePath\]\)/);
+  for (const phrase of ["/api/creative-os/health", "/api/creative-os/ready", "serviceRoleWorksServerSide", "anonKeyWorks", "schemaContractVersionMatches", "storageBucketsExistAndPrivate", "requiredTablesAndColumnsExist", "apiReportsGitHubRoutineWritesDisabled"]) assert.match(script, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.doesNotMatch(script, /\.insert\(|\.update\(|\.upload\(|\.remove\(/);
 });
 
 test("documentation explains fast setup, fallbacks, safety, and acceptance", () => {

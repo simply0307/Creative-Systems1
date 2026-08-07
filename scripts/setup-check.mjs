@@ -10,16 +10,18 @@ import {
   resolveCommand,
   root,
 } from "./lib/setup-utils.mjs";
+import { supabaseConfig } from "../netlify/functions/lib/supabase.mjs";
 
 const env = loadLocalEnv();
 const nodeMajor = Number(process.versions.node.split(".")[0]);
 const npm = resolveCommand("npm");
 const supabase = resolveCommand("supabase");
 const netlify = resolveCommand("netlify");
-const migration = path.join(root, "supabase", "migrations", "202606180001_creative_os.sql");
+const migration = path.join(root, "supabase", "migrations", "20260807101623_establish_runtime_contract.sql");
 const imports = ["scripts/import-supabase.mjs", "scripts/import-workspace-files.mjs"].map((file) => path.join(root, file));
 const siteId = readNetlifySiteId();
 const missingEnv = REQUIRED_SUPABASE_ENV.filter((name) => !envIsSet(name));
+const runtimeConfig = supabaseConfig(process.env);
 
 console.log("Creative OS setup prerequisites\n");
 printResult("Node.js 20+", nodeMajor >= 20, `detected ${process.version}`);
@@ -28,6 +30,7 @@ printResult("Supabase CLI", Boolean(supabase), supabase ? "available" : "install
 printResult("Netlify CLI", Boolean(netlify), netlify ? "available" : "install with: npm install --save-dev netlify-cli");
 printResult("Local .env", env.exists, env.exists ? "loaded without displaying values" : "copy .env.example to .env");
 for (const name of REQUIRED_SUPABASE_ENV) printResult(name, envIsSet(name));
+printResult("Runtime identity contract", runtimeConfig.configured, runtimeConfig.configured ? `${runtimeConfig.runtimeContext}; URL/project identity matches` : [...runtimeConfig.missing, ...runtimeConfig.configurationErrors.map((item) => item.code)].join(", "));
 printResult("Supabase migration", fs.existsSync(migration), path.relative(root, migration));
 for (const file of imports) printResult(`Import script ${path.basename(file)}`, fs.existsSync(file));
 printResult("Netlify site link", Boolean(siteId), siteId ? "linked (site ID hidden)" : "run netlify login && netlify link, or set NETLIFY_SITE_ID");
@@ -41,4 +44,4 @@ if (!netlify) console.log("\nNetlify CLI: npm install --save-dev netlify-cli (or
 if (missingEnv.length) console.log(`\nNext step: add the ${missingEnv.length} missing value(s) to .env. Secret values were not printed.`);
 
 const requiredFilesPresent = fs.existsSync(migration) && imports.every((file) => fs.existsSync(file));
-process.exitCode = nodeMajor >= 20 && npm && env.exists && !missingEnv.length && requiredFilesPresent && siteId ? 0 : 1;
+process.exitCode = nodeMajor >= 20 && npm && env.exists && !missingEnv.length && runtimeConfig.configured && requiredFilesPresent && siteId ? 0 : 1;
