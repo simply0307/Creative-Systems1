@@ -19,6 +19,13 @@ let pendingInviteToken = null;
 let passwordFormVisible = false;
 let passwordSetupRequired = false;
 
+const setAccountDrawer = (visible) => {
+  document.querySelector("[data-account-drawer]")?.classList.toggle("account-drawer-open", visible);
+  document.querySelectorAll("[data-account-drawer-open]").forEach((button) => {
+    button.setAttribute("aria-expanded", String(visible));
+  });
+};
+
 const normalizeAccount = (user) => {
   if (!user?.id) return { ...signedOut };
   const roles = Array.isArray(user.roles) ? user.roles.map((role) => String(role).toLowerCase()) : [];
@@ -110,6 +117,7 @@ const showLoginForm = (visible) => {
 
 const openLogin = () => {
   authError = "";
+  setAccountDrawer(true);
   showLoginForm(true);
   render();
 };
@@ -129,6 +137,7 @@ const showPasswordForm = (visible) => {
 const openPasswordForm = () => {
   if (!account.authenticated) return;
   authError = "";
+  setAccountDrawer(true);
   showPasswordForm(true);
   render();
 };
@@ -236,11 +245,13 @@ const ready = (async () => {
     if (callback?.type === "invite") {
       pendingInviteToken = callback.token;
       authError = "Set and confirm a password to accept your Creative OS invitation.";
+      setAccountDrawer(true);
       showInviteForm(true);
       account = { ...signedOut };
     } else if (callback?.type === "recovery") {
       account = normalizeAccount(callback.user);
       passwordSetupRequired = true;
+      setAccountDrawer(true);
       showPasswordForm(true);
       authError = "Set and confirm a new password to complete account recovery.";
     } else {
@@ -258,6 +269,7 @@ onAuthChange((event, user) => {
   account = normalizeAccount(user);
   if (event === AUTH_EVENTS.RECOVERY) {
     passwordSetupRequired = true;
+    setAccountDrawer(true);
     showPasswordForm(true);
     authError = "Set and confirm a new password to complete account recovery.";
     render();
@@ -274,6 +286,8 @@ onAuthChange((event, user) => {
 
 document.querySelectorAll("[data-account-login]").forEach((button) => button.addEventListener("click", openLogin));
 document.querySelectorAll("[data-account-logout]").forEach((button) => button.addEventListener("click", logout));
+document.querySelectorAll("[data-account-drawer-open]").forEach((button) => button.addEventListener("click", () => setAccountDrawer(true)));
+document.querySelectorAll("[data-account-drawer-close]").forEach((button) => button.addEventListener("click", () => setAccountDrawer(false)));
 document.querySelectorAll("[data-login-form]").forEach((form) => form.addEventListener("submit", login));
 document.querySelectorAll("[data-login-cancel]").forEach((button) => button.addEventListener("click", closeLogin));
 document.querySelectorAll("[data-password-open]").forEach((button) => button.addEventListener("click", openPasswordForm));

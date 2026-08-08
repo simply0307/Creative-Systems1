@@ -20,7 +20,8 @@ const buildTimestamp = new Date().toISOString();
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="sidebar" data-account-drawer>
+        <button class="button mobile-account-close" type="button" data-account-drawer-close>Close account</button>
         <a class="brand" href="/pipeline/artifacts">
           <span class="brand-mark">AI</span>
           <span><strong>Archive Index</strong><span>Folders, files, tags</span></span>
@@ -111,6 +112,7 @@ const buildTimestamp = new Date().toISOString();
           <div class="breadcrumbs">Archive - {section}</div>
           <div class="mode-switch">
             <a class="active" href="/pipeline/artifacts">Index</a>
+            <button class="mobile-account-open" type="button" aria-expanded="false" data-account-drawer-open>Account</button>
           </div>
         </header>
         <div class="content"><slot /></div>

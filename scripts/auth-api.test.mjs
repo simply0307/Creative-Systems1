@@ -105,6 +105,18 @@ test("authenticated Identity users can set a reusable password without creating 
   assert.doesNotMatch(accountClient, /signup\(/);
 });
 
+test("mobile users can open the Identity account panel and recovery opens it automatically", () => {
+  const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
+  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
+  const styles = fs.readFileSync(path.join(root, "src/styles/global.css"), "utf8");
+  assert.match(layout, /data-account-drawer/);
+  assert.match(layout, /data-account-drawer-open/);
+  assert.match(layout, /data-account-drawer-close/);
+  assert.match(accountClient, /callback\?\.type === "recovery"[\s\S]*setAccountDrawer\(true\)[\s\S]*showPasswordForm\(true\)/);
+  assert.match(accountClient, /event === AUTH_EVENTS\.RECOVERY[\s\S]*setAccountDrawer\(true\)[\s\S]*showPasswordForm\(true\)/);
+  assert.match(styles, /\.sidebar\.account-drawer-open\s*\{[^}]*display:flex/);
+});
+
 test("explicit local owner mode requires both local runtime and the flag", async () => {
   assert.equal(localOwnerModeEnabled(local), true);
   assert.equal(localOwnerModeEnabled({ CREATIVE_OS_RUNTIME_CONTEXT: "local" }), false);
