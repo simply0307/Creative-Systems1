@@ -24,6 +24,11 @@ import PipelineNav from "../../components/PipelineNav.astro";
       <button class="button secondary" id="reload-index" type="button">Refresh view</button>
     </article>
     <article>
+      <b>Import repository snapshot</b>
+      <span>Admin/owner only. Adds missing repository-manifest metadata to canonical Creative OS; it does not upload source-file bytes.</span>
+      <button class="button secondary" id="import-archive-snapshot" type="button" disabled>Review and import</button>
+    </article>
+    <article>
       <b>New folder</b>
       <span>Create a folder label for organizing files in this index.</span>
       <button class="button secondary" id="create-folder" type="button">Create folder</button>
@@ -44,7 +49,7 @@ import PipelineNav from "../../components/PipelineNav.astro";
   <section class="file-audit-summary" id="artifact-summary">
     <span><b data-count="available">0</b> available files</span>
     <span><b data-count="needs_import">0</b> need file copy</span>
-    <span><b data-count="manifest_only">0</b> syncing</span>
+    <span><b data-count="manifest_only">0</b> snapshot-only</span>
     <span><b data-count="folders">0</b> folders</span>
     <span><b data-count="folder_tags">0</b> folder tags</span>
     <span><b data-count="standard_tags">0</b> standard tags</span>
@@ -89,7 +94,7 @@ import PipelineNav from "../../components/PipelineNav.astro";
         <div class="toolbar archive-toolbar">
           <label class="wide">Search<input id="artifact-search" type="search" placeholder="Filename, path, folder, tag, notes..." /></label>
           <label>Type<select data-filter="type"><option value="">All</option></select></label>
-          <label>File state<select data-filter="file"><option value="">All</option><option value="available">Preview/download ready</option><option value="needs_import">Needs file copy</option><option value="manifest_only">Syncing</option><option value="metadata_only">Metadata only</option></select></label>
+          <label>File state<select data-filter="file"><option value="">All</option><option value="available">Preview/download ready</option><option value="needs_import">Needs file copy</option><option value="manifest_only">Repository snapshot only</option><option value="metadata_only">Metadata only</option></select></label>
           <label>Folder<select data-filter="folder"><option value="">All</option></select></label>
           <label>Standard tag<select data-filter="standard"><option value="">All</option></select></label>
           <label>Freeform tag<select data-filter="freeform"><option value="">All</option></select></label>

@@ -8,3 +8,4 @@ dist/
 !.env.example
 .netlify/
 supabase/.temp/
+.generated/

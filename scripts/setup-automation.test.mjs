@@ -51,8 +51,10 @@ test("real import requires explicit confirmation", () => {
   const script = read("scripts/setup-import-apply.mjs");
   assert.match(script, /Type IMPORT to continue/);
   assert.match(script, /--confirm-import/);
-  assert.match(script, /supabase:seed/);
-  assert.match(script, /supabase:files/);
+  assert.match(script, /supabase:seed:apply/);
+  assert.match(script, /supabase:files:apply/);
+  assert.match(script, /--confirm-project-ref=/);
+  assert.match(script, /--confirm-production/);
   assert.match(script, /supabaseConfig/);
   assert.match(script, /runRuntimeReadiness/);
   assert.match(script, /setup_import_complete/);
@@ -63,6 +65,9 @@ test("all direct import writers fail closed on runtime identity and readiness", 
     const script = read(file);
     assert.match(script, /supabaseConfig/);
     assert.match(script, /runRuntimeReadiness/);
+    assert.match(script, /process\.argv\.includes\("--apply"\)/);
+    assert.match(script, /--confirm-project-ref=/);
+    assert.match(script, /--confirm-production/);
   }
   assert.match(read("scripts/import-workspace-files.mjs"), /config\.artifactsBucket/);
 });
@@ -99,4 +104,5 @@ test("private setup state and credentials stay ignored by Git", () => {
   assert.match(ignore, /^\.env$/m);
   assert.match(ignore, /^\.netlify\/$/m);
   assert.match(ignore, /^supabase\/\.temp\/$/m);
+  assert.match(ignore, /^\.generated\/$/m);
 });

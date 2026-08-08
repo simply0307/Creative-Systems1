@@ -288,7 +288,7 @@ test("archive folder index renders previews and truthful import states", () => {
   assert.match(source, /archiveFiles/);
   assert.match(source, /item\.signedUrl/);
   assert.match(source, /archive-thumb/);
-  assert.match(source, /Found in the Desktop Archive snapshot/);
+  assert.match(source, /Found in the read-only repository snapshot/);
   assert.match(source, /Add or attach the file to enable browser preview\/download/);
   assert.match(source, /importArchiveFolderIndex/);
   assert.match(source, /Refresh view/);
@@ -431,12 +431,17 @@ test("import dashboard counts real availability and expected-file gaps", () => {
   assert.deepEqual(status.expectedFiles.map((file) => file.status), ["available", "needs-upload"]);
 });
 
-test("Archive Index exposes automatic metadata sync and audited browser uploads", () => {
+test("Archive Index exposes explicit privileged metadata import and audited browser uploads", () => {
   const page = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
   const client = read("src/scripts/creative-os-client.js");
   const api = read("netlify/functions/creative-os.mjs");
   assert.match(page, /Refresh view/);
   assert.match(page, /importArchiveFolderIndex/);
+  assert.match(page, /Review and import/);
+  assert.match(page, /window\.confirm/);
+  assert.match(page, /\["admin", "owner"\]\.includes\(account\.userRole\)/);
+  const loadBody = page.slice(page.indexOf("const load = async"), page.indexOf("const differenceByName"));
+  assert.doesNotMatch(loadBody, /importArchiveFolderIndex|importArchiveSnapshot/);
   assert.match(page, /type="file" multiple/);
   assert.match(page, /Add files finished/);
   assert.match(page, /Create folder/);

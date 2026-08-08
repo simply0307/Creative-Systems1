@@ -18,7 +18,6 @@ const state = {
   selectedFolder: "",
   selectedIds: new Set(),
   apiReady: false,
-  autoSyncAttempted: false,
   lastError: null,
 };
 
@@ -151,7 +150,7 @@ const preview = (item) => {
     if (item.mediaKind === "text") return `<button class="file-preview-tile" type="button" data-read-file="${esc(item.id)}"><b>TEXT</b><span>Read</span></button>`;
     return `<a class="file-preview-tile" href="${esc(item.signedUrl)}" target="_blank" rel="noopener"><b>FILE</b><span>Open/download</span></a>`;
   }
-  const message = item.manifestOnly ? "Found in the Desktop Archive snapshot. The app syncs this record automatically when the database is connected." : item.file_status === "needs_import" ? "Indexed from your Archive folder. Add or attach the file to enable browser preview/download." : "No stored file object is attached.";
+  const message = item.manifestOnly ? "Found in the read-only repository snapshot but not in canonical Creative OS. An admin or owner may deliberately import its metadata." : item.file_status === "needs_import" ? "Indexed from your Archive folder. Add or attach the file to enable browser preview/download." : "No stored file object is attached.";
   return `<div class="archive-placeholder"><b>${esc(fileState(item).replaceAll("_", " "))}</b><span>${esc(message)}</span></div>`;
 };
 
@@ -160,7 +159,7 @@ const folderOptions = (currentFolder) => folderEntries().map((folder) => `<optio
 const tagInputValue = (names) => [...new Set(names)].join(", ");
 
 const editor = (item) => {
-  if (item.manifestOnly) return `<div class="manifest-only-note">Syncing from the Desktop Archive snapshot. Editing appears after the automatic database sync finishes.</div>`;
+  if (item.manifestOnly) return `<div class="manifest-only-note">Repository snapshot reference only. It is not canonical until an admin or owner explicitly imports it.</div>`;
   return `<form class="quick-index-form" data-index-form>
     <label>Title<input name="title" value="${esc(item.title || "")}" /></label>
     <label>Indexed folder<select name="folder">${folderOptions(folderOf(item))}</select></label>
@@ -284,17 +283,30 @@ const render = () => {
   renderBulkControls();
 };
 
-const syncArchiveSnapshot = async ({ force = false } = {}) => {
+const importArchiveSnapshot = async () => {
   if (!state.apiReady || !state.manifestFiles.length) return false;
   const missing = missingManifestRecords();
-  if (!force && (!missing.length || state.autoSyncAttempted)) return false;
-  state.autoSyncAttempted = true;
+  if (!missing.length) {
+    els().status.textContent = "Nothing to import; the canonical index already contains every repository snapshot record.";
+    return false;
+  }
+  await window.CreativeAccount?.ready;
+  const account = window.CreativeAccount?.current?.();
+  if (!account?.authenticated || !["admin", "owner"].includes(account.userRole)) {
+    els().status.textContent = "Sign in as an admin or owner to import repository snapshot metadata.";
+    return false;
+  }
+  const confirmed = window.confirm(`Import ${missing.length} missing repository snapshot record(s) into canonical Creative OS? This writes metadata and an audit event through /api/creative-os; it does not upload source-file bytes.`);
+  if (!confirmed) {
+    els().status.textContent = "Repository snapshot import cancelled; no data was changed.";
+    return false;
+  }
   els().status.textContent = missing.length
-    ? `Syncing ${missing.length} Archive folder file record(s)...`
-    : "Refreshing Archive folder snapshot...";
+    ? `Importing ${missing.length} repository snapshot record(s)...`
+    : "Importing repository snapshot...";
   try {
     const result = await window.CreativeDatabase.importArchiveFolderIndex();
-    els().status.textContent = result.message || "Archive folder snapshot synced.";
+    els().status.textContent = result.message || "Repository snapshot metadata imported.";
     const [artifacts, options] = await Promise.all([window.CreativeDatabase.listArtifacts(), window.CreativeDatabase.organizationOptions()]);
     state.db = artifacts.artifacts || [];
     state.options = options || state.options;
@@ -302,7 +314,7 @@ const syncArchiveSnapshot = async ({ force = false } = {}) => {
     render();
     return true;
   } catch (error) {
-    els().status.textContent = `Archive snapshot is visible, but database sync failed: ${error.message}`;
+    els().status.textContent = `Repository snapshot remains read-only; explicit import failed: ${error.message}`;
     return false;
   }
 };
@@ -316,7 +328,7 @@ const load = async () => {
     state.options = options || { tags: [], categories: [] };
     state.apiReady = true;
     state.lastError = null;
-    status.textContent = `Loaded ${state.db.length} indexed file record(s). Checking Archive folder snapshot...`;
+    status.textContent = `Loaded ${state.db.length} canonical file record(s) and the read-only repository snapshot.`;
   } catch (error) {
     state.db = [];
     state.options = { tags: [], categories: [] };
@@ -326,8 +338,8 @@ const load = async () => {
   }
   populateFilters();
   render();
-  await syncArchiveSnapshot();
   if (state.apiReady && !missingManifestRecords().length) status.textContent = `Archive folder ready: ${state.db.length} indexed file record(s), ${state.manifestFiles.length} files in the Desktop snapshot.`;
+  else if (state.apiReady) status.textContent = `Read-only view loaded. ${missingManifestRecords().length} repository snapshot record(s) are not in canonical Creative OS.`;
 };
 
 const differenceByName = (nextNames, currentTags, tagType) => {
@@ -534,10 +546,17 @@ const wireEvents = () => {
     render();
   });
   document.querySelector("#reload-index").addEventListener("click", async () => {
-    state.autoSyncAttempted = false;
     await load();
-    await syncArchiveSnapshot({ force: true });
   });
+  document.querySelector("#import-archive-snapshot").addEventListener("click", importArchiveSnapshot);
+  const updateImportAuthority = (account = window.CreativeAccount?.current?.()) => {
+    const button = document.querySelector("#import-archive-snapshot");
+    const privileged = Boolean(account?.authenticated && ["admin", "owner"].includes(account.userRole));
+    button.disabled = !privileged;
+    button.title = privileged ? "Review and confirm a canonical metadata import." : "Authenticated admin or owner authority is required.";
+  };
+  updateImportAuthority();
+  window.addEventListener("creative-os-auth-changed", (event) => updateImportAuthority(event.detail));
   document.querySelector("#clear-filters").addEventListener("click", () => {
     state.selectedFolder = "";
     document.querySelector("#artifact-search").value = "";
