@@ -5,7 +5,7 @@ import { getSupabaseAdmin, supabaseConfig } from "../netlify/functions/lib/supab
 import { runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
 
 loadLocalEnv();
-const dryRun = process.argv.includes("--dry-run");
+const apply = process.argv.includes("--apply");
 const manifest = buildRepoMetadataManifest(root);
 const summary = {
   artifacts: manifest.artifacts.length,
@@ -16,13 +16,24 @@ const summary = {
   note: "Existing workspace files are indexed as needs_import; this metadata seed does not publish or upload them.",
 };
 
-if (dryRun) {
+if (!apply) {
   console.log(JSON.stringify(summary, null, 2));
+  console.log("Dry run only. Writing requires --apply, an exact --confirm-project-ref value, and --confirm-production for the canonical/production target.");
   process.exit(0);
 }
 const config = supabaseConfig(process.env);
 if (!config.configured) {
   console.error(`Creative OS runtime configuration is invalid: ${[...config.missing, ...config.configurationErrors.map((item) => item.message)].join("; ")}. Use --dry-run to inspect without writing.`);
+  process.exit(1);
+}
+const confirmedProjectRef = process.argv.find((argument) => argument.startsWith("--confirm-project-ref="))?.slice("--confirm-project-ref=".length);
+if (!confirmedProjectRef || confirmedProjectRef !== config.projectRef) {
+  console.error(`Refusing write: pass --confirm-project-ref=${config.projectRef} to confirm the configured target exactly.`);
+  process.exit(1);
+}
+const canonicalOrProduction = config.projectRef === "okqkljexfzolzxysjaha" || config.runtimeContext === "production";
+if (canonicalOrProduction && !process.argv.includes("--confirm-production")) {
+  console.error("Refusing canonical/production write: pass --confirm-production after reviewing the dry-run report.");
   process.exit(1);
 }
 const supabase = getSupabaseAdmin(process.env, config);

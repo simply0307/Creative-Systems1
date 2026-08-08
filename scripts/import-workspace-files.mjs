@@ -12,6 +12,24 @@ const config = supabaseConfig(process.env);
 const bucket = config.artifactsBucket || "artifacts";
 const { plan, warnings, indexed } = buildWorkspaceImportPlan({ root, bucket });
 
+if (apply) {
+  if (!config.configured) {
+    const details = [...config.missing, ...config.configurationErrors.map((item) => item.message)].join("; ") || "configuration incomplete";
+    console.error(`Creative OS runtime configuration is invalid: ${details}.`);
+    process.exit(1);
+  }
+  const confirmedProjectRef = process.argv.find((argument) => argument.startsWith("--confirm-project-ref="))?.slice("--confirm-project-ref=".length);
+  if (!confirmedProjectRef || confirmedProjectRef !== config.projectRef) {
+    console.error(`Refusing write: pass --confirm-project-ref=${config.projectRef} to confirm the configured target exactly.`);
+    process.exit(1);
+  }
+  const canonicalOrProduction = config.projectRef === "okqkljexfzolzxysjaha" || config.runtimeContext === "production";
+  if (canonicalOrProduction && !process.argv.includes("--confirm-production")) {
+    console.error("Refusing canonical/production write: pass --confirm-production after reviewing the dry-run report.");
+    process.exit(1);
+  }
+}
+
 let supabase = null;
 let remoteById = new Map();
 if (config.configured) {

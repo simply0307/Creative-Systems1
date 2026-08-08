@@ -1,6 +1,6 @@
 # Creative OS runtime authority
 
-Status: source authority and canonical database contract established; production activation pending
+Status: canonical runtime active in production; Step 4B compatibility retirement staged for review
 Decision date: 2026-08-07
 Schema contract version: `1`
 
@@ -28,10 +28,10 @@ No backup artifact belongs in Git.
 
 - Site: `eggs-creative-systems-os`
 - Site ID: `f69df1d9-50ff-4b8c-a3e8-0ae266a946aa`
-- Audited current deploy ID: `6a4e905b2f44bc00083b525d`
+- Audited current deploy ID before Step 4B source changes: `6a769cf7e8abd400085a825d`
 - Deploy source repository: `simply0307/Creative-Systems1`
 - Deploy branch: `main`
-- Deploy commit: `156a68ade39a31e1684232083fcccf53eba33d1d`
+- Deploy commit: `508091e5d7494132bf629ba05f9713c6781bb6ed`
 - Deployed functions: `creative-os`, `operations`
 
 The production-context Netlify environment now declares the canonical project ref, runtime context, schema-contract version, mutation authority, and five bucket names. Deploy-preview and branch-deploy contexts declare the contract metadata and bucket names but intentionally have no `SUPABASE_PROJECT_REF`; they therefore fail closed until a separate non-production backend is explicitly assigned. Existing URL and credential values were not changed.
@@ -42,7 +42,7 @@ The previous development source, `simply0307/creative-systems.git` on local `mas
 
 The reconciliation preserves the newer `Creative-Systems1` production history and its `main`-branch operations fixtures, imports the Step 2 runtime contract and canonical migration evidence, and adds the tracked archive governance/index sources that existed only in the previous development repository. It intentionally excludes local untracked archive artwork, `desktop.ini`, deployment-card images, the large Word template, backup artifacts, and the tracked Supabase CLI `.temp` marker. Those exclusions prevent unreviewed or machine-local material from entering a production candidate; they do not delete the originals.
 
-No Step 2 source has been deployed. On 2026-08-07, the primary alias, branch alias, and immutable deploy permalink all returned HTTP 404 even though Netlify still reported deploy `6a4e905b2f44bc00083b525d` as `ready`. Consequently, production enforcement and endpoint behavior cannot be claimed until this candidate is reviewed, committed and pushed with explicit authorization, deployed, and verified.
+The version-1 runtime and fail-closed Identity authorization are active in production. At the Step 4B pre-change audit, `/`, health, and readiness returned HTTP 200; readiness identified canonical project `okqkljexfzolzxysjaha`, contract version `1`, authority `creative-os-api`, compatible schema, and all five private buckets. The legacy `operations` function was still deployed and returned its historical diagnostics; this branch changes it to a non-mutating 410 tombstone but does not deploy that change.
 
 ## Migration history and drift
 
@@ -123,6 +123,8 @@ All five must exist and have `public = false`.
 
 Health and readiness responses expose no credential values.
 
-## Step 2 completion boundary
+## Step 4B retirement boundary
 
-The reviewed candidate and canonical database satisfy the version 1 contract. Production activation remains incomplete because the candidate has not been committed, pushed, or deployed and the currently published URLs return 404. A later, explicitly authorized deployment action must publish the reviewed candidate from `simply0307/Creative-Systems1` `main` and verify `/api/creative-os/health` and `/api/creative-os/ready` before the final done condition can be claimed for production.
+Routine production mutation authority remains `/api/creative-os/*`. The Step 4B branch retains the `/api/operations` redirect and function for one compatibility release, but replaces the implementation with a dependency-free 410 tombstone. The repository snapshot is read-only during page initialization; import requires a confirmed admin/owner action. Direct maintenance writers require apply intent, an exact project-ref confirmation, readiness, and an additional canonical/production confirmation. Repository-derived export review files are generated outside public deployment and are distinct from canonical private exports.
+
+This is a source candidate only. Do not claim the tombstone or export removal is active until a later authorized Git merge and normal Netlify deployment passes the acceptance checklist in `docs/OPERATIONS_API.md`.

@@ -19,8 +19,10 @@
     "setup:verify": "node scripts/setup-verify.mjs",
     "supabase:seed": "node scripts/import-supabase.mjs",
     "supabase:seed:dry": "node scripts/import-supabase.mjs --dry-run",
+    "supabase:seed:apply": "node scripts/import-supabase.mjs --apply",
     "supabase:files:dry": "node scripts/import-workspace-files.mjs",
-    "supabase:files": "node scripts/import-workspace-files.mjs --apply",
+    "supabase:files": "node scripts/import-workspace-files.mjs",
+    "supabase:files:apply": "node scripts/import-workspace-files.mjs --apply",
     "build": "node scripts/generate-exports.mjs && node scripts/generate-import-manifest.mjs && astro check && astro build",
     "preview": "astro preview"
   },

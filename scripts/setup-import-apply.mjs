@@ -42,10 +42,12 @@ if (!confirmed) {
 const npm = resolveCommand("npm");
 if (!npm) throw new Error("npm is unavailable.");
 console.log("Running idempotent metadata seed…");
-const seed = runCommand(npm, ["run", "supabase:seed"], { capture: false });
+const productionConfirmation = config.projectRef === "okqkljexfzolzxysjaha" || config.runtimeContext === "production" ? ["--confirm-production"] : [];
+const targetConfirmation = [`--confirm-project-ref=${config.projectRef}`, ...productionConfirmation];
+const seed = runCommand(npm, ["run", "supabase:seed:apply", "--", ...targetConfirmation], { capture: false });
 if (seed.status !== 0) process.exit(seed.status || 1);
 console.log("Running checksum-aware private file import…");
-const files = runCommand(npm, ["run", "supabase:files"], { capture: false });
+const files = runCommand(npm, ["run", "supabase:files:apply", "--", ...targetConfirmation], { capture: false });
 if (files.status !== 0) process.exit(files.status || 1);
 
 const counts = {};

@@ -60,7 +60,9 @@ const exportBundles = readJsonDir("src/content/export-bundles");
 const pipelineTasks = readJsonDir("src/content/pipeline-tasks");
 const remediation = readBacklog();
 const generatedAt = new Date().toISOString();
-const outDir = path.join(root, "public/exports");
+// These repository-derived bundles are review artifacts, not public or canonical runtime exports.
+// Canonical exports are private Supabase records/objects served through /api/creative-os/exports.
+const outDir = path.join(root, ".generated/exports");
 fs.mkdirSync(outDir, { recursive: true });
 
 const writeJson = (name, data) => fs.writeFileSync(path.join(outDir, name), JSON.stringify({ generatedAt, ...data }, null, 2) + "\n");
@@ -94,4 +96,4 @@ fs.writeFileSync(path.join(outDir, "canon-bible.md"), canonMd);
 const starterMd = [`# EGGS Project Starter Pack`, ``, `Generated: ${generatedAt}`, ``, `## Reuse contract`, ``, `Choose at least one material derivation. Document its source, translation mode, player promise, and evidence. Intentional omission is valid.`, ``, `## Starting concepts`, ``, ...archive.filter((entry) => ["alien-principle","convergence","player-archetype","mechanic"].includes(entry.entityType)).map((entry) => `- **${entry.title}** — ${entry.summary}`), ``, `## Required checks`, ``, `- Confirm canon and project scope.`, `- Review linked remediation tasks.`, `- Check player-facing language.`, `- Check provenance and rights before publishing artifacts.`, `- Do not create paid competitive legitimacy or gambling-framed Para systems.`, ``].join("\n");
 fs.writeFileSync(path.join(outDir, "project-starter-pack.md"), starterMd);
 
-console.log(`Generated 9 export bundles from ${archive.length} archive records, ${artifacts.length} artifacts, and ${remediation.length} remediation items.`);
+console.log(`Generated 9 review-only export bundles outside public/ from ${archive.length} archive records, ${artifacts.length} artifacts, and ${remediation.length} remediation items.`);
