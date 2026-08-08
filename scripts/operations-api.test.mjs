@@ -122,7 +122,7 @@ test("authenticated user sees clear missing GitHub configuration", async () => {
   }
 });
 
-test("invalid admin key is ignored in open archive mode and does not force GitHub writes", async () => {
+test("invalid admin key fails closed and does not force GitHub writes", async () => {
   const previous = process.env.OPERATIONS_ADMIN_KEY;
   process.env.OPERATIONS_ADMIN_KEY = "correct-key";
   process.env.OPERATIONS_ADMIN_KEY_FALLBACK = "true";
@@ -132,12 +132,12 @@ test("invalid admin key is ignored in open archive mode and does not force GitHu
   try {
     const response = await operations({ httpMethod: "POST", headers: { "x-creative-os-key": "wrong-key" }, body: JSON.stringify({ action: "metadata.update", actor: "Editor", targets: ["artifact.sample"], changes: { addTags: ["motif"] } }) });
     const body = JSON.parse(response.body);
-    assert.equal(response.statusCode, 202);
-    assert.equal(body.authenticated, true);
-    assert.equal(body.userRole, "owner");
-    assert.equal(body.authMethod, "open-archive-tool");
+    assert.equal(response.statusCode, 401);
+    assert.equal(body.authenticated, false);
+    assert.equal(body.userRole, "viewer");
+    assert.equal(body.authMethod, "none");
     assert.equal(body.adminKeyAccepted, false);
-    assert.match(body.fallbackReason, /GitHub adapter not configured/);
+    assert.match(body.fallbackReason, /Sign in/i);
     assert.equal(body.diagnostics.githubWriteAttempted, false);
     assert.equal(fetchCalled, false);
   } finally {
@@ -151,11 +151,11 @@ test("modern Netlify Request shape reaches the API", async () => {
   const previous = process.env.OPERATIONS_ADMIN_KEY;
   delete process.env.OPERATIONS_ADMIN_KEY;
   try {
-    const response = await operations(new Request("https://example.netlify.app/api/operations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "metadata.update", actor: "Editor", targets: ["artifact.sample"], changes: { addTags: ["motif"] } }) }));
+    const response = await operations(new Request("https://example.netlify.app/api/operations", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "metadata.update", actor: "Editor", targets: ["artifact.sample"], changes: { addTags: ["motif"] } }) }), identityContext("admin"));
     assert.equal(response.status, 202);
     const body = await response.json();
     assert.equal(body.diagnostics.apiReached, true);
-    assert.equal(body.authMethod, "open-archive-tool");
+    assert.equal(body.authMethod, "netlify-identity");
   } finally {
     previous === undefined ? delete process.env.OPERATIONS_ADMIN_KEY : process.env.OPERATIONS_ADMIN_KEY = previous;
   }
@@ -215,7 +215,7 @@ test("GitHub adapter stages a branch, commits files, and opens a draft PR", asyn
   assert.ok(calls.every((call) => !call.url.includes("secret-token")));
 });
 
-test("open archive mode accepts formerly unauthenticated writes as owner local drafts when GitHub is not configured", async()=>{const response=await operations({httpMethod:"POST",headers:{},body:JSON.stringify({action:"metadata.update",actor:"Unknown",targets:["artifact.sample"],changes:{addTags:["motif"]}})});const body=JSON.parse(response.body);assert.equal(response.statusCode,202);assert.equal(body.authenticated,true);assert.equal(body.userRole,"owner");assert.equal(body.authMethod,"open-archive-tool");assert.equal(body.githubWriteAttempted,false);});
+test("explicit local owner mode accepts local drafts only when both local settings are present", async()=>{const names=["CREATIVE_OS_RUNTIME_CONTEXT","CREATIVE_OS_LOCAL_OWNER_MODE"],previous=Object.fromEntries(names.map(name=>[name,process.env[name]]));Object.assign(process.env,{CREATIVE_OS_RUNTIME_CONTEXT:"local",CREATIVE_OS_LOCAL_OWNER_MODE:"true"});try{const response=await operations({httpMethod:"POST",headers:{},body:JSON.stringify({action:"metadata.update",actor:"Unknown",targets:["artifact.sample"],changes:{addTags:["motif"]}})});const body=JSON.parse(response.body);assert.equal(response.statusCode,202);assert.equal(body.authenticated,true);assert.equal(body.userRole,"owner");assert.equal(body.authMethod,"explicit-local-owner");assert.equal(body.githubWriteAttempted,false);}finally{names.forEach(name=>previous[name]===undefined?delete process.env[name]:process.env[name]=previous[name]);}});
 
 test("contributor creates a draft review PR", async()=>{const {body,pulls}=await runRoleOperation("contributor",{action:"metadata.update",actor:"Ignored",reason:"Suggest motif tag",targets:["artifact.sample"],changes:{addTags:["motif"]}});assert.equal(body.userRole,"contributor");assert.equal(body.approvalMode,"pending-admin-review");assert.equal(body.prMerged,false);assert.equal(pulls[0].draft,true);assert.match(body.message,/editor\/admin review/i);});
 
@@ -227,7 +227,7 @@ test("owner medium-risk confirmation is approved and awaits merge", async()=>{co
 
 test("high-risk operation never silently auto-approves", async()=>{const {body,pulls}=await runRoleOperation("owner",{...decisionPayload,explicitConfirmation:true});assert.equal(body.policyResult.riskLevel,"high");assert.equal(body.prMerged,false);assert.equal(pulls[0].draft,true);assert.match(body.message,/Manual review/i);});
 
-test("emergency admin key is bypassed by open archive owner mode", async()=>{const names=[...operationEnvNames],previous=Object.fromEntries(operationEnvNames.map(name=>[name,process.env[name]])),priorFetch=globalThis.fetch;Object.assign(process.env,{GITHUB_TOKEN:"token",GITHUB_OWNER:"simply0307",GITHUB_REPO:"creative-systems1",GITHUB_DEFAULT_BRANCH:"main",GITHUB_AUTHOR_NAME:"OS",GITHUB_AUTHOR_EMAIL:"os@example.test",OPERATIONS_ADMIN_KEY:"break-glass",OPERATIONS_ADMIN_KEY_FALLBACK:"true",ADMIN_AUTO_APPROVE:"false"});let blobs=0;globalThis.fetch=async(url,_options={})=>{let body;if(url.includes('/git/ref/heads/main'))body={object:{sha:'base'}};else if(url.includes('/git/commits/base'))body={tree:{sha:'tree'}};else if(url.includes('/contents/src/content/artifacts/sample.json'))body={content:Buffer.from(JSON.stringify({id:'artifact.sample',title:'Sample',tags:[]})).toString('base64'),sha:'file'};else if(url.endsWith('/git/blobs'))body={sha:`blob-${++blobs}`};else if(url.endsWith('/git/trees'))body={sha:`tree-${blobs}`};else if(url.endsWith('/git/commits'))body={sha:`commit-${blobs}`};else if(url.endsWith('/pulls'))body={html_url:'https://github.com/x/y/pull/1',number:1,draft:false};else body={};return new Response(JSON.stringify(body),{status:200});};try{const response=await operations({httpMethod:'POST',headers:{'x-creative-os-key':'break-glass'},body:JSON.stringify({action:'metadata.update',actor:'Emergency',reason:'Break glass',targets:['artifact.sample'],changes:{addTags:['motif']}})});const body=JSON.parse(response.body);assert.equal(body.authMethod,'open-archive-tool');assert.equal(body.adminKeyAccepted,false);assert.equal(body.userRole,'owner');}finally{globalThis.fetch=priorFetch;names.forEach(name=>previous[name]===undefined?delete process.env[name]:process.env[name]=previous[name]);}});
+test("configured emergency admin key remains explicit rather than relying on owner fallback", async()=>{const names=[...operationEnvNames],previous=Object.fromEntries(operationEnvNames.map(name=>[name,process.env[name]])),priorFetch=globalThis.fetch;Object.assign(process.env,{GITHUB_TOKEN:"token",GITHUB_OWNER:"simply0307",GITHUB_REPO:"creative-systems1",GITHUB_DEFAULT_BRANCH:"main",GITHUB_AUTHOR_NAME:"OS",GITHUB_AUTHOR_EMAIL:"os@example.test",OPERATIONS_ADMIN_KEY:"break-glass",OPERATIONS_ADMIN_KEY_FALLBACK:"true",ADMIN_AUTO_APPROVE:"false"});let blobs=0;globalThis.fetch=async(url,_options={})=>{let body;if(url.includes('/git/ref/heads/main'))body={object:{sha:'base'}};else if(url.includes('/git/commits/base'))body={tree:{sha:'tree'}};else if(url.includes('/contents/src/content/artifacts/sample.json'))body={content:Buffer.from(JSON.stringify({id:'artifact.sample',title:'Sample',tags:[]})).toString('base64'),sha:'file'};else if(url.endsWith('/git/blobs'))body={sha:`blob-${++blobs}`};else if(url.endsWith('/git/trees'))body={sha:`tree-${blobs}`};else if(url.endsWith('/git/commits'))body={sha:`commit-${blobs}`};else if(url.endsWith('/pulls'))body={html_url:'https://github.com/x/y/pull/1',number:1,draft:false};else body={};return new Response(JSON.stringify(body),{status:200});};try{const response=await operations({httpMethod:'POST',headers:{'x-creative-os-key':'break-glass'},body:JSON.stringify({action:'metadata.update',actor:'Emergency',reason:'Break glass',targets:['artifact.sample'],changes:{addTags:['motif']}})});const body=JSON.parse(response.body);assert.equal(body.authMethod,'emergency-admin-key');assert.equal(body.adminKeyAccepted,true);assert.equal(body.userRole,'admin');}finally{globalThis.fetch=priorFetch;names.forEach(name=>previous[name]===undefined?delete process.env[name]:process.env[name]=previous[name]);}});
 
 test("legacy review API rejects editor access",async()=>{const response=await operations({httpMethod:"GET",headers:{},queryStringParameters:{view:"reviews"}},identityContext("editor"));const body=JSON.parse(response.body);assert.equal(response.statusCode,403);assert.match(body.error,/admin or owner/i);});
 
