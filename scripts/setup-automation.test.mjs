@@ -95,7 +95,7 @@ test("verification covers the read-only runtime, schema, Storage, API, and GitHu
 });
 
 test("documentation explains fast setup, fallbacks, safety, and acceptance", () => {
-  const guide = read("docs/OPERATIONS_API.md");
+  const guide = read("docs/CREATIVE_OS_API.md");
   for (const phrase of ["Fast automated setup", "npm run setup", "npm run setup:import:apply", "Safe migration fallback", "never call `supabase db reset`", "Final live acceptance checklist", "Exact acceptance test"]) assert.match(guide, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
 });
 

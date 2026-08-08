@@ -1,7 +1,8 @@
 # Creative OS runtime authority
 
-Status: canonical runtime active in production; Step 4B compatibility retirement staged for review
+Status: canonical runtime active in production; final legacy Operations removal staged for review
 Decision date: 2026-08-07
+Final removal decision: 2026-08-08
 Schema contract version: `1`
 
 ## Authority decision
@@ -28,11 +29,11 @@ No backup artifact belongs in Git.
 
 - Site: `eggs-creative-systems-os`
 - Site ID: `f69df1d9-50ff-4b8c-a3e8-0ae266a946aa`
-- Audited current deploy ID before Step 4B source changes: `6a769cf7e8abd400085a825d`
+- Current production deploy: `6a775fd1f6f2490009147d99`
 - Deploy source repository: `simply0307/Creative-Systems1`
 - Deploy branch: `main`
-- Deploy commit: `508091e5d7494132bf629ba05f9713c6781bb6ed`
-- Deployed functions: `creative-os`, `operations`
+- Deploy commit: `a0280c3e2532b0bd94b493cabf3c7c556c60e0d4`
+- Deployed functions: `creative-os`, plus the non-mutating `operations` 410 tombstone pending final-removal merge authorization
 
 The production-context Netlify environment now declares the canonical project ref, runtime context, schema-contract version, mutation authority, and five bucket names. Deploy-preview and branch-deploy contexts declare the contract metadata and bucket names but intentionally have no `SUPABASE_PROJECT_REF`; they therefore fail closed until a separate non-production backend is explicitly assigned. Existing URL and credential values were not changed.
 
@@ -42,7 +43,7 @@ The previous development source, `simply0307/creative-systems.git` on local `mas
 
 The reconciliation preserves the newer `Creative-Systems1` production history and its `main`-branch operations fixtures, imports the Step 2 runtime contract and canonical migration evidence, and adds the tracked archive governance/index sources that existed only in the previous development repository. It intentionally excludes local untracked archive artwork, `desktop.ini`, deployment-card images, the large Word template, backup artifacts, and the tracked Supabase CLI `.temp` marker. Those exclusions prevent unreviewed or machine-local material from entering a production candidate; they do not delete the originals.
 
-The version-1 runtime and fail-closed Identity authorization are active in production. At the Step 4B pre-change audit, `/`, health, and readiness returned HTTP 200; readiness identified canonical project `okqkljexfzolzxysjaha`, contract version `1`, authority `creative-os-api`, compatible schema, and all five private buckets. The legacy `operations` function was still deployed and returned its historical diagnostics; this branch changes it to a non-mutating 410 tombstone but does not deploy that change.
+The version-1 runtime and fail-closed Identity authorization are active in production. The Step 4B compatibility release verified `/`, health, and readiness at HTTP 200 and confirmed canonical project `okqkljexfzolzxysjaha`, contract version `1`, authority `creative-os-api`, compatible schema, and all five private buckets. That release replaced the legacy Operations implementation with a dependency-free, non-mutating 410 tombstone. This Step 4D source candidate removes the remaining redirect and function; production does not change until a later authorized merge and normal Git-connected Netlify deploy.
 
 ## Migration history and drift
 
@@ -123,8 +124,10 @@ All five must exist and have `public = false`.
 
 Health and readiness responses expose no credential values.
 
-## Step 4B retirement boundary
+## Final legacy Operations removal boundary
 
-Routine production mutation authority remains `/api/creative-os/*`. The Step 4B branch retains the `/api/operations` redirect and function for one compatibility release, but replaces the implementation with a dependency-free 410 tombstone. The repository snapshot is read-only during page initialization; import requires a confirmed admin/owner action. Direct maintenance writers require apply intent, an exact project-ref confirmation, readiness, and an additional canonical/production confirmation. Repository-derived export review files are generated outside public deployment and are distinct from canonical private exports.
+Routine production mutation authority is exclusively `/api/creative-os/*`. The Step 4B release deployed the retired Operations path as a non-mutating 410 tombstone at `2026-08-08T16:57:31.893Z`. Five immediate function invocations were the deliberate Step 4C probes. On 2026-08-08, the owner explicitly waived the remaining 24-hour observation period and accepted the residual risk that an unknown obsolete caller may receive 404 instead of 410.
 
-This is a source candidate only. Do not claim the tombstone or export removal is active until a later authorized Git merge and normal Netlify deployment passes the acceptance checklist in `docs/OPERATIONS_API.md`.
+This Step 4D source candidate removes the legacy redirect, Netlify function, and compatibility-only tests. The repository snapshot remains read-only during page initialization; import requires a confirmed admin/owner action through the Creative OS API. Direct maintenance writers still require apply intent, an exact project-ref confirmation, readiness, and an additional canonical/production confirmation. Repository-derived export review files remain outside public deployment and distinct from canonical private exports.
+
+The removal is not production-active until this PR is separately authorized, merged, and deployed through the normal Git workflow. After deployment, verify the single-function inventory and 404 behavior using `docs/CREATIVE_OS_API.md`. Historical Git and Netlify deploy evidence remain the record of the retired system and compatibility period.

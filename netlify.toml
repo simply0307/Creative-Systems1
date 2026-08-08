@@ -48,12 +48,6 @@
   SUPABASE_STORAGE_BUCKET_THUMBNAILS = "thumbnails"
 
 [[redirects]]
-  from = "/api/operations"
-  to = "/.netlify/functions/operations"
-  status = 200
-  force = true
-
-[[redirects]]
   from = "/api/creative-os"
   to = "/.netlify/functions/creative-os?splat=health"
   status = 200
