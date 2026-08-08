@@ -278,7 +278,7 @@ test("uploads, reviews, and exports still use the Supabase client helpers", () =
 });
 
 test("setup guide covers keys, migration, buckets, imports, deploy, health, and acceptance", () => {
-  const guide = read("docs/CREATIVE_OS_API.md");
+  const guide = read("docs/OPERATIONS_API.md");
   for (const phrase of ["Settings → API Keys", "SUPABASE_SERVICE_ROLE_KEY", "SQL Editor", "imports-raw", "npm run supabase:seed", "npm run supabase:files:dry", "npm run supabase:files", "Trigger deploy", "/api/creative-os/health/full", "Final live acceptance checklist"]) assert.match(guide, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 

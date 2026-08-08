@@ -55,7 +55,7 @@ try {
 }
 
 const routineClient = fs.readFileSync(path.join(root, "src", "scripts", "creative-os-client.js"), "utf8");
-checks.apiReportsGitHubRoutineWritesDisabled ||= routineClient.includes("/api/creative-os/");
+checks.apiReportsGitHubRoutineWritesDisabled ||= !routineClient.includes("/api/operations") && routineClient.includes("/api/creative-os/");
 
 console.log(`Creative OS read-only verification target: ${siteUrl}\n`);
 for (const [name, value] of Object.entries(checks)) printResult(name, value);
