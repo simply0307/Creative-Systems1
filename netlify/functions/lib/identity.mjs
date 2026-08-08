@@ -1,12 +1,37 @@
 export const ROLE_ORDER = ["viewer", "contributor", "editor", "admin", "owner"];
 
+const LOCAL_OWNER_FLAG = "CREATIVE_OS_LOCAL_OWNER_MODE";
+
+const envValue = (name, env = process.env) => {
+  try {
+    return globalThis.Netlify?.env?.get?.(name) || env[name] || "";
+  } catch {
+    return env[name] || "";
+  }
+};
+
+const unauthenticatedIdentity = (authFailure = "missing", authFailureStatus = 401) => ({
+  authenticated: false,
+  identityVerified: false,
+  userId: null,
+  userEmail: null,
+  userName: null,
+  userRole: "viewer",
+  authMethod: "none",
+  authFailure,
+  authFailureStatus,
+});
+
 export const localOwnerIdentity = {
   authenticated: true,
+  identityVerified: false,
   userId: "local-archive-operator",
   userEmail: "archive-operator@creative-os.local",
   userName: "Archive operator",
   userRole: "owner",
-  authMethod: "open-archive-tool",
+  authMethod: "explicit-local-owner",
+  authFailure: null,
+  authFailureStatus: null,
 };
 
 export const normalizeRole = (roles) => {
@@ -16,38 +41,78 @@ export const normalizeRole = (roles) => {
 
 const normalizeUser = (user) => {
   if (!user?.id && !user?.sub) return null;
-  const metadata = user.user_metadata || {};
-  const appMetadata = user.app_metadata || {};
+  const metadata = user.user_metadata || user.userMetadata || {};
+  const appMetadata = user.app_metadata || user.appMetadata || {};
   return {
     authenticated: true,
+    identityVerified: true,
     userId: user.id || user.sub,
     userEmail: user.email || "",
-    userName: metadata.full_name || metadata.name || user.email || "Employee",
+    userName: metadata.full_name || metadata.name || user.name || user.email || "Employee",
     userRole: normalizeRole(appMetadata.roles),
     authMethod: "netlify-identity",
+    authFailure: null,
+    authFailureStatus: null,
   };
 };
 
-export const resolveIdentity = async (request, context = {}, fetchImpl = globalThis.fetch) => {
+const headerValue = (request, name) => {
+  if (request?.headers?.get) return request.headers.get(name);
+  return request?.headers?.[name] || request?.headers?.[name.toLowerCase()] || request?.headers?.[name.toUpperCase()] || null;
+};
+
+const cookieValue = (request, name) => {
+  const cookie = headerValue(request, "cookie") || "";
+  const match = cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
+  if (!match) return null;
+  try { return decodeURIComponent(match.slice(name.length + 1)); }
+  catch { return "malformed-cookie"; }
+};
+
+const tokenState = (token, now = Date.now()) => {
+  const parts = String(token || "").split(".");
+  if (parts.length !== 3 || parts.some((part) => !part)) return "malformed";
+  try {
+    const payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64url").toString("utf8"));
+    if (typeof payload.exp !== "number") return "malformed";
+    return payload.exp * 1000 <= now ? "expired" : "present";
+  } catch {
+    return "malformed";
+  }
+};
+
+export const localOwnerModeEnabled = (env = process.env) => envValue("CREATIVE_OS_RUNTIME_CONTEXT", env) === "local"
+  && envValue(LOCAL_OWNER_FLAG, env).toLowerCase() === "true";
+
+export const resolveIdentity = async (request, context = {}, fetchImpl = globalThis.fetch, env = process.env) => {
   const trusted = context?.clientContext?.user || request?.clientContext?.user || request?.requestContext?.authorizer?.user;
   const normalized = normalizeUser(trusted);
   if (normalized) return normalized;
 
-  const authorization = request?.headers?.authorization || request?.headers?.Authorization;
-  if (!authorization?.startsWith("Bearer ")) return localOwnerIdentity;
+  const authorization = headerValue(request, "authorization");
+  if (authorization && !/^Bearer\s+\S+$/i.test(authorization)) return unauthenticatedIdentity("malformed", 401);
 
-  const host = request?.headers?.host || request?.headers?.Host;
-  const protocol = request?.headers?.["x-forwarded-proto"] || "https";
+  const bearerToken = authorization ? authorization.replace(/^Bearer\s+/i, "") : cookieValue(request, "nf_jwt");
+  if (!bearerToken) return localOwnerModeEnabled(env) ? localOwnerIdentity : unauthenticatedIdentity("missing", 401);
+
+  const state = tokenState(bearerToken);
+  if (state !== "present") return unauthenticatedIdentity(state, 401);
+
+  const host = headerValue(request, "host");
+  const protocol = headerValue(request, "x-forwarded-proto") || "https";
   const rawUrl = request?.rawUrl || request?.url;
-  const origin = rawUrl ? new URL(rawUrl).origin : host ? `${protocol}://${host}` : null;
-  if (!origin) return { authenticated: false, userId: null, userEmail: null, userName: null, userRole: "viewer", authMethod: "none" };
+  let origin = null;
+  try { origin = rawUrl ? new URL(rawUrl).origin : host ? `${protocol}://${host}` : null; }
+  catch { return unauthenticatedIdentity("malformed-request-origin", 401); }
+  if (!origin) return unauthenticatedIdentity("verification-unavailable", 503);
 
   try {
-    const response = await fetchImpl(`${origin}/.netlify/identity/user`, { headers: { authorization } });
-    if (!response.ok) return localOwnerIdentity;
-    return normalizeUser(await response.json()) || localOwnerIdentity;
+    const response = await fetchImpl(`${origin}/.netlify/identity/user`, { headers: { authorization: `Bearer ${bearerToken}` } });
+    if ([401, 403, 422].includes(response.status)) return unauthenticatedIdentity("invalid", 401);
+    if (!response.ok) return unauthenticatedIdentity("verification-unavailable", 503);
+    return normalizeUser(await response.json()) || unauthenticatedIdentity("invalid", 401);
   } catch {
-    return localOwnerIdentity;
+    return unauthenticatedIdentity("verification-unavailable", 503);
   }
 };
 

@@ -98,15 +98,37 @@ export const requireData = (result, label = "Supabase operation") => {
   return result.data;
 };
 
-export const upsertProfile = async (supabase, identity) => {
-  const row = {
-    email: identity.userEmail || `${identity.userId}@identity.local`,
-    display_name: identity.userName || identity.userEmail || "Employee",
-    role: identity.userRole,
-    identity_provider: identity.authMethod === "emergency-admin-key" ? "emergency_key" : "netlify_identity",
-    identity_user_id: identity.userId,
-  };
-  return requireData(await supabase.from("profiles").upsert(row, { onConflict: "identity_user_id" }).select().single(), "Profile bridge");
+const profileRow = (identity) => ({
+  email: identity.userEmail || `${identity.userId}@identity.local`,
+  display_name: identity.userName || identity.userEmail || "Employee",
+  role: identity.userRole,
+  identity_provider: "netlify_identity",
+  identity_user_id: identity.userId,
+});
+
+export const ensureProfile = async (supabase, identity) => {
+  if (!identity?.authenticated || !identity?.identityVerified || identity.authMethod !== "netlify-identity") {
+    throw new Error("A verified Netlify Identity user is required before a profile may be created or updated.");
+  }
+  const row = profileRow(identity);
+  const existing = requireData(await supabase.from("profiles")
+    .select("id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at")
+    .eq("identity_user_id", identity.userId)
+    .maybeSingle(), "Load profile bridge");
+  if (!existing) return requireData(await supabase.from("profiles").insert(row).select().single(), "Create profile bridge");
+  const changed = Object.entries(row).some(([key, value]) => existing[key] !== value);
+  if (!changed) return existing;
+  return requireData(await supabase.from("profiles").update(row).eq("id", existing.id).select().single(), "Update profile bridge");
+};
+
+export const loadLocalOwnerProfile = async (supabase, identity) => {
+  if (identity?.authMethod !== "explicit-local-owner") throw new Error("Explicit local owner identity is required.");
+  const profile = requireData(await supabase.from("profiles")
+    .select("id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at")
+    .eq("identity_user_id", identity.userId)
+    .maybeSingle(), "Load explicit local owner profile");
+  if (!profile) throw new Error("Explicit local owner mode requires a pre-existing local profile; it will not create one automatically.");
+  return profile;
 };
 
 export const writeAudit = async (supabase, profile, event) => requireData(await supabase.from("audit_events").insert({
