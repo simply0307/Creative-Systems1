@@ -10,7 +10,7 @@ The static repository manifest is reference/bootstrap input. It is neither live 
 
 The legacy Operations mutation system is retired. Its browser client, GitHub mutation adapter, planner, local authority state, and public export path were removed first. Production deploy `6a775fd1f6f2490009147d99` then served a dependency-free 410 tombstone beginning at `2026-08-08T16:57:31.893Z`; it could not authenticate, parse payloads, access Supabase or Storage, call GitHub, or mutate state.
 
-Five invocations observed immediately after release were the deliberate Step 4C verification probes. On 2026-08-08, the owner explicitly waived the remainder of the planned 24-hour observation period and accepted the residual risk that an unknown obsolete caller may receive 404 instead of 410. The maintained source now contains neither the legacy route nor its Netlify function. Until this removal PR is separately authorized, merged, and deployed, current production continues to serve the tombstone.
+Five invocations observed immediately after release were the deliberate Step 4C verification probes. On 2026-08-08, the owner explicitly waived the remainder of the planned 24-hour observation period and accepted the residual risk that an unknown obsolete caller may receive an unhandled platform 4xx instead of 410. The maintained source now contains neither the legacy route nor its Netlify function. Until this removal PR is separately authorized, merged, and deployed, current production continues to serve the tombstone.
 
 The exclusive routine production mutation surface is `/api/creative-os/*`. Historical commits and deploy metadata preserve the retired implementation and compatibility evidence.
 
@@ -88,7 +88,7 @@ After a later authorized merge and normal Git-connected Netlify deploy, the exac
 2. `/api/creative-os/health` returns 200.
 3. `/api/creative-os/ready` returns 200 with `ready: true` and the canonical version-1 contract.
 4. Owner artifact and review reads succeed; anonymous and invalid authentication fail closed.
-5. GET, POST, OPTIONS, and direct function requests for the removed legacy Operations endpoint return the normal 404 response; no redirect or function handles them.
+5. GET and direct function requests for the removed legacy Operations endpoint return 404; POST and OPTIONS receive Netlify's unhandled-route 4xx responses. No redirect or function handles any method.
 6. Netlify deploys `creative-os` and no `operations` function.
 7. Loading and refreshing `/pipeline/artifacts/` creates no import request.
 8. Browsing, filtering, preview, and download still work; only a deliberate confirmed admin/owner action can import snapshot metadata.

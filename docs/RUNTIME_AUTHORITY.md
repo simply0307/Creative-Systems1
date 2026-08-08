@@ -126,7 +126,7 @@ Health and readiness responses expose no credential values.
 
 ## Final legacy Operations removal boundary
 
-Routine production mutation authority is exclusively `/api/creative-os/*`. The Step 4B release deployed the retired Operations path as a non-mutating 410 tombstone at `2026-08-08T16:57:31.893Z`. Five immediate function invocations were the deliberate Step 4C probes. On 2026-08-08, the owner explicitly waived the remaining 24-hour observation period and accepted the residual risk that an unknown obsolete caller may receive 404 instead of 410.
+Routine production mutation authority is exclusively `/api/creative-os/*`. The Step 4B release deployed the retired Operations path as a non-mutating 410 tombstone at `2026-08-08T16:57:31.893Z`. Five immediate function invocations were the deliberate Step 4C probes. On 2026-08-08, the owner explicitly waived the remaining 24-hour observation period and accepted the residual risk that an unknown obsolete caller may receive an unhandled platform 4xx instead of 410.
 
 This Step 4D source candidate removes the legacy redirect, Netlify function, and compatibility-only tests. The repository snapshot remains read-only during page initialization; import requires a confirmed admin/owner action through the Creative OS API. Direct maintenance writers still require apply intent, an exact project-ref confirmation, readiness, and an additional canonical/production confirmation. Repository-derived export review files remain outside public deployment and distinct from canonical private exports.
 
