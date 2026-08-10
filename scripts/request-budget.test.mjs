@@ -37,6 +37,7 @@ test("request-budget tooling is fixture-only and has no production mutation path
 test("future Worker limits remain isolated from production business logic", () => {
   const productionFiles = [
     "netlify/functions/creative-os.mjs",
+    "src/server/creative-os/handle-creative-os.mjs",
     "netlify/functions/lib/runtime-contract.mjs",
     "netlify/functions/lib/supabase.mjs",
   ];

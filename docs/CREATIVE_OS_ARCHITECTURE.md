@@ -272,6 +272,21 @@ References: [Cloudflare Workers limits](https://developers.cloudflare.com/worker
 
 Phases are gates, not promises to install every named service. Each phase should be the smallest reversible PR that proves its exit evidence.
 
-## 18. Explicit deferrals
+## 18. Phase B runtime boundary
+
+Phase B enacts the first runtime boundary without changing the version `1` API or persistence contract:
+
+- `src/server/runtime/runtime-adapter.ts` defines the narrow host contract: runtime name, configuration lookup, secret lookup, deployment metadata, time, and UUID generation.
+- `src/server/creative-os/handle-creative-os.mjs` owns the shared routing and existing Creative OS behavior behind `handleCreativeOs(request, runtime)`.
+- `netlify/functions/creative-os.mjs` is the thin production entry point that binds Netlify Identity invocation context and delegates through `NetlifyRuntimeAdapter`.
+- `LocalTestRuntimeAdapter` provides deterministic host values for parity tests.
+- Netlify Identity remains a separate provider-specific authentication seam. It is intentionally not a `RuntimeAdapter` capability.
+- Logging is not part of the interface because the current handler does not emit application logs. It should be added only with a concrete logging requirement and contract tests.
+
+The shared handler remains `.mjs` in this phase to avoid coupling portability work to a broad rewrite of the existing handler. The new runtime contract is TypeScript, and both JavaScript adapters declare structural implementation of it through JSDoc. A later bounded change may migrate shared server modules incrementally after behavior parity remains stable.
+
+Phase B does not include a Cloudflare adapter or any request-budget optimization. The measured Phase A baselines remain the acceptance evidence for Phase C.
+
+## 19. Explicit deferrals
 
 This contract does not add Cloudflare configuration or resources, Supabase Auth, R2, graph/domain tables, pgvector, pgmq, generation providers, queues, Workflows, Durable Objects, artifact migrations, UI features, or a new runtime-contract version. Those changes require their own authorized phases and verification.
