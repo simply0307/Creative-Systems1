@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
+    "test": "node --test",
     "exports": "node scripts/generate-exports.mjs",
     "repo:manifest": "node scripts/generate-import-manifest.mjs",
     "test:operations": "node --test scripts/operations-api.test.mjs",
     "test:auth": "node --test scripts/auth-api.test.mjs",
+    "test:budget": "node --test scripts/request-budget.test.mjs",
+    "budget:report": "node scripts/request-budget-report.mjs",
     "test:supabase": "node --test scripts/supabase-api.test.mjs scripts/setup-automation.test.mjs",
     "setup": "node scripts/setup.mjs",
     "setup:check": "node scripts/setup-check.mjs",
