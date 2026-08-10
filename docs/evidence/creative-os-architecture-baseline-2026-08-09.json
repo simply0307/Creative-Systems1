@@ -1,0 +1,127 @@
+{
+  "snapshotType": "creative-os-architecture-evidence",
+  "capturedOn": "2026-08-09",
+  "evidenceOnly": true,
+  "canonicalSourceOfTruth": false,
+  "containsSecrets": false,
+  "repository": {
+    "identity": "simply0307/Creative-Systems1",
+    "visibility": "private",
+    "defaultBranch": "main",
+    "mainCommit": "9950fcc225cd3b0e1612528b6e42670ba26bc9a2",
+    "productionDeployCommit": "a0280c3e2532b0bd94b493cabf3c7c556c60e0d4",
+    "mainTreeMatchesProductionDeployTree": true
+  },
+  "runtimeContract": {
+    "id": "creative-os",
+    "version": 1,
+    "mutationAuthority": "creative-os-api",
+    "canonicalSupabaseProjectRef": "okqkljexfzolzxysjaha",
+    "requiredPrivateBuckets": [
+      "artifacts",
+      "exports",
+      "imports-raw",
+      "imports-processed",
+      "thumbnails"
+    ]
+  },
+  "supabase": {
+    "projectName": "creative os",
+    "projectRef": "okqkljexfzolzxysjaha",
+    "region": "us-east-2",
+    "status": "ACTIVE_HEALTHY",
+    "postgresVersion": "17.6.1.141",
+    "migrationHistory": [
+      "20260715140231_creative_os",
+      "20260715140306_artifact_organization_phase1",
+      "20260715140315_controlled_values_management",
+      "20260715140324_archive_index_folder_tags",
+      "20260720123053_add_authenticated_comment_resonance_votes",
+      "20260807101623_establish_runtime_contract",
+      "20260807224000_harden_direct_function_privileges"
+    ],
+    "publicTables": [
+      "archive_records",
+      "artifact_archive_records",
+      "artifact_categories",
+      "artifact_tags",
+      "artifacts",
+      "audit_events",
+      "categories",
+      "comment_resonance_votes",
+      "comments",
+      "creative_os_runtime_contract",
+      "decision_resolutions",
+      "decisions",
+      "exports",
+      "import_batches",
+      "profiles",
+      "review_notes",
+      "review_requests",
+      "tags"
+    ],
+    "storageTables": [
+      "buckets",
+      "buckets_analytics",
+      "buckets_vectors",
+      "migrations",
+      "objects",
+      "s3_multipart_uploads",
+      "s3_multipart_uploads_parts",
+      "vector_indexes"
+    ],
+    "counts": {
+      "artifacts": 404,
+      "artifactsAvailable": 393,
+      "artifactsArchived": 9,
+      "artifactsMissing": 2,
+      "storageObjects": 393,
+      "storageBuckets": 5,
+      "archiveRecords": 22,
+      "decisions": 81,
+      "profiles": 3,
+      "reviewRequests": 1,
+      "auditEvents": 3,
+      "importBatches": 1,
+      "exports": 0,
+      "comments": 0
+    },
+    "knownMigrationHistoryGap": {
+      "relation": "public.comments",
+      "finding": "The table exists and migration 20260720123053 depends on it, but no recorded canonical or repository migration creates it.",
+      "productionHistoryRewritten": false
+    }
+  },
+  "netlify": {
+    "siteName": "eggs-creative-systems-os",
+    "siteId": "f69df1d9-50ff-4b8c-a3e8-0ae266a946aa",
+    "plan": "nf_team_dev",
+    "currentDeployId": "6a775fd1f6f2490009147d99",
+    "currentDeployState": "ready",
+    "deployBranch": "main",
+    "deployCommit": "a0280c3e2532b0bd94b493cabf3c7c556c60e0d4",
+    "publishedAt": "2026-08-08T16:57:31.893Z",
+    "framework": "astro",
+    "staticPages": 3,
+    "functions": [
+      { "name": "creative-os", "runtime": "nodejs24.x" },
+      { "name": "operations", "runtime": "nodejs24.x" }
+    ],
+    "liveChecks": {
+      "root": 200,
+      "health": 200,
+      "readiness": 200,
+      "legacyOperations": 410,
+      "anonymousArtifacts": 401
+    }
+  },
+  "capture": {
+    "methods": [
+      "GitHub CLI read-only repository and commit inspection",
+      "Netlify connector read-only project and deploy inspection",
+      "Supabase connector metadata reads and SELECT-only queries",
+      "anonymous GET requests to public production endpoints"
+    ],
+    "warning": "This file is a dated, non-secret reference. Refresh it from authoritative systems; never treat it as a writable replica or canonical database."
+  }
+}
