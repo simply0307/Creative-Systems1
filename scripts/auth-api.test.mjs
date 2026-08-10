@@ -215,14 +215,15 @@ test("authenticated owner can perform an authorized controlled-value mutation", 
 
 test("verified provider subjects load one stable profile without email lookup or mutation", async () => {
   const mutations = [];
+  const filters = [];
   const existing = { id: "profile-1", email: "editor@example.test", display_name: "Editor", role: "editor", identity_provider: "netlify_identity", identity_user_id: "editor-1" };
   const supabase = {
     from(table) {
       assert.equal(table, "profile_identities");
       return {
         select() { return this; },
-        eq() { return this; },
-        maybeSingle: async () => ({ data: { profile_id: existing.id, provider: "netlify_identity", provider_subject: "editor-1", profile: existing }, error: null }),
+        eq(column, value) { filters.push([column, value]); return this; },
+        maybeSingle: async () => ({ data: { profile_id: existing.id, provider: "netlify_identity", provider_subject: "editor-1", status: "active", profile: existing }, error: null }),
         insert() { mutations.push("insert"); return this; },
         update() { mutations.push("update"); return this; },
       };
@@ -231,6 +232,21 @@ test("verified provider subjects load one stable profile without email lookup or
   const profile = await loadProfileForIdentity(supabase, { authenticated: true, identityVerified: true, provider: "netlify_identity", subject: "editor-1" });
   assert.equal(profile.id, "profile-1");
   assert.deepEqual(mutations, []);
+  assert.ok(filters.some(([column, value]) => column === "status" && value === "active"));
+});
+
+test("revoked identity mappings are denied", async () => {
+  const supabase = {
+    from: () => ({
+      select() { return this; },
+      eq() { return this; },
+      maybeSingle: async () => ({ data: null, error: null }),
+    }),
+  };
+  await assert.rejects(
+    loadProfileForIdentity(supabase, { authenticated: true, identityVerified: true, provider: "supabase_auth", subject: "revoked-subject" }),
+    (error) => error.status === 403 && error.code === "identity_not_provisioned",
+  );
 });
 
 test("pre-migration Netlify identities retain a read-only legacy bridge only when the mapping table is absent", async () => {

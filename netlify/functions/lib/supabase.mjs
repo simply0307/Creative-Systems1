@@ -108,9 +108,10 @@ export const loadProfileForIdentity = async (supabase, identity) => {
     throw Object.assign(new Error("This identity provider cannot receive Creative OS authority."), { status: 403 });
   }
   const mappingResult = await supabase.from("profile_identities")
-    .select("profile_id,provider,provider_subject,profile:profiles!inner(id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at)")
+    .select("profile_id,provider,provider_subject,status,profile:profiles!inner(id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at)")
     .eq("provider", identity.provider)
     .eq("provider_subject", identity.subject)
+    .eq("status", "active")
     .maybeSingle();
   const missingBridgeTable = ["42P01", "PGRST205"].includes(mappingResult.error?.code);
   if (missingBridgeTable && identity.provider === "netlify_identity") {
