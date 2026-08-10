@@ -15,7 +15,7 @@ export const createRequestBudgetRecorder = () => {
       operation: operation.operation,
       table: operation.table || null,
       bucket: operation.bucket || null,
-      mutation: operation.kind === "database" && DATABASE_MUTATIONS.has(operation.operation),
+      mutation: operation.mutation ?? (operation.kind === "database" && DATABASE_MUTATIONS.has(operation.operation)),
     };
     records.push(record);
     counters.active[operation.kind] += 1;
@@ -38,7 +38,7 @@ export const createRequestBudgetRecorder = () => {
     return {
       databaseRequests,
       storageRequests,
-      storageSigningRequests: count((record) => record.kind === "storage" && record.operation === "createSignedUrl"),
+      storageSigningRequests: count((record) => record.kind === "storage" && ["createSignedUrl", "createSignedUrls"].includes(record.operation)),
       authVerificationRequests,
       externalSubrequests: databaseRequests + storageRequests + authVerificationRequests,
       mutationRequests: count((record) => record.mutation),
@@ -84,7 +84,12 @@ export const instrumentSupabaseClient = (client, recorder) => new Proxy(client, 
       });
     }
     if (property === "rpc") {
-      return (name, ...args) => recorder.measure({ kind: "database", operation: "rpc", table: `rpc:${name}` }, () => target.rpc(name, ...args));
+      return (name, ...args) => recorder.measure({
+        kind: "database",
+        operation: "rpc",
+        table: `rpc:${name}`,
+        mutation: name === "creative_os_bulk_organize_artifacts",
+      }, () => target.rpc(name, ...args));
     }
     if (property === "storage") {
       return new Proxy(target.storage, {

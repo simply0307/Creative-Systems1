@@ -4,13 +4,14 @@ import { authorizeCreativeOsRoute, classifyCreativeOsRoute } from "../../../netl
 import { databaseDisposition } from "../../../netlify/functions/lib/database-policy.mjs";
 import repoImportManifest from "../../generated/repo-import-manifest.json" with { type: "json" };
 import { artifactOrganization, uploadDefaults } from "../../data/artifact-organization.mjs";
-import { filterArtifacts, normalizeArtifactFilters } from "../../lib/artifact-filters.mjs";
+import { normalizeArtifactFilters } from "../../lib/artifact-filters.mjs";
 import { matchArtifactForUpload, mergeStaticArtifact, rowsEqual, summarizeImportStatus } from "../../../netlify/functions/lib/import-tools.mjs";
 import { runtimeEnvironment } from "../runtime/runtime-environment.mjs";
 import {
   CANONICAL_SUPABASE_PROJECT_REF,
   CREATIVE_OS_MUTATION_AUTHORITY,
   CREATIVE_OS_SCHEMA_CONTRACT_VERSION,
+  getRuntimeReadiness,
   REQUIRED_STORAGE_BUCKETS,
   runRuntimeReadiness,
 } from "../../../netlify/functions/lib/runtime-contract.mjs";
@@ -23,11 +24,13 @@ import {
   ensureProfile,
   ensureTypedTags,
   getArtifact,
+  getArtifactMetadata,
   getSupabaseAdmin,
   loadLocalOwnerProfile,
-  presentArtifact,
+  mapWithConcurrency,
   requireData,
   safeFileName,
+  signArtifactPreviews,
   slugify,
   syncControlledTag,
   supabaseConfig,
@@ -41,6 +44,10 @@ const privileged = (role) => ["admin", "owner"].includes(role);
 const asArray = (value) => Array.isArray(value) ? value.map((item) => String(item).trim()).filter(Boolean) : String(value || "").split(",").map((item) => item.trim()).filter(Boolean);
 const cleanObject = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
 export { REQUIRED_STORAGE_BUCKETS };
+export const DEFAULT_ARTIFACT_PAGE_SIZE = 24;
+export const MAX_ARTIFACT_PAGE_SIZE = 50;
+export const MAX_BULK_ORGANIZATION_ITEMS = 25;
+export const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
 const normalizeFolderPath = (value = "Archive") => {
   const parts = String(value || "Archive")
@@ -186,26 +193,34 @@ export const runSetupHealthCheck = runRuntimeReadiness;
 
 const listArtifacts = async (supabase, identity, searchParams = new URLSearchParams()) => {
   const filters = normalizeArtifactFilters(searchParams);
-  let query = supabase.from("artifacts").select(artifactSelect).order("updated_at", { ascending: false });
-  if (!privileged(identity.userRole)) query = query.neq("visibility", "private");
-  const scalarFilters = {
-    project: "project",
-    rights_status: "rights_status",
-    review_status: "review_status",
-    visibility: "visibility",
-    intended_use: "intended_use",
-    canon_status: "canon_status",
-    lifecycle_status: "lifecycle_status",
-    file_status: "file_status",
+  const page = Number(searchParams.get("page") || 1);
+  const limit = Number(searchParams.get("limit") || DEFAULT_ARTIFACT_PAGE_SIZE);
+  if (!Number.isInteger(page) || page < 1) throw Object.assign(new Error("Artifact page must be a positive integer."), { status: 400 });
+  if (!Number.isInteger(limit) || limit < 1 || limit > MAX_ARTIFACT_PAGE_SIZE) throw Object.assign(new Error(`Artifact limit must be between 1 and ${MAX_ARTIFACT_PAGE_SIZE}.`), { status: 400 });
+  delete filters.page;
+  delete filters.limit;
+  const data = requireData(await supabase.rpc("creative_os_list_artifacts_page", {
+    p_filters: filters,
+    p_include_private: privileged(identity.userRole),
+    p_limit: limit,
+    p_offset: (page - 1) * limit,
+  }, { get: true }), "Load artifact page");
+  const total = Number(data?.total || 0);
+  const artifacts = await signArtifactPreviews(supabase, data?.rows || []);
+  return {
+    artifacts,
+    indexedRefs: data?.indexedRefs || [],
+    summary: data?.summary || { available: 0, needs_import: 0 },
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / limit)),
+      hasPrevious: page > 1,
+      hasNext: page * limit < total,
+      order: "updated_at.desc,id.asc",
+    },
   };
-  for (const [parameter, column] of Object.entries(scalarFilters)) {
-    const value = filters[parameter];
-    if (value) query = query.eq(column, value);
-  }
-  const rows = requireData(await query, "Load artifacts");
-  let artifacts = filterArtifacts(await Promise.all(rows.map((row) => presentArtifact(supabase, row))), filters);
-  if (filters.ready_for_export === "true") artifacts = artifacts.filter((item) => item.lifecycle_status === "export-ready" && item.review_status === "approved" && item.rights_status === "public-safe" && ["public", "exportable"].includes(item.visibility));
-  return artifacts;
 };
 
 const uploadCandidateFields = "id,title,slug,description,artifact_type,project,intended_use,notes,source_type,storage_bucket,storage_path,original_file_name,mime_type,file_size,file_status,rights_status,canon_status,review_status,lifecycle_status,visibility,ai_generated,ai_model,prompt_used,provenance,legacy_data,created_by,updated_by";
@@ -593,7 +608,7 @@ const handleUploadSign = async ({ request, supabase, config, identity, runtime }
   const fileName = safeFileName(body.fileName);
   const fileSize = Number(body.fileSize || 0);
   if (!fileName || !fileSize || fileSize < 1) throw Object.assign(new Error("File name and file size are required."), { status: 400 });
-  if (fileSize > 250 * 1024 * 1024) throw Object.assign(new Error("Files larger than 250 MB require the bulk import workflow."), { status: 413 });
+  if (fileSize > MAX_UPLOAD_BYTES) throw Object.assign(new Error("Files larger than 50 MB exceed the configured Supabase upload limit."), { status: 413 });
   const checksumSha256 = String(body.checksumSha256 || "").toLowerCase();
   if (checksumSha256 && !/^[a-f0-9]{64}$/.test(checksumSha256)) throw Object.assign(new Error("Checksum must be a SHA-256 hex value."), { status: 400 });
   const match = await uploadMatch(supabase, { ...body, fileName, fileSize, checksumSha256 });
@@ -818,6 +833,7 @@ const organizationPayload = (body) => {
     setCategory: Object.hasOwn(body, "setCategory") ? String(body.setCategory || "") : undefined,
     setCategoryId: Object.hasOwn(body, "setCategoryId") ? String(body.setCategoryId || "") : undefined,
     relatedEntityId: Object.hasOwn(body, "relatedEntityId") ? String(body.relatedEntityId || "") : undefined,
+    folderPath: Object.hasOwn(body, "folderPath") ? normalizeFolderPath(body.folderPath) : undefined,
   };
 };
 
@@ -828,7 +844,8 @@ const payloadHasControlledChanges = (payload) => Object.keys(payload.changes).le
   || payload.removeCategories.length > 0
   || payload.setCategory !== undefined
   || payload.setCategoryId !== undefined
-  || payload.relatedEntityId !== undefined;
+  || payload.relatedEntityId !== undefined
+  || payload.folderPath !== undefined;
 
 export const organizationDisposition = ({ role, controlled }) => privileged(role)
   || (!controlled && databaseDisposition({ role, operationType: "artifact_tag_update", riskLevel: "low" }).mode === "apply")
@@ -872,28 +889,21 @@ const handleOrganizationChange = async ({ request, supabase, identity, profile, 
   const payload = organizationPayload(body);
   const ids = [...new Set((artifactIds || asArray(body.artifactIds)).filter(Boolean))];
   if (!ids.length) throw Object.assign(new Error("Choose at least one artifact."), { status: 400 });
+  if (ids.length > MAX_BULK_ORGANIZATION_ITEMS) throw Object.assign(new Error(`Choose no more than ${MAX_BULK_ORGANIZATION_ITEMS} artifacts per organization request.`), { status: 400 });
   const hasChange = payloadHasControlledChanges(payload) || payload.addFreeformTags.length || payload.removeFreeformTags.length;
   if (!hasChange) throw Object.assign(new Error("No organization changes were supplied."), { status: 400 });
   const controlled = payloadHasControlledChanges(payload);
   const appliesImmediately = organizationDisposition({ role: identity.userRole, controlled }) === "apply";
-  const results = [];
-  for (const artifactId of ids) {
-    const before = await getArtifact(supabase, artifactId);
-    const changeNames = [...Object.keys(payload.changes), payload.setCategory !== undefined || payload.setCategoryId !== undefined ? "category" : "", payload.relatedEntityId !== undefined ? "related entity" : "", payload.addControlledTags.length || payload.removeControlledTags.length ? "controlled tags" : "", payload.addFreeformTags.length || payload.removeFreeformTags.length ? "freeform tags" : ""].filter(Boolean);
-    const intent = `Organize ${before.title}: update ${changeNames.join(", ")}.`;
-    if (!appliesImmediately) {
-      const review = await createReviewRequest(supabase, profile, {
-        operationType: "artifact_organization_update", targetType: "artifact", targetId: artifactId, riskLevel: highRiskMetadata(payload.changes) ? "high" : "low",
-        intentSummary: intent, reason: String(body.reason || ""), beforeSnapshot: before, afterSnapshot: { organization: payload }, affectedArtifacts: [artifactId],
-      });
-      const audit = await writeAudit(supabase, profile, { actionType: "artifact_organization_proposed", targetType: "artifact", targetId: artifactId, intentSummary: intent, reason: body.reason, beforeSnapshot: before, afterSnapshot: { organization: payload }, result: "pending_review" });
-      results.push({ artifactId, mode: "pending-review", reviewRequestId: review.id, auditEventId: audit.id, artifact: before });
-      continue;
-    }
-    const applied = await applyOrganizationPayload(supabase, artifactId, payload, profile);
-    const audit = await writeAudit(supabase, profile, { actionType: "artifact_organization_update", targetType: "artifact", targetId: artifactId, intentSummary: intent, reason: body.reason, beforeSnapshot: before, afterSnapshot: applied.afterArtifact, result: "applied" });
-    results.push({ artifactId, mode: "database-applied", auditEventId: audit.id, artifact: applied.afterArtifact });
-  }
+  const batch = requireData(await supabase.rpc("creative_os_bulk_organize_artifacts", {
+    p_apply: appliesImmediately,
+    p_artifact_ids: ids,
+    p_payload: payload,
+    p_profile_id: profile.id,
+    p_reason: String(body.reason || ""),
+    p_risk_level: highRiskMetadata(payload.changes) ? "high" : "low",
+  }), "Organize artifact batch");
+  const results = batch?.results || [];
+  if (results.length !== ids.length) throw new Error("Bulk organization did not return every requested artifact result; the transaction was rejected.");
   const mode = appliesImmediately ? "database-applied" : "pending-review";
   return json(appliesImmediately ? 200 : 202, operationResult({ identity, mode, artifact: results.length === 1 ? results[0].artifact : null, message: appliesImmediately ? `${results.length} artifact organization change${results.length === 1 ? "" : "s"} applied immediately and audited.` : `${results.length} organization proposal${results.length === 1 ? "" : "s"} sent to the legacy review queue.`, extra: { results, affectedCount: results.length } }));
 };
@@ -920,7 +930,14 @@ const handleMetadataChange = async ({ request, supabase, identity, profile, arti
 
 const applyReview = async (supabase, review, profile) => {
   const after = cleanObject(review.after_snapshot);
-  if (review.operation_type === "artifact_organization_update") return applyOrganizationPayload(supabase, review.target_id, cleanObject(after.organization), profile);
+  if (review.operation_type === "artifact_organization_update") return requireData(await supabase.rpc("creative_os_bulk_organize_artifacts", {
+    p_apply: true,
+    p_artifact_ids: [review.target_id],
+    p_payload: cleanObject(after.organization),
+    p_profile_id: profile.id,
+    p_reason: review.reason || "Approved organization proposal",
+    p_risk_level: review.risk_level || "low",
+  }), "Apply approved organization proposal");
   if (review.operation_type === "artifact_tag_update") return applyTagChange(supabase, { artifactId: review.target_id, addTags: asArray(after.addTags), removeTags: asArray(after.removeTags), profile });
   if (review.operation_type === "artifact_category_update") return applyCategoryChange(supabase, { artifactId: review.target_id, addCategories: asArray(after.addCategories), removeCategories: asArray(after.removeCategories), profile });
   if (review.operation_type === "artifact_metadata_update") {
@@ -1148,7 +1165,8 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
   let readiness;
   try {
     if (config.configured) supabase = services.supabase || getSupabaseAdmin(environment, config);
-    readiness = services.readiness || await runRuntimeReadiness({ supabase, config });
+    const forceReadiness = request.method === "GET" && ["ready", "health/full"].includes(path);
+    readiness = services.readiness || await getRuntimeReadiness({ supabase, config, now: runtime.now(), force: forceReadiness });
   } catch {
     readiness = { ready: false, failures: [{ component: "runtime", code: "readiness_check_failed", message: "Creative OS readiness verification could not complete." }], checks: { configurationValid: config.configured } };
   }
@@ -1199,7 +1217,8 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
   try {
     if (request.method === "GET" && path === "artifacts") {
       const pendingRequests = requireData(await supabase.from("review_requests").select("id,operation_type,target_id,status,risk_level,intent_summary,reason,before_snapshot,after_snapshot,created_at").eq("submitted_by", profile.id).in("status", ["pending_review", "changes_requested", "failed"]).order("created_at", { ascending: false }), "Load employee proposals");
-      return json(200, { ok: true, authenticated: true, userRole: identity.userRole, artifacts: await listArtifacts(supabase, identity, requestUrl.searchParams), pendingRequests });
+      const page = await listArtifacts(supabase, identity, requestUrl.searchParams);
+      return json(200, { ok: true, authenticated: true, userRole: identity.userRole, ...page, pendingRequests });
     }
     if (request.method === "GET" && path === "organization/options") {
       return json(200, { ok: true, ...(await loadOrganizationOptions(supabase)) });
@@ -1217,11 +1236,22 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
     }
     if (request.method === "GET" && path === "exports") {
       const records = requireData(await supabase.from("exports").select("*").order("created_at", { ascending: false }).limit(100), "Load exports");
-      const exports = await Promise.all(records.map(async (record) => {
-        if (!record.storage_bucket || !record.storage_path) return { ...record, signedUrl: null };
-        const signed = await supabase.storage.from(record.storage_bucket).createSignedUrl(record.storage_path, 3600, { download: true });
-        return { ...record, signedUrl: signed.data?.signedUrl || null, storageError: signed.error?.message || null };
-      }));
+      const exports = records.map((record) => ({ ...record, signedUrl: null, storageError: null }));
+      const byBucket = new Map();
+      for (const record of exports) {
+        if (!record.storage_bucket || !record.storage_path) continue;
+        const group = byBucket.get(record.storage_bucket) || [];
+        group.push(record);
+        byBucket.set(record.storage_bucket, group);
+      }
+      await mapWithConcurrency([...byBucket.entries()], 6, async ([bucket, group]) => {
+        const signed = await supabase.storage.from(bucket).createSignedUrls(group.map((record) => record.storage_path), 3600);
+        const signedByPath = new Map((signed.data || []).map((item) => [item.path, item]));
+        for (const record of group) {
+          record.signedUrl = signedByPath.get(record.storage_path)?.signedUrl || null;
+          record.storageError = signed.error?.message || signedByPath.get(record.storage_path)?.error || null;
+        }
+      });
       return json(200, { ok: true, exports });
     }
     if (request.method === "GET" && path === "imports/status") return await handleImportStatus({ supabase, identity, profile });
@@ -1244,6 +1274,8 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
     if (request.method === "POST" && path === "artifacts/bulk/organization") return await handleOrganizationChange({ request, supabase, identity, profile });
     const organizationMatch = path.match(/^artifacts\/(.+)\/organization$/);
     if (request.method === "POST" && organizationMatch) return await handleOrganizationChange({ request, supabase, identity, profile, artifactIds: [decodeURIComponent(organizationMatch[1])] });
+    const downloadMatch = path.match(/^artifacts\/(.+)\/download$/);
+    if (request.method === "GET" && downloadMatch) return await handleArtifactDownloadGrant({ supabase, identity, artifactId: decodeURIComponent(downloadMatch[1]) });
     const artifactMatch = path.match(/^artifacts\/(.+)$/);
     if (request.method === "PATCH" && artifactMatch) return await handleMetadataChange({ request, supabase, identity, profile, artifactId: decodeURIComponent(artifactMatch[1]) });
     const reviewMatch = path.match(/^review-requests\/([0-9a-f-]+)\/action$/i);
@@ -1257,6 +1289,29 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
   } catch (error) {
     return json(error.status || 500, { ok: false, accepted: false, mode: "failed", error: error.message || "Creative OS database operation failed.", authenticated: true, userRole: identity.userRole, databaseConfigured: true, databaseWriteAttempted: request.method !== "GET", databaseWriteApplied: false, githubWriteAttempted: false });
   }
+};
+
+const handleArtifactDownloadGrant = async ({ supabase, identity, artifactId }) => {
+  const artifact = await getArtifactMetadata(supabase, artifactId);
+  if (artifact.visibility === "private" && !privileged(identity.userRole)) {
+    throw Object.assign(new Error("Private artifacts require admin or owner authority."), { status: 403 });
+  }
+  if (artifact.file_status !== "available" || !artifact.storage_bucket || !artifact.storage_path) {
+    throw Object.assign(new Error("This artifact does not have an available private Storage object."), { status: 409 });
+  }
+  const expiresIn = 300;
+  const signed = requireData(await supabase.storage.from(artifact.storage_bucket).createSignedUrl(
+    artifact.storage_path,
+    expiresIn,
+    { download: artifact.original_file_name || true },
+  ), "Create artifact download grant");
+  return json(200, {
+    ok: true,
+    artifactId: artifact.id,
+    object: { bucket: artifact.storage_bucket, path: artifact.storage_path },
+    downloadUrl: signed.signedUrl,
+    expiresIn,
+  });
 };
 
 export const handleCreativeOs = createCreativeOsHandler();

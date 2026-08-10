@@ -225,20 +225,24 @@ This PR documents the strategy only. Capturing baseline SQL is intentionally def
 
 ## 16. Request-budget contract
 
-The measured before-state is committed at [`docs/evidence/request-budget-baseline-2026-08-09.json`](evidence/request-budget-baseline-2026-08-09.json). `pnpm budget:report` recomputes it from offline fixtures; `pnpm test:budget` detects drift. The harness counts database calls, Storage calls/signing, auth verification, mutation intents, and maximum concurrency without credentials or network access.
+The original before-state and the remediated measurement are preserved in [`docs/evidence/request-budget-baseline-2026-08-09.json`](evidence/request-budget-baseline-2026-08-09.json). `pnpm budget:report` recomputes the current result from offline fixtures; `pnpm test:budget` detects drift and enforces fewer than 50 external calls with no more than six concurrent outbound operations. The harness has no credentials or production mutation path.
 
-The current implementation is intentionally recorded as over budget:
+PR 3 replaces corpus-wide signing and per-row bulk work with bounded request shapes:
 
 | Scenario | Database | Storage/signing | Auth | Total external | Max concurrent |
 |---|---:|---:|---:|---:|---:|
-| Readiness | 17 | 1 / 0 | 0 | 18 | 16 |
-| Owner artifact route only; 404 artifacts, 393 available | 2 | 786 / 786 | 0 | 788 | 393 |
-| Full protected owner artifact request with trusted Netlify context | 20 | 787 / 786 | 0 | 807 | 393 |
-| Bulk organization: 1 item | 5 | 4 / 4 | 0 | 9 | 1 |
-| Bulk organization: 10 items | 50 | 40 / 40 | 0 | 90 | 1 |
-| Bulk organization: all 404 current items | 2,020 | 1,572 / 1,572 | 0 | 3,592 | 1 |
+| Fresh readiness | 1 | 1 / 0 | 0 | 2 | 2 |
+| Cached readiness | 0 | 0 / 0 | 0 | 0 | 0 |
+| Owner artifact page route; 24-item default | 2 | 1 / 1 | 0 | 3 | 1 |
+| Full protected owner artifact page with fresh readiness | 4 | 2 / 1 | 0 | 6 | 2 |
+| On-demand artifact download grant | 1 | 1 / 1 | 0 | 2 | 1 |
+| Bulk organization: 1 item | 1 | 0 / 0 | 0 | 1 | 1 |
+| Bulk organization: 10 items | 1 | 0 / 0 | 0 | 1 | 1 |
+| Bulk organization: maximum 25 items | 1 | 0 / 0 | 0 | 1 | 1 |
 
-The bulk fixture measures an authenticated owner changing `notes`; readiness, identity, and profile costs are injected so the result isolates organization-route scaling. The current API has no explicit smaller bulk maximum; “all 404” is the current-corpus measurement, not an endorsed limit. A trusted Netlify user context needs no Identity verification subrequest; bearer fallback needs one.
+Artifact pages are ordered by `updated_at desc, id asc`, default to 24 rows, and reject limits above 50. Filters execute inside Postgres before paging. Same-bucket previews use one `createSignedUrls()` call per page; listing never creates download URLs. Downloads require an authenticated five-minute grant. Successful readiness is cached for 30 seconds, while `/ready` and `/health/full` always force a deep check. Organization is a single atomic RPC for at most 25 artifacts and retains one review/audit result per artifact.
+
+Migration `20260810032000_worker_budget_rpc.sql` supplies the read-only readiness/page RPCs and transactional organization RPC. It is additive, uses fixed search paths, revokes `PUBLIC`, `anon`, and `authenticated` execution, and grants only `service_role`. The migration is review-only in this PR and must be applied through a separately authorized schema step before this branch can be merged or deployed.
 
 Future Worker acceptance targets are isolated in test configuration and based on the provider limits verified on 2026-08-09:
 

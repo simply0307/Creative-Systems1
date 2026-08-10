@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { effectiveArtifactType, filterArtifacts, normalizeArtifactFilters } from "../lib/artifact-filters.mjs";
 
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
+
 const authHeaders = async () => {
   await window.CreativeAccount?.ready;
   return window.CreativeAccount?.authHeaders?.() || {};
@@ -71,6 +73,7 @@ const sha256 = async (file) => {
 };
 
 const uploadArtifact = async (file, metadata = {}, onState = () => {}) => {
+  if (file.size > MAX_UPLOAD_BYTES) throw new Error("Files larger than 50 MB exceed the configured Supabase upload limit.");
   onState("Computing checksum · 5%");
   const checksumSha256 = await sha256(file);
   const relativePath = metadata.relativePath || file.webkitRelativePath || file.name;
@@ -148,6 +151,7 @@ window.CreativeDatabase = {
     const query = new URLSearchParams(Object.entries(filters).filter(([, value]) => value !== undefined && value !== null && value !== ""));
     return request(`artifacts${query.size ? `?${query}` : ""}`);
   },
+  downloadArtifact: (artifactId) => request(`artifacts/${encodeURIComponent(artifactId)}/download`),
   organizationOptions: () => request("organization/options"),
   createControlledValue: (kind, payload) => request(`controlled-values/${kind}`, { method: "POST", body: JSON.stringify(payload) }),
   updateControlledValue: (kind, valueId, payload) => request(`controlled-values/${kind}/${valueId}`, { method: "PATCH", body: JSON.stringify(payload) }),

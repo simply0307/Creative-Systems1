@@ -102,7 +102,7 @@ Migration `20260807101623_establish_runtime_contract.sql` creates the RLS-enable
 - the five required private Storage buckets
 - creation metadata and timestamps
 
-Readiness also probes every required application table with the exact columns used by the current Creative OS server. The database contract row alone is not sufficient.
+After the separately reviewed application of `20260810032000_worker_budget_rpc.sql`, readiness calls one read-only, service-role-only RPC that checks the contract row and every required table/column. The database contract row alone is not sufficient. The migration is present for review but is not applied by the PR 3 implementation branch.
 
 ## Required private Storage buckets
 
@@ -117,9 +117,9 @@ All five must exist and have `public = false`.
 ## Health and readiness
 
 - `GET /api/creative-os/health` is shallow and does not contact or mutate Supabase. It reports process/configuration presence and non-secret contract expectations.
-- `GET /api/creative-os/ready` is read-only. `GET /api/creative-os/health/full` is a compatibility alias for the same readiness behavior.
+- `GET /api/creative-os/ready` is read-only and always forces a fresh contract/schema/Storage check. `GET /api/creative-os/health/full` is a compatibility alias with the same deep behavior.
 - The former mutating health audit probe is removed.
-- Every non-health Creative OS request must pass readiness before identity resolution, profile bridging, audit writes, Storage writes, or application-table mutations.
+- Every non-health Creative OS request must pass readiness before identity resolution, profile bridging, audit writes, Storage writes, or application-table mutations. Successful results may be reused within one isolate for at most 30 seconds; failures are never cached.
 
 Health and readiness responses expose no credential values.
 

@@ -124,7 +124,9 @@ test("Netlify compatibility path preserves authenticated artifact listing", asyn
     status: 200,
   });
   assert.equal(snapshot.body.userRole, "owner");
-  assert.equal(snapshot.body.artifacts.length, 404);
+  assert.equal(snapshot.body.artifacts.length, 24);
+  assert.equal(snapshot.body.pagination.total, 404);
+  assert.equal(snapshot.body.pagination.order, "updated_at.desc,id.asc");
 });
 
 test("Netlify compatibility path preserves privileged review read", async () => {

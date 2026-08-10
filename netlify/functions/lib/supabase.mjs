@@ -154,7 +154,7 @@ export const mediaKind = (mimeType = "", fileName = "") => {
   return "file";
 };
 
-export const presentArtifact = async (supabase, artifact, expiresIn = 3600) => {
+export const presentArtifactMetadata = (artifact) => {
   const tags = (artifact.artifact_tags || []).map((link) => link.tags).filter(Boolean);
   const categories = (artifact.artifact_categories || []).map((link) => link.categories).filter(Boolean);
   const archiveRecords = (artifact.artifact_archive_records || []).map((link) => ({
@@ -165,18 +165,6 @@ export const presentArtifact = async (supabase, artifact, expiresIn = 3600) => {
     relationshipType: link.relationship_type,
     notes: link.notes,
   }));
-  let signedUrl = null;
-  let downloadUrl = null;
-  let storageError = null;
-  if (artifact.file_status === "available" && artifact.storage_bucket && artifact.storage_path) {
-    const signed = await supabase.storage.from(artifact.storage_bucket).createSignedUrl(artifact.storage_path, expiresIn, { download: false });
-    if (signed.error) storageError = signed.error.message;
-    else {
-      signedUrl = signed.data.signedUrl;
-      const download = await supabase.storage.from(artifact.storage_bucket).createSignedUrl(artifact.storage_path, expiresIn, { download: artifact.original_file_name || true });
-      downloadUrl = download.data?.signedUrl || signedUrl;
-    }
-  }
   return {
     ...artifact,
     artifact_tags: undefined,
@@ -186,11 +174,63 @@ export const presentArtifact = async (supabase, artifact, expiresIn = 3600) => {
     categories,
     archiveRecords,
     mediaKind: mediaKind(artifact.mime_type, artifact.original_file_name),
-    signedUrl,
-    downloadUrl,
-    storageError,
-    fileAvailable: Boolean(signedUrl),
+    signedUrl: null,
+    downloadUrl: null,
+    storageError: null,
+    fileAvailable: false,
   };
+};
+
+export const mapWithConcurrency = async (items, limit, mapper) => {
+  const values = [...items];
+  const results = new Array(values.length);
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < values.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await mapper(values[index], index);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(Math.max(1, limit), values.length) }, worker));
+  return results;
+};
+
+export const signArtifactPreviews = async (supabase, artifacts, expiresIn = 900) => {
+  const presented = artifacts.map(presentArtifactMetadata);
+  const byBucket = new Map();
+  for (const artifact of presented) {
+    if (artifact.file_status !== "available" || !artifact.storage_bucket || !artifact.storage_path) continue;
+    const group = byBucket.get(artifact.storage_bucket) || [];
+    group.push(artifact);
+    byBucket.set(artifact.storage_bucket, group);
+  }
+  await mapWithConcurrency([...byBucket.entries()], 6, async ([bucket, group]) => {
+    const signed = await supabase.storage.from(bucket).createSignedUrls(group.map((artifact) => artifact.storage_path), expiresIn);
+    if (signed.error) {
+      for (const artifact of group) artifact.storageError = signed.error.message;
+      return;
+    }
+    const signedByPath = new Map((signed.data || []).map((item) => [item.path, item]));
+    for (const artifact of group) {
+      const item = signedByPath.get(artifact.storage_path);
+      artifact.signedUrl = item?.signedUrl || null;
+      artifact.storageError = item?.error || null;
+      artifact.fileAvailable = Boolean(artifact.signedUrl);
+    }
+  });
+  return presented;
+};
+
+export const presentArtifact = async (supabase, artifact, expiresIn = 900) => {
+  const presented = presentArtifactMetadata(artifact);
+  if (artifact.file_status === "available" && artifact.storage_bucket && artifact.storage_path) {
+    const signed = await supabase.storage.from(artifact.storage_bucket).createSignedUrl(artifact.storage_path, expiresIn, { download: false });
+    if (signed.error) presented.storageError = signed.error.message;
+    else presented.signedUrl = signed.data.signedUrl;
+  }
+  presented.fileAvailable = Boolean(presented.signedUrl);
+  return presented;
 };
 
 export const artifactSelect = `
@@ -203,6 +243,11 @@ export const artifactSelect = `
 export const getArtifact = async (supabase, artifactId) => {
   const data = requireData(await supabase.from("artifacts").select(artifactSelect).eq("id", artifactId).single(), "Load artifact");
   return presentArtifact(supabase, data);
+};
+
+export const getArtifactMetadata = async (supabase, artifactId) => {
+  const data = requireData(await supabase.from("artifacts").select(artifactSelect).eq("id", artifactId).single(), "Load artifact");
+  return presentArtifactMetadata(data);
 };
 
 export const ensureTags = async (supabase, names) => {

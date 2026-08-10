@@ -17,11 +17,24 @@ test("current request-budget measurements match the committed evidence baseline"
   assert.deepEqual(measured, expected);
 });
 
-test("current over-budget behavior is recorded instead of disguised as Worker-compatible", () => {
-  assert.ok(baseline.ownerArtifactListingFullProtectedRequest.externalSubrequests > WORKER_FREE_REQUEST_BUDGET.externalSubrequests);
-  assert.ok(baseline.ownerArtifactListingFullProtectedRequest.maximumConcurrent.total > WORKER_FREE_REQUEST_BUDGET.simultaneousOutgoingConnections);
-  assert.ok(baseline.bulkOrganization.normalSmallBatch.externalSubrequests > WORKER_FREE_REQUEST_BUDGET.externalSubrequests);
-  assert.equal(baseline.interpretation.knownWorkerBudgetFailure, true);
+test("all measured dynamic requests satisfy Worker request and concurrency targets", () => {
+  const measurements = [
+    baseline.readiness,
+    baseline.readinessCached,
+    baseline.ownerArtifactListingRoute,
+    baseline.ownerArtifactListingFullProtectedRequest,
+    baseline.artifactDownloadGrant,
+    baseline.authVerification.trustedNetlifyContext,
+    baseline.authVerification.bearerFallback,
+    baseline.bulkOrganization.oneItem,
+    baseline.bulkOrganization.normalSmallBatch,
+    baseline.bulkOrganization.maximumAcceptedBatch,
+  ];
+  for (const measurement of measurements) {
+    assert.ok(measurement.externalSubrequests < WORKER_FREE_REQUEST_BUDGET.externalSubrequests);
+    assert.ok(measurement.maximumConcurrent.total <= WORKER_FREE_REQUEST_BUDGET.simultaneousOutgoingConnections);
+  }
+  assert.equal(baseline.interpretation.knownWorkerBudgetFailure, false);
 });
 
 test("request-budget tooling is fixture-only and has no production mutation path", () => {

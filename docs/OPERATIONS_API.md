@@ -21,6 +21,8 @@ Opening or refreshing `/pipeline/artifacts/` performs reads only. The bundled re
 
 An authenticated `admin` or `owner` may select **Review and import**. The control reports what it will add and requires confirmation before calling `POST /api/creative-os/imports/archive-folder`. The API independently verifies the trusted Netlify Identity role, runtime readiness, and target project, and creates its normal audit record. The action imports metadata only; source-file bytes require the separate private file-import flow.
 
+Artifact browsing uses deterministic 24-item pages with a maximum requested page size of 50. Only current-page private previews are batch-signed. Full downloads require a separate authenticated five-minute grant. Browser and API upload validation both reject files above 50 MB before any upload begins.
+
 ## Maintenance imports
 
 Maintenance scripts are recovery/bootstrap tools outside normal application behavior. First inspect read-only reports:

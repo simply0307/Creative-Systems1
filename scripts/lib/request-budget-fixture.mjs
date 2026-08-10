@@ -98,6 +98,51 @@ export const createOfflineSupabaseFixture = ({ artifacts = artifactCorpusFixture
   const artifactById = new Map(artifacts.map((row) => [row.id, row]));
   let auditSequence = 0;
 
+  const rpc = (name, args = {}) => deferred((() => {
+    if (name === "creative_os_runtime_readiness") return {
+      data: { contract: runtimeContractFixture, schemaCompatible: true, missingSchema: [] },
+      error: null,
+    };
+    if (name === "creative_os_list_artifacts_page") {
+      const filters = args.p_filters || {};
+      const matches = artifacts.filter((row) => {
+        if (!args.p_include_private && row.visibility === "private") return false;
+        for (const field of ["artifact_type", "project", "intended_use", "rights_status", "review_status", "canon_status", "visibility", "lifecycle_status", "file_status"]) {
+          if (filters[field] && String(row[field] || "").toLowerCase() !== String(filters[field]).toLowerCase()) return false;
+        }
+        if (filters.search && ![row.title, row.description, row.original_file_name, row.notes].join(" ").toLowerCase().includes(String(filters.search).toLowerCase())) return false;
+        return true;
+      });
+      const offset = Math.max(0, Number(args.p_offset || 0));
+      const limit = Math.min(50, Math.max(1, Number(args.p_limit || 24)));
+      return {
+        data: {
+          rows: matches.slice(offset, offset + limit),
+          total: matches.length,
+          summary: {
+            available: matches.filter((row) => row.file_status === "available").length,
+            needs_import: matches.filter((row) => row.file_status === "needs_import").length,
+          },
+          indexedRefs: artifacts.map((row) => ({ id: row.id, path: row.provenance?.workspaceRelativePath || "" })),
+        },
+        error: null,
+      };
+    }
+    if (name === "creative_os_bulk_organize_artifacts") {
+      fixtureState.mutationIntents.push({ table: `rpc:${name}`, operation: "rpc" });
+      const mode = args.p_apply ? "database-applied" : "pending-review";
+      const results = (args.p_artifact_ids || []).map((artifactId, index) => ({
+        artifactId,
+        mode,
+        auditEventId: `fixture-audit-${index + 1}`,
+        ...(args.p_apply ? {} : { reviewRequestId: `fixture-review-${index + 1}` }),
+        artifact: artifactById.get(artifactId) || null,
+      }));
+      return { data: { mode, affectedCount: results.length, atomic: true, results }, error: null };
+    }
+    return { data: null, error: { message: `Unknown fixture RPC ${name}` } };
+  })());
+
   const resultFor = (state) => {
     if (state.operation !== "select") {
       fixtureState.mutationIntents.push({ table: state.table, operation: state.operation });
@@ -150,6 +195,7 @@ export const createOfflineSupabaseFixture = ({ artifacts = artifactCorpusFixture
 
   const client = {
     from: builder,
+    rpc,
     storage: {
       listBuckets: () => deferred({
         data: REQUIRED_STORAGE_BUCKETS.map((id) => ({ id, name: id, public: false })),
@@ -158,6 +204,10 @@ export const createOfflineSupabaseFixture = ({ artifacts = artifactCorpusFixture
       from: (bucket) => ({
         createSignedUrl: (storagePath, _expiresIn, options = {}) => deferred({
           data: { signedUrl: `https://fixture.invalid/${bucket}/${storagePath}${options.download ? "?download=1" : ""}` },
+          error: null,
+        }),
+        createSignedUrls: (storagePaths) => deferred({
+          data: storagePaths.map((storagePath) => ({ path: storagePath, signedUrl: `https://fixture.invalid/${bucket}/${storagePath}` })),
           error: null,
         }),
       }),
