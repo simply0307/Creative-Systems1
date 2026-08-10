@@ -291,6 +291,13 @@ test("canonical profile role overrides every provider claim", () => {
   assert.equal(effective.roleSource, "public.profiles.role");
 });
 
+test("a mapped profile without a recognized canonical role is denied instead of becoming viewer", () => {
+  assert.throws(
+    () => withProfileAuthority({ authenticated: true, provider: "supabase_auth", subject: "subject-1" }, { id: "profile-1", role: "unknown" }),
+    (error) => error.status === 403 && error.code === "profile_role_invalid",
+  );
+});
+
 test("Supabase provider verifies the exact bearer with auth.getUser and does not trust token role metadata", async () => {
   const token = jwt({ iss: "https://okqkljexfzolzxysjaha.supabase.co/auth/v1", sub: "supabase-user", exp: Math.floor(Date.now() / 1000) + 3600, aal: "aal1", app_metadata: { roles: ["owner"] } });
   let verifiedToken = null;
@@ -359,6 +366,10 @@ test("dual-provider routing is issuer-deterministic and conflicting credentials 
   const conflict = await router.authenticate(new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${supabaseToken}`, cookie: `nf_jwt=${netlifyToken}` } }), { environment });
   assert.equal(conflict.authenticated, false);
   assert.equal(conflict.authFailure, "conflicting-credentials");
+  const wrongProjectToken = jwt({ iss: "https://wrong-project.supabase.co/auth/v1", sub: "wrong", exp: Math.floor(Date.now() / 1000) + 3600 });
+  const wrongProject = await router.authenticate(new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${wrongProjectToken}` } }), { environment });
+  assert.equal(wrongProject.authenticated, false);
+  assert.equal(wrongProject.authFailure, "unknown-token-issuer");
   assert.deepEqual(calls, ["supabase", "netlify"]);
 });
 
@@ -385,6 +396,10 @@ test("profile identity migration is additive, unique by provider subject, and do
   const sql = fs.readFileSync(path.join(root, "supabase/migrations/20260810195000_profile_identities.sql"), "utf8");
   assert.match(sql, /create table if not exists public\.profile_identities/);
   assert.match(sql, /unique \(provider, provider_subject\)/);
+  assert.match(sql, /linked_at timestamptz not null default now\(\)/);
+  assert.match(sql, /linked_by_profile_id uuid references public\.profiles/);
+  assert.match(sql, /linked_by_actor text not null/);
+  assert.match(sql, /status text not null default 'active'/);
   assert.match(sql, /from public\.profiles[\s\S]*identity_provider = 'netlify_identity'/);
   assert.doesNotMatch(sql, /auth\.users|lower\(.*email|supabase_auth'\s*,/i);
   assert.match(sql, /revoke all on table public\.profile_identities from public, anon, authenticated/);

@@ -58,9 +58,18 @@ export const tokenState = (token, now = Date.now()) => {
   return payload.exp * 1000 <= now ? "expired" : "present";
 };
 
-export const withProfileAuthority = (identity, profile) => ({
-  ...identity,
-  userRole: normalizeRole([profile?.role]),
-  roleSource: "public.profiles.role",
-  profileId: profile?.id || null,
-});
+export const withProfileAuthority = (identity, profile) => {
+  const role = String(profile?.role || "").toLowerCase();
+  if (!ROLE_ORDER.includes(role)) {
+    throw Object.assign(new Error("This Creative OS profile has no recognized role."), {
+      status: 403,
+      code: "profile_role_invalid",
+    });
+  }
+  return {
+    ...identity,
+    userRole: role,
+    roleSource: "public.profiles.role",
+    profileId: profile?.id || null,
+  };
+};

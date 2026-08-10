@@ -37,6 +37,8 @@ Pending migration `20260810195000_profile_identities.sql` creates:
 - stable `profile_id` reference;
 - `provider` (`netlify_identity` or `supabase_auth`);
 - immutable `provider_subject`;
+- explicit link time, linking actor, optional linking profile, and active/revoked status;
+- an optional verified-email snapshot that never acts as a key;
 - unique `(provider, provider_subject)`;
 - RLS with no browser-role access.
 
