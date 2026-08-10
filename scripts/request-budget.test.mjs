@@ -5,6 +5,8 @@ import test from "node:test";
 import baseline from "../docs/evidence/request-budget-baseline-2026-08-09.json" with { type: "json" };
 import { measureCurrentRequestBudgets } from "./request-budget-report.mjs";
 import { WORKER_FREE_REQUEST_BUDGET } from "./lib/request-budget-targets.mjs";
+import { SupabaseAuthProvider } from "../netlify/functions/lib/supabase-auth-provider.mjs";
+import { createRequestBudgetRecorder } from "./lib/request-budget.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const withoutDetailBreakdown = (measurement) => JSON.parse(JSON.stringify(measurement, (key, value) => ["byDatabaseTable", "byOperation"].includes(key) ? undefined : value));
@@ -58,4 +60,24 @@ test("future Worker limits remain isolated from production business logic", () =
     const source = fs.readFileSync(path.join(root, file), "utf8");
     assert.doesNotMatch(source, /WORKER_FREE_REQUEST_BUDGET|simultaneousOutgoingConnections/);
   }
+});
+
+test("Supabase bearer verification consumes exactly one bounded Auth subrequest", async () => {
+  const recorder = createRequestBudgetRecorder();
+  const token = [
+    Buffer.from(JSON.stringify({ alg: "none", typ: "JWT" })).toString("base64url"),
+    Buffer.from(JSON.stringify({ sub: "fixture-user", exp: Math.floor(Date.now() / 1000) + 3600, aal: "aal1" })).toString("base64url"),
+    "fixture-signature",
+  ].join(".");
+  const supabase = { auth: { getUser: (candidate) => recorder.measure({ kind: "auth", operation: "supabase.auth.getUser" }, async () => ({
+    data: { user: { id: "fixture-user", email: "fixture@example.test", email_confirmed_at: "2026-08-10T00:00:00Z", app_metadata: {}, user_metadata: {} } },
+    error: candidate === token ? null : { status: 401 },
+  })) } };
+  const identity = await new SupabaseAuthProvider().authenticate(new Request("https://fixture.invalid", { headers: { authorization: `Bearer ${token}` } }), { supabase });
+  const budget = recorder.snapshot();
+  assert.equal(identity.authenticated, true);
+  assert.equal(budget.authVerificationRequests, 1);
+  assert.equal(budget.externalSubrequests, 1);
+  assert.ok(budget.externalSubrequests < WORKER_FREE_REQUEST_BUDGET.externalSubrequests);
+  assert.ok(budget.maximumConcurrent.total <= WORKER_FREE_REQUEST_BUDGET.simultaneousOutgoingConnections);
 });

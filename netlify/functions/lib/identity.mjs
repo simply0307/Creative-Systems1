@@ -1,4 +1,14 @@
-export const ROLE_ORDER = ["viewer", "contributor", "editor", "admin", "owner"];
+import {
+  bearerToken,
+  cookieValue,
+  headerValue,
+  normalizeRole,
+  ROLE_ORDER,
+  tokenState,
+  unauthenticatedIdentity,
+} from "../../../src/server/auth/identity.mjs";
+
+export { normalizeRole, ROLE_ORDER, unauthenticatedIdentity };
 
 const LOCAL_OWNER_FLAG = "CREATIVE_OS_LOCAL_OWNER_MODE";
 
@@ -10,33 +20,22 @@ const envValue = (name, env = process.env) => {
   }
 };
 
-const unauthenticatedIdentity = (authFailure = "missing", authFailureStatus = 401) => ({
-  authenticated: false,
-  identityVerified: false,
-  userId: null,
-  userEmail: null,
-  userName: null,
-  userRole: "viewer",
-  authMethod: "none",
-  authFailure,
-  authFailureStatus,
-});
-
 export const localOwnerIdentity = {
   authenticated: true,
   identityVerified: false,
+  provider: "local",
+  subject: "local-archive-operator",
+  verifiedEmail: null,
+  trustedClaims: {},
+  sessionStrength: "explicit-local-mode",
   userId: "local-archive-operator",
   userEmail: "archive-operator@creative-os.local",
   userName: "Archive operator",
   userRole: "owner",
+  roleSource: "explicit-local-owner",
   authMethod: "explicit-local-owner",
   authFailure: null,
   authFailureStatus: null,
-};
-
-export const normalizeRole = (roles) => {
-  const valid = (Array.isArray(roles) ? roles : []).map((role) => String(role).toLowerCase()).filter((role) => ROLE_ORDER.includes(role));
-  return valid.sort((a, b) => ROLE_ORDER.indexOf(b) - ROLE_ORDER.indexOf(a))[0] || "viewer";
 };
 
 const normalizeUser = (user) => {
@@ -46,39 +45,20 @@ const normalizeUser = (user) => {
   return {
     authenticated: true,
     identityVerified: true,
+    provider: "netlify_identity",
+    subject: user.id || user.sub,
+    verifiedEmail: user.email || null,
+    trustedClaims: { appMetadata, roles: Array.isArray(appMetadata.roles) ? appMetadata.roles : [] },
+    sessionStrength: "verified-session",
     userId: user.id || user.sub,
     userEmail: user.email || "",
     userName: metadata.full_name || metadata.name || user.name || user.email || "Employee",
     userRole: normalizeRole(appMetadata.roles),
+    roleSource: "Netlify Identity app_metadata.roles",
     authMethod: "netlify-identity",
     authFailure: null,
     authFailureStatus: null,
   };
-};
-
-const headerValue = (request, name) => {
-  if (request?.headers?.get) return request.headers.get(name);
-  return request?.headers?.[name] || request?.headers?.[name.toLowerCase()] || request?.headers?.[name.toUpperCase()] || null;
-};
-
-const cookieValue = (request, name) => {
-  const cookie = headerValue(request, "cookie") || "";
-  const match = cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith(`${name}=`));
-  if (!match) return null;
-  try { return decodeURIComponent(match.slice(name.length + 1)); }
-  catch { return "malformed-cookie"; }
-};
-
-const tokenState = (token, now = Date.now()) => {
-  const parts = String(token || "").split(".");
-  if (parts.length !== 3 || parts.some((part) => !part)) return "malformed";
-  try {
-    const payload = JSON.parse(Buffer.from(parts[1].replace(/-/g, "+").replace(/_/g, "/"), "base64url").toString("utf8"));
-    if (typeof payload.exp !== "number") return "malformed";
-    return payload.exp * 1000 <= now ? "expired" : "present";
-  } catch {
-    return "malformed";
-  }
 };
 
 export const localOwnerModeEnabled = (env = process.env) => envValue("CREATIVE_OS_RUNTIME_CONTEXT", env) === "local"
@@ -89,13 +69,12 @@ export const resolveIdentity = async (request, context = {}, fetchImpl = globalT
   const normalized = normalizeUser(trusted);
   if (normalized) return normalized;
 
-  const authorization = headerValue(request, "authorization");
-  if (authorization && !/^Bearer\s+\S+$/i.test(authorization)) return unauthenticatedIdentity("malformed", 401);
+  const bearer = bearerToken(request);
+  if (bearer.state === "malformed") return unauthenticatedIdentity("malformed", 401);
+  const identityToken = bearer.token || cookieValue(request, "nf_jwt");
+  if (!identityToken) return localOwnerModeEnabled(env) ? localOwnerIdentity : unauthenticatedIdentity("missing", 401);
 
-  const bearerToken = authorization ? authorization.replace(/^Bearer\s+/i, "") : cookieValue(request, "nf_jwt");
-  if (!bearerToken) return localOwnerModeEnabled(env) ? localOwnerIdentity : unauthenticatedIdentity("missing", 401);
-
-  const state = tokenState(bearerToken);
+  const state = tokenState(identityToken);
   if (state !== "present") return unauthenticatedIdentity(state, 401);
 
   const host = headerValue(request, "host");
@@ -107,7 +86,7 @@ export const resolveIdentity = async (request, context = {}, fetchImpl = globalT
   if (!origin) return unauthenticatedIdentity("verification-unavailable", 503);
 
   try {
-    const response = await fetchImpl(`${origin}/.netlify/identity/user`, { headers: { authorization: `Bearer ${bearerToken}` } });
+    const response = await fetchImpl(`${origin}/.netlify/identity/user`, { headers: { authorization: `Bearer ${identityToken}` } });
     if ([401, 403, 422].includes(response.status)) return unauthenticatedIdentity("invalid", 401);
     if (!response.ok) return unauthenticatedIdentity("verification-unavailable", 503);
     return normalizeUser(await response.json()) || unauthenticatedIdentity("invalid", 401);

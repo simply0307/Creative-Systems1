@@ -1,5 +1,4 @@
-import { ROLE_ORDER } from "../../../netlify/functions/lib/identity.mjs";
-import { resolveNetlifyIdentity } from "../../../netlify/functions/lib/netlify-identity-provider.mjs";
+import { ROLE_ORDER, unauthenticatedIdentity, withProfileAuthority } from "../auth/identity.mjs";
 import { authorizeCreativeOsRoute, classifyCreativeOsRoute } from "../../../netlify/functions/lib/authorization.mjs";
 import { databaseDisposition } from "../../../netlify/functions/lib/database-policy.mjs";
 import repoImportManifest from "../../generated/repo-import-manifest.json" with { type: "json" };
@@ -21,7 +20,7 @@ import {
   applyTypedTagChange,
   artifactSelect,
   ensureCategories,
-  ensureProfile,
+  loadProfileForIdentity,
   ensureTypedTags,
   getArtifact,
   getArtifactMetadata,
@@ -175,7 +174,7 @@ const operationResult = ({ identity, mode, message, riskLevel = "low", audit = n
   userEmail: identity.userEmail,
   userName: identity.userName,
   userRole: identity.userRole,
-  roleSource: "Netlify Identity app_metadata.roles",
+  roleSource: identity.roleSource || "public.profiles.role",
   approvalMode: mode === "database-applied" ? `${identity.userRole}-applied` : "pending-review",
   riskLevel,
   databaseConfigured: true,
@@ -1136,6 +1135,7 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
     health: "reachable",
     architecture: "creative-os-authoritative-runtime",
     runtimeContext: config.runtimeContext || null,
+    authMode: config.authMode || "netlify",
     declaredProjectRef: config.projectRef || null,
     derivedProjectRef: config.derivedProjectRef || null,
     canonicalProductionProjectRef: CANONICAL_SUPABASE_PROJECT_REF,
@@ -1192,29 +1192,55 @@ export const createCreativeOsHandler = (services = {}) => async (request, runtim
     failures: readiness.failures,
   });
 
-  const identity = services.identity || await resolveNetlifyIdentity(request, environment);
-  try { authorizeCreativeOsRoute(identity, routePolicy); }
-  catch (error) {
-    return json(error.status || 401, {
-      ok: false,
-      error: error.message,
-      authenticated: Boolean(identity?.authenticated),
-      userRole: identity?.authenticated ? identity.userRole : "viewer",
-      authFailure: error.authFailure || null,
-      databaseWriteAttempted: false,
-      databaseWriteApplied: false,
-    });
+  let identity = services.identity || await services.authProvider?.authenticate(request, { environment, supabase }) || unauthenticatedIdentity();
+  const authorizationFailure = (error) => json(error.status || 401, {
+    ok: false,
+    error: error.message,
+    authenticated: Boolean(identity?.authenticated),
+    userRole: identity?.authenticated ? identity.userRole : "viewer",
+    authFailure: error.authFailure || identity?.authFailure || null,
+    databaseWriteAttempted: false,
+    databaseWriteApplied: false,
+  });
+  if (!identity.authenticated) {
+    try { authorizeCreativeOsRoute(identity, routePolicy); }
+    catch (error) { return authorizationFailure(error); }
   }
   let profile;
   try {
     profile = services.profile || (identity.authMethod === "explicit-local-owner"
       ? await loadLocalOwnerProfile(supabase, identity)
-      : await ensureProfile(supabase, identity));
+      : await loadProfileForIdentity(supabase, identity));
+    identity = withProfileAuthority(identity, profile);
   } catch (error) {
-    return json(503, { ok: false, error: error.message, authenticated: true, userRole: identity.userRole, databaseWriteAttempted: false, databaseWriteApplied: false });
+    return json(error.status || 503, {
+      ok: false,
+      error: error.message,
+      authenticated: true,
+      userRole: "viewer",
+      authFailure: error.code || "profile-authority-unavailable",
+      databaseWriteAttempted: false,
+      databaseWriteApplied: false,
+    });
+  }
+  try { authorizeCreativeOsRoute(identity, routePolicy); }
+  catch (error) {
+    return authorizationFailure(error);
   }
 
   try {
+    if (request.method === "GET" && path === "auth/session") {
+      return json(200, {
+        ok: true,
+        authenticated: true,
+        provider: identity.provider,
+        subject: identity.subject,
+        verifiedEmail: identity.verifiedEmail,
+        sessionStrength: identity.sessionStrength,
+        userRole: identity.userRole,
+        roleSource: identity.roleSource,
+      });
+    }
     if (request.method === "GET" && path === "artifacts") {
       const pendingRequests = requireData(await supabase.from("review_requests").select("id,operation_type,target_id,status,risk_level,intent_summary,reason,before_snapshot,after_snapshot,created_at").eq("submitted_by", profile.id).in("status", ["pending_review", "changes_requested", "failed"]).order("created_at", { ascending: false }), "Load employee proposals");
       const page = await listArtifacts(supabase, identity, requestUrl.searchParams);

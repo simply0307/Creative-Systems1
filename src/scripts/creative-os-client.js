@@ -3,17 +3,18 @@ import { effectiveArtifactType, filterArtifacts, normalizeArtifactFilters } from
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 
-const authHeaders = async () => {
+const authHeaders = async (target) => {
   await window.CreativeAccount?.ready;
-  return window.CreativeAccount?.authHeaders?.() || {};
+  return window.CreativeAccount?.authHeaders?.(target) || {};
 };
 
 const request = async (path, options = {}) => {
-  const response = await fetch(`/api/creative-os/${path.replace(/^\//, "")}`, {
+  const target = `/api/creative-os/${path.replace(/^\//, "")}`;
+  const response = await fetch(target, {
     ...options,
     headers: {
       ...(options.body instanceof FormData ? {} : { "content-type": "application/json" }),
-      ...(await authHeaders()),
+      ...(await authHeaders(target)),
       ...(options.headers || {}),
     },
   });

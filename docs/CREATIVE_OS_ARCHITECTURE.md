@@ -23,7 +23,7 @@ The system is read-heavy and content-first. It should first make classification 
 | Binary bytes | Blob provider selected by storage policy | Signed URLs and CDN responses are temporary delivery mechanisms |
 | Source-control history and architecture contracts | `simply0307/Creative-Systems1` | Dated evidence snapshots |
 | Runtime request handling | Current: Netlify Functions. Target: Cloudflare Worker | Neither runtime owns creative truth |
-| Identity proof | Current: Netlify Identity. Target: Supabase Auth | Authorization remains server-controlled |
+| Identity proof | Current production: Netlify Identity. Transition candidate: Netlify Identity and Supabase Auth behind `AuthProvider` | `public.profiles.role` remains the only application-role authority |
 | Static site output | Build artifacts deployed as static assets | Static output is not canonical creative state |
 
 Supabase/Postgres is an intentional canonical dependency: it is the Creative OS brain. Do **not** introduce a generic database-provider abstraction. Postgres-specific strengths—transactions, constraints, append-only history, relational joins, JSONB where variability is real, and later pgvector—are part of the design.
@@ -294,3 +294,19 @@ Phase B does not include a Cloudflare adapter or any request-budget optimization
 ## 19. Explicit deferrals
 
 This contract does not add Cloudflare configuration or resources, Supabase Auth, R2, graph/domain tables, pgvector, pgmq, generation providers, queues, Workflows, Durable Objects, artifact migrations, UI features, or a new runtime-contract version. Those changes require their own authorized phases and verification.
+
+## 20. Supabase Auth dual-provider transition candidate
+
+The current Phase B workstream enacts the previously deferred `AuthProvider` boundary without switching production authentication:
+
+- `src/server/auth/auth-provider.ts` defines the provider-neutral verified-identity contract.
+- `NetlifyAuthProvider` preserves the current Netlify Identity verification path.
+- `SupabaseAuthProvider` verifies the exact bearer token through Supabase Auth `getUser(jwt)`; decoding alone never authenticates a request.
+- `RoutedAuthProvider` selects a provider deterministically from the verified Netlify context, `nf_jwt`, or the token issuer. Mixed or unknown credentials fail closed.
+- `public.profile_identities` is the additive provider-subject bridge. Email is never a link key.
+- `public.profiles.role` supplies the effective Creative OS role for both providers. Netlify `app_metadata.roles` and any future token claim are descriptive/derivative only.
+- The browser supports `netlify`, `dual`, and `supabase` modes. Supabase credentials are attached only to same-origin Creative OS API requests.
+
+The custom access-token hook is deliberately not enabled. The API already needs the canonical profile link and role, so a server profile lookup is simpler, current, and avoids another role cache in issued tokens. The runtime-contract version stays at `1`: the identity bridge is additive and does not change the public Creative OS API, mutation authority, canonical project, or Storage contract.
+
+The migration and source are a candidate only. Production remains on Netlify Identity until the reviewed migration is applied through the sole GitHub production migration gate, an owner explicitly provisions a Supabase subject, dual-provider parity passes, and a later change authorizes the switch.
