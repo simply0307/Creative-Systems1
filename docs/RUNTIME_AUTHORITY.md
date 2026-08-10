@@ -54,6 +54,8 @@ Canonical Supabase records these migrations:
 4. `20260715140324_archive_index_folder_tags`
 5. `20260720123053_add_authenticated_comment_resonance_votes`
 6. `20260807101623_establish_runtime_contract`
+7. `20260807224000_harden_direct_function_privileges`
+8. `20260810032000_worker_budget_rpc`
 
 The first four local SQL bodies were proven identical to the corresponding remote stored statements after newline normalization. Their repository filenames had older version prefixes, so the files were renamed to the versions actually recorded by canonical Supabase without changing their SQL bodies.
 
@@ -61,7 +63,9 @@ The fifth migration was absent from both the Step 2 checkout and the exact Netli
 
 Known unresolved historical gap: `public.comments` existed before the fifth migration, but its creation is not represented in canonical migration history or the audited repositories. The fifth migration depends on that table. Do not claim that a clean database can replay the full history until an evidence-based baseline strategy is separately reviewed. The new runtime-contract migration is forward-only and does not fabricate or rewrite the missing comments-table history.
 
-The sixth migration was applied only to canonical `creative os` on 2026-08-07 after an isolated CLI history comparison, a one-migration dry run, and a transactional apply/assert/rollback test. Live readiness then passed all required table/column and private-bucket probes. The legacy project was not changed.
+The sixth migration was applied only to canonical `creative os` on 2026-08-07 after an isolated CLI history comparison, a one-migration dry run, and a transactional apply/assert/rollback test. The seventh hardened browser-role function execution. The eighth added the reviewed Worker-budget RPCs. Live readiness passes all required table/column and private-bucket probes. The legacy project was not changed.
+
+The eighth migration's SQL was initially recorded by an API migration tool under accidental version `20260810143101`. On 2026-08-10, exact stored-SQL, function-definition, signature, ACL, data, Storage, and recovery-checkpoint verification proved that only migration history was wrong. The official Supabase CLI marked `20260810143101` reverted and repository version `20260810032000` applied without rerunning SQL. Canonical and legacy fingerprints were unchanged. Normal production migrations now follow [`docs/PRODUCTION_MIGRATIONS.md`](PRODUCTION_MIGRATIONS.md): the repository filename is authoritative, a serialized GitHub Actions gate dry-runs the exact approved versions, and its sole database write is `supabase db push`.
 
 ## Runtime environment contract
 
@@ -102,7 +106,7 @@ Migration `20260807101623_establish_runtime_contract.sql` creates the RLS-enable
 - the five required private Storage buckets
 - creation metadata and timestamps
 
-After the separately reviewed application of `20260810032000_worker_budget_rpc.sql`, readiness calls one read-only, service-role-only RPC that checks the contract row and every required table/column. The database contract row alone is not sufficient. The migration is present for review but is not applied by the PR 3 implementation branch.
+After the reviewed application of `20260810032000_worker_budget_rpc.sql`, readiness calls one read-only, service-role-only RPC that checks the contract row and every required table/column. The database contract row alone is not sufficient. Repository and canonical migration histories now identify that migration by the same version.
 
 ## Required private Storage buckets
 

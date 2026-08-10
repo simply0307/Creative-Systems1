@@ -18,11 +18,13 @@ test("environment template includes setup inputs without real credentials", () =
   assert.doesNotMatch(template, /sb_secret_[A-Za-z0-9_-]{8,}/);
 });
 
-test("Supabase setup pushes migrations safely and stops instead of using a partial SQL fallback", () => {
+test("Supabase setup inspects migrations but cannot deploy production schema", () => {
   const script = read("scripts/setup-supabase.mjs");
   const contract = read("netlify/functions/lib/runtime-contract.mjs");
   assert.match(script, /"db", "push", "--dry-run"/);
+  assert.match(script, /"migration", "list", "--linked"/);
   assert.match(script, /printManualMigrationFallback/);
+  assert.doesNotMatch(script, /const args = \["db", "push"\]|migrationPushed/);
   assert.doesNotMatch(script, /runCommand\([^\n]+["']reset["']|drop database|truncate/i);
   for (const bucket of ["artifacts", "exports", "imports-raw", "imports-processed", "thumbnails"]) assert.match(contract, new RegExp(bucket));
 });
@@ -96,7 +98,7 @@ test("verification covers the read-only runtime, schema, Storage, API, and GitHu
 
 test("documentation explains fast setup, fallbacks, safety, and acceptance", () => {
   const guide = read("docs/OPERATIONS_API.md");
-  for (const phrase of ["Fast automated setup", "npm run setup", "npm run setup:import:apply", "Safe migration fallback", "never call `supabase db reset`", "Final live acceptance checklist", "Exact acceptance test"]) assert.match(guide, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  for (const phrase of ["Fast automated setup", "npm run setup", "npm run setup:import:apply", "Production migration policy", "never call `supabase db reset`", "Final live acceptance checklist", "Exact acceptance test"]) assert.match(guide, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
 });
 
 test("private setup state and credentials stay ignored by Git", () => {

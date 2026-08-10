@@ -209,7 +209,7 @@ No import may infer canon. Existing source traceability, workbook sheet/row refe
 
 ## 15. Migration-history baseline policy
 
-Canonical Supabase currently records seven migrations. `public.comments` exists and migration `20260720123053_add_authenticated_comment_resonance_votes` depends on it, but neither canonical migration history nor the audited repositories contain evidence of the table's creation. Historical SQL must not be invented, and production migration history must not be rewritten.
+Canonical Supabase currently records eight repository-identified migrations. `public.comments` exists and migration `20260720123053_add_authenticated_comment_resonance_votes` depends on it, but neither canonical migration history nor the audited repositories contain evidence of the table's creation. Historical SQL must not be invented. Migration history may be repaired only through the exceptional, evidence-backed workflow in `docs/PRODUCTION_MIGRATIONS.md`; normal schema deployment never rewrites migration identity.
 
 Therefore:
 
@@ -242,7 +242,7 @@ PR 3 replaces corpus-wide signing and per-row bulk work with bounded request sha
 
 Artifact pages are ordered by `updated_at desc, id asc`, default to 24 rows, and reject limits above 50. Filters execute inside Postgres before paging. Same-bucket previews use one `createSignedUrls()` call per page; listing never creates download URLs. Downloads require an authenticated five-minute grant. Successful readiness is cached for 30 seconds, while `/ready` and `/health/full` always force a deep check. Organization is a single atomic RPC for at most 25 artifacts and retains one review/audit result per artifact.
 
-Migration `20260810032000_worker_budget_rpc.sql` supplies the read-only readiness/page RPCs and transactional organization RPC. It is additive, uses fixed search paths, revokes `PUBLIC`, `anon`, and `authenticated` execution, and grants only `service_role`. The migration is review-only in this PR and must be applied through a separately authorized schema step before this branch can be merged or deployed.
+Migration `20260810032000_worker_budget_rpc.sql` supplies the read-only readiness/page RPCs and transactional organization RPC. It is additive, uses fixed search paths, revokes `PUBLIC`, `anon`, and `authenticated` execution, and grants only `service_role`. Its schema was applied after a recovery checkpoint and exact review; on 2026-08-10 its migration-history-only identity was repaired to the repository version without rerunning SQL or changing application data.
 
 Future Worker acceptance targets are isolated in test configuration and based on the provider limits verified on 2026-08-09:
 

@@ -79,7 +79,7 @@ Copy the project URL and publishable/server credentials from Supabase **Settings
 5. Run `npm run setup:import` for a read-only import report.
 6. Use `npm run setup:verify -- --url=https://SITE.netlify.app` for read-only runtime verification.
 
-The top-level `npm run setup` stops before the real import. If automated migration support is unavailable, follow the printed **Safe migration fallback** and review the exact migration in the Supabase SQL Editor; do not improvise a partial schema.
+The top-level `npm run setup` stops before the real import and never deploys schema. Follow the [Production migration policy](PRODUCTION_MIGRATIONS.md) for an approved canonical migration. Repository migrations are never pasted into the production SQL Editor or sent through an alternate migration runner.
 
 After an authorized source merge, use the normal Git-connected Netlify **Trigger deploy** workflow. `/api/creative-os/health/full` remains a read-only compatibility alias for readiness.
 
