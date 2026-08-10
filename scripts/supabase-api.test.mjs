@@ -323,7 +323,7 @@ test("folder, standard tag, and freeform inputs reuse existing values across the
 });
 
 test("controlled-value API can still create, rename, archive, and report usage", () => {
-  const api = read("netlify/functions/creative-os.mjs");
+  const api = read("src/server/creative-os/handle-creative-os.mjs");
   for (const phrase of ["handleCreateControlledValue", "handleUpdateControlledValue", "usageCount", "\\$\\{singular\\}_created"]) assert.match(api, new RegExp(phrase));
   assert.match(api, /controlled-values/);
   assert.match(api, /controlledValuesMatch/);
@@ -338,7 +338,7 @@ test("archive index accepts browser file upload and standardized/freeform metada
 });
 
 test("organization API supports audited single and bulk writes plus reusable filters", () => {
-  const api = read("netlify/functions/creative-os.mjs");
+  const api = read("src/server/creative-os/handle-creative-os.mjs");
   assert.match(api, /artifacts\/bulk\/organization/);
   assert.match(api, /artifact_organization_update/);
   assert.match(api, /artifact_organization_proposed/);
@@ -350,7 +350,7 @@ test("organization API supports audited single and bulk writes plus reusable fil
 });
 
 test("admin approval path applies the proposal before marking it applied", () => {
-  const api = read("netlify/functions/creative-os.mjs");
+  const api = read("src/server/creative-os/handle-creative-os.mjs");
   const applyIndex = api.indexOf('applied = await applyReview');
   const statusIndex = api.indexOf('status: statusMap[action]');
   assert.ok(applyIndex > -1 && statusIndex > applyIndex);
@@ -358,7 +358,7 @@ test("admin approval path applies the proposal before marking it applied", () =>
 });
 
 test("decision records state that source prose remains unchanged", () => {
-  const api = read("netlify/functions/creative-os.mjs");
+  const api = read("src/server/creative-os/handle-creative-os.mjs");
   assert.match(api, /source prose unchanged/);
   assert.match(api, /source_files_changed: false/);
 });
@@ -434,7 +434,7 @@ test("import dashboard counts real availability and expected-file gaps", () => {
 test("Archive Index exposes explicit privileged metadata import and audited browser uploads", () => {
   const page = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
   const client = read("src/scripts/creative-os-client.js");
-  const api = read("netlify/functions/creative-os.mjs");
+  const api = read("src/server/creative-os/handle-creative-os.mjs");
   assert.match(page, /Refresh view/);
   assert.match(page, /importArchiveFolderIndex/);
   assert.match(page, /Review and import/);
