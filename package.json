@@ -13,6 +13,8 @@
     "test:budget": "node --test scripts/request-budget.test.mjs",
     "budget:report": "node scripts/request-budget-report.mjs",
     "test:supabase": "node --test scripts/supabase-api.test.mjs scripts/setup-automation.test.mjs",
+    "test:migration-policy": "node --test scripts/production-migration-policy.test.mjs",
+    "supabase:migrate:production": "node scripts/deploy-production-migrations.mjs",
     "setup": "node scripts/setup.mjs",
     "setup:check": "node scripts/setup-check.mjs",
     "setup:supabase": "node scripts/setup-supabase.mjs",

@@ -1,6 +1,6 @@
 {
   "reportType": "offline-current-behavior-measurement",
-  "capturedOn": "2026-08-09",
+  "capturedOn": "2026-08-10",
   "fixture": {
     "artifacts": 404,
     "available": 393,
@@ -10,46 +10,49 @@
     "productionMutationPossible": false
   },
   "readiness": {
-    "databaseRequests": 17,
+    "databaseRequests": 1,
     "storageRequests": 1,
     "storageSigningRequests": 0,
     "authVerificationRequests": 0,
-    "externalSubrequests": 18,
+    "externalSubrequests": 2,
     "mutationRequests": 0,
-    "maximumConcurrent": {
-      "auth": 0,
-      "database": 16,
-      "storage": 1,
-      "total": 16
-    }
+    "maximumConcurrent": { "auth": 0, "database": 1, "storage": 1, "total": 2 }
+  },
+  "readinessCached": {
+    "databaseRequests": 0,
+    "storageRequests": 0,
+    "storageSigningRequests": 0,
+    "authVerificationRequests": 0,
+    "externalSubrequests": 0,
+    "mutationRequests": 0,
+    "maximumConcurrent": { "auth": 0, "database": 0, "storage": 0, "total": 0 }
   },
   "ownerArtifactListingRoute": {
     "databaseRequests": 2,
-    "storageRequests": 786,
-    "storageSigningRequests": 786,
+    "storageRequests": 1,
+    "storageSigningRequests": 1,
     "authVerificationRequests": 0,
-    "externalSubrequests": 788,
+    "externalSubrequests": 3,
     "mutationRequests": 0,
-    "maximumConcurrent": {
-      "auth": 0,
-      "database": 1,
-      "storage": 393,
-      "total": 393
-    }
+    "maximumConcurrent": { "auth": 0, "database": 1, "storage": 1, "total": 1 }
   },
   "ownerArtifactListingFullProtectedRequest": {
-    "databaseRequests": 20,
-    "storageRequests": 787,
-    "storageSigningRequests": 786,
+    "databaseRequests": 4,
+    "storageRequests": 2,
+    "storageSigningRequests": 1,
     "authVerificationRequests": 0,
-    "externalSubrequests": 807,
+    "externalSubrequests": 6,
     "mutationRequests": 0,
-    "maximumConcurrent": {
-      "auth": 0,
-      "database": 16,
-      "storage": 393,
-      "total": 393
-    }
+    "maximumConcurrent": { "auth": 0, "database": 1, "storage": 1, "total": 2 }
+  },
+  "artifactDownloadGrant": {
+    "databaseRequests": 1,
+    "storageRequests": 1,
+    "storageSigningRequests": 1,
+    "authVerificationRequests": 0,
+    "externalSubrequests": 2,
+    "mutationRequests": 0,
+    "maximumConcurrent": { "auth": 0, "database": 1, "storage": 1, "total": 1 }
   },
   "authVerification": {
     "trustedNetlifyContext": {
@@ -59,12 +62,7 @@
       "authVerificationRequests": 0,
       "externalSubrequests": 0,
       "mutationRequests": 0,
-      "maximumConcurrent": {
-        "auth": 0,
-        "database": 0,
-        "storage": 0,
-        "total": 0
-      }
+      "maximumConcurrent": { "auth": 0, "database": 0, "storage": 0, "total": 0 }
     },
     "bearerFallback": {
       "databaseRequests": 0,
@@ -73,62 +71,42 @@
       "authVerificationRequests": 1,
       "externalSubrequests": 1,
       "mutationRequests": 0,
-      "maximumConcurrent": {
-        "auth": 1,
-        "database": 0,
-        "storage": 0,
-        "total": 1
-      }
+      "maximumConcurrent": { "auth": 1, "database": 0, "storage": 0, "total": 1 }
     }
   },
   "bulkOrganization": {
     "oneItem": {
-      "databaseRequests": 5,
-      "storageRequests": 4,
-      "storageSigningRequests": 4,
+      "databaseRequests": 1,
+      "storageRequests": 0,
+      "storageSigningRequests": 0,
       "authVerificationRequests": 0,
-      "externalSubrequests": 9,
-      "mutationRequests": 3,
-      "maximumConcurrent": {
-        "auth": 0,
-        "database": 1,
-        "storage": 1,
-        "total": 1
-      }
+      "externalSubrequests": 1,
+      "mutationRequests": 1,
+      "maximumConcurrent": { "auth": 0, "database": 1, "storage": 0, "total": 1 }
     },
     "normalSmallBatch": {
-      "databaseRequests": 50,
-      "storageRequests": 40,
-      "storageSigningRequests": 40,
+      "databaseRequests": 1,
+      "storageRequests": 0,
+      "storageSigningRequests": 0,
       "authVerificationRequests": 0,
-      "externalSubrequests": 90,
-      "mutationRequests": 30,
-      "maximumConcurrent": {
-        "auth": 0,
-        "database": 1,
-        "storage": 1,
-        "total": 1
-      }
+      "externalSubrequests": 1,
+      "mutationRequests": 1,
+      "maximumConcurrent": { "auth": 0, "database": 1, "storage": 0, "total": 1 }
     },
-    "currentCorpusBatch": {
-      "databaseRequests": 2020,
-      "storageRequests": 1572,
-      "storageSigningRequests": 1572,
+    "maximumAcceptedBatch": {
+      "databaseRequests": 1,
+      "storageRequests": 0,
+      "storageSigningRequests": 0,
       "authVerificationRequests": 0,
-      "externalSubrequests": 3592,
-      "mutationRequests": 1212,
-      "maximumConcurrent": {
-        "auth": 0,
-        "database": 1,
-        "storage": 1,
-        "total": 1
-      }
+      "externalSubrequests": 1,
+      "mutationRequests": 1,
+      "maximumConcurrent": { "auth": 0, "database": 1, "storage": 0, "total": 1 }
     }
   },
   "interpretation": {
-    "currentCorpusBatchMeans": "All 404 current artifacts; the API presently enforces no smaller maximum.",
-    "bulkFixtureOperation": "Authenticated owner updates the notes field; readiness, identity, and profile costs are excluded to isolate organization-route scaling.",
-    "knownWorkerBudgetFailure": true,
+    "artifactPage": "Authenticated owner reads the default 24-item page from a 404-artifact fixture; 393 fixture objects are available in private Storage.",
+    "bulkFixtureOperation": "Authenticated owner updates notes through one atomic service-role-only RPC for 1, 10, and the maximum accepted 25 artifacts.",
+    "knownWorkerBudgetFailure": false,
     "behaviorChangedByThisReport": false
   }
 }

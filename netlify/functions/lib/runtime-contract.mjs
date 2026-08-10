@@ -59,6 +59,20 @@ export const validateRuntimeConfiguration = (config) => {
 
 const publicError = (component, code, message) => ({ component, code, message });
 const sameOrderedValues = (left = [], right = []) => JSON.stringify(left) === JSON.stringify(right);
+export const READINESS_CACHE_TTL_MS = 30_000;
+
+const readinessCache = new Map();
+
+const readinessCacheKey = (config) => [
+  config.url,
+  config.projectRef,
+  config.runtimeContext,
+  config.schemaContractVersion,
+  config.mutationAuthority,
+  ...(config.requiredBuckets || []),
+].join("|");
+
+export const resetRuntimeReadinessCache = () => readinessCache.clear();
 
 export const runRuntimeReadiness = async ({ supabase, config }) => {
   const failures = [];
@@ -79,13 +93,13 @@ export const runRuntimeReadiness = async ({ supabase, config }) => {
     };
   }
 
-  const contractResult = await supabase
-    .from("creative_os_runtime_contract")
-    .select("id,schema_contract_version,mutation_authority,production_project_ref,required_storage_buckets,created_at,updated_at")
-    .eq("id", CREATIVE_OS_CONTRACT_ID)
-    .maybeSingle();
-  const contract = contractResult.data || null;
-  if (contractResult.error) failures.push(publicError("contract", "runtime_contract_unreadable", "Creative OS runtime contract could not be read."));
+  const [databaseResult, bucketResult] = await Promise.all([
+    supabase.rpc("creative_os_runtime_readiness", undefined, { get: true }),
+    supabase.storage.listBuckets(),
+  ]);
+  const databaseCheck = databaseResult.data || null;
+  const contract = databaseCheck?.contract || null;
+  if (databaseResult.error) failures.push(publicError("contract", "runtime_contract_unreadable", "Creative OS runtime contract and schema could not be read."));
   else if (!contract) failures.push(publicError("contract", "runtime_contract_missing", "Creative OS runtime contract row is missing."));
   else {
     if (Number(contract.schema_contract_version) !== CREATIVE_OS_SCHEMA_CONTRACT_VERSION) failures.push(publicError("contract", "schema_contract_version_mismatch", `Database contract version must be ${CREATIVE_OS_SCHEMA_CONTRACT_VERSION}.`));
@@ -94,15 +108,12 @@ export const runRuntimeReadiness = async ({ supabase, config }) => {
     if (!sameOrderedValues(contract.required_storage_buckets, REQUIRED_STORAGE_BUCKETS)) failures.push(publicError("contract", "contract_storage_buckets_mismatch", "Database contract Storage buckets do not match this runtime."));
   }
 
-  const schemaResults = await Promise.all(Object.entries(REQUIRED_SCHEMA).map(async ([table, columns]) => {
-    const result = await supabase.from(table).select(columns.join(","), { head: true }).limit(1);
-    return { table, columns, error: result.error || null };
-  }));
-  for (const result of schemaResults) {
-    if (result.error) failures.push(publicError("schema", "required_table_or_column_missing", `Required schema probe failed for public.${result.table}.`));
+  if (!databaseResult.error && databaseCheck?.schemaCompatible !== true) {
+    const firstMissing = Array.isArray(databaseCheck?.missingSchema) ? databaseCheck.missingSchema[0] : null;
+    const location = firstMissing?.table ? ` public.${firstMissing.table}${firstMissing.column ? `.${firstMissing.column}` : ""}` : "";
+    failures.push(publicError("schema", "required_table_or_column_missing", `One or more required Creative OS tables or columns are missing.${location}`));
   }
 
-  const bucketResult = await supabase.storage.listBuckets();
   const buckets = bucketResult.data || [];
   const bucketByName = new Map(buckets.map((bucket) => [bucket.id || bucket.name, bucket]));
   const missingBuckets = REQUIRED_STORAGE_BUCKETS.filter((name) => !bucketByName.has(name));
@@ -126,10 +137,22 @@ export const runRuntimeReadiness = async ({ supabase, config }) => {
       schemaContractVersion: contract?.schema_contract_version ?? null,
       mutationAuthority: contract?.mutation_authority ?? null,
       requiredTableCount: Object.keys(REQUIRED_SCHEMA).length,
+      missingSchema: Array.isArray(databaseCheck?.missingSchema) ? databaseCheck.missingSchema : [],
       requiredBuckets: REQUIRED_STORAGE_BUCKETS,
       bucketsFound: REQUIRED_STORAGE_BUCKETS.filter((name) => bucketByName.has(name)),
       missingBuckets,
       nonPrivateBuckets,
     },
   };
+};
+
+export const getRuntimeReadiness = async ({ supabase, config, now = new Date(), force = false }) => {
+  const key = readinessCacheKey(config);
+  const timestamp = now instanceof Date ? now.getTime() : new Date(now).getTime();
+  const cached = readinessCache.get(key);
+  if (!force && cached && cached.expiresAt > timestamp) return cached.value;
+  const value = await runRuntimeReadiness({ supabase, config });
+  if (value.ready) readinessCache.set(key, { value, expiresAt: timestamp + READINESS_CACHE_TTL_MS });
+  else readinessCache.delete(key);
+  return value;
 };

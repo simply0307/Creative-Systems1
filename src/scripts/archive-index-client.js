@@ -12,6 +12,9 @@ const slugish = (value) => String(value || "").toLowerCase().replace(/[^a-z0-9]+
 
 const state = {
   db: [],
+  indexedRefs: [],
+  pagination: { page: 1, limit: 24, total: 0, totalPages: 1, hasPrevious: false, hasNext: false },
+  summary: { available: 0, needs_import: 0 },
   manifestFiles: manifest.archiveFiles || [],
   manifestFolders: manifest.archiveFolders || [],
   options: { tags: [], categories: [] },
@@ -64,9 +67,14 @@ const mergedRecords = () => {
     const path = originalPathOf(item);
     if (path) byPath.set(path.toLowerCase(), item);
   }
-  const merged = state.manifestFiles.map((file) => {
+  const indexedIds = new Set(state.indexedRefs.map((item) => item.id));
+  const indexedPaths = new Set(state.indexedRefs.map((item) => String(item.path || "").toLowerCase()).filter(Boolean));
+  const merged = state.manifestFiles.flatMap((file) => {
     const path = file.provenance?.workspaceRelativePath || "";
-    return byId.get(file.id) || byPath.get(path.toLowerCase()) || manifestRecord(file);
+    const current = byId.get(file.id) || byPath.get(path.toLowerCase());
+    if (current) return [current];
+    if (indexedIds.has(file.id) || (path && indexedPaths.has(path.toLowerCase()))) return [];
+    return [manifestRecord(file)];
   });
   for (const item of state.db) {
     const path = originalPathOf(item).toLowerCase();
@@ -76,8 +84,8 @@ const mergedRecords = () => {
 };
 
 const missingManifestRecords = () => {
-  const dbIds = new Set(state.db.map((item) => item.id));
-  const dbPaths = new Set(state.db.map((item) => originalPathOf(item).toLowerCase()).filter(Boolean));
+  const dbIds = new Set(state.indexedRefs.map((item) => item.id));
+  const dbPaths = new Set(state.indexedRefs.map((item) => String(item.path || "").toLowerCase()).filter(Boolean));
   return state.manifestFiles.filter((file) => {
     const path = (file.provenance?.workspaceRelativePath || "").toLowerCase();
     return !dbIds.has(file.id) && (!path || !dbPaths.has(path));
@@ -108,6 +116,20 @@ const currentFilters = () => ({
   standard: document.querySelector('[data-filter="standard"]').value,
   freeform: document.querySelector('[data-filter="freeform"]').value,
 });
+
+const apiFilters = () => {
+  const filters = currentFilters();
+  return {
+    page: state.pagination.page,
+    limit: state.pagination.limit,
+    search: filters.search,
+    artifact_type: filters.type,
+    file: filters.file === "manifest_only" ? "" : filters.file,
+    category: filters.folder,
+    controlled_tag: filters.standard,
+    freeform_tag: filters.freeform,
+  };
+};
 
 const hasTag = (item, value, predicate = () => true) => tagsOf(item).some((tag) => predicate(tag) && [tag.id, tag.slug, tag.name].includes(value));
 
@@ -177,7 +199,7 @@ const card = (item) => {
   const path = pathOf(item);
   const originalPath = originalPathOf(item);
   const size = item.file_size ? `${Math.round(Number(item.file_size) / 1024)} KB` : "-";
-  const fileActions = item.fileAvailable && item.downloadUrl ? `<div class="action-row"><a class="button secondary" href="${esc(item.signedUrl)}" target="_blank" rel="noopener">Open</a><a class="button secondary" href="${esc(item.downloadUrl)}">Download file</a></div>` : "";
+  const fileActions = item.fileAvailable ? `<div class="action-row"><a class="button secondary" href="${esc(item.signedUrl)}" target="_blank" rel="noopener">Open preview</a><button class="button secondary" type="button" data-download-file="${esc(item.id)}">Download file</button></div>` : "";
   const selected = state.selectedIds.has(item.id);
   return `<article class="archive-file-card${selected ? " selected" : ""}" data-artifact-id="${esc(item.id)}">
     <label class="select-file"><input type="checkbox" data-select-artifact value="${esc(item.id)}"${selected ? " checked" : ""}${item.manifestOnly ? " disabled" : ""}/> ${item.manifestOnly ? "Syncing" : "Select"}</label>
@@ -219,7 +241,7 @@ const populateFilters = () => {
     select.innerHTML = '<option value="">All</option>' + values.map((value) => option(value)).join("");
     select.value = [...select.options].some((item) => item.value === current) ? current : "";
   };
-  fill('[data-filter="type"]', [...new Set(records.map(typeOf).filter(Boolean))].sort());
+  fill('[data-filter="type"]', [...new Set([...(state.options.values?.media || []), ...records.map(typeOf)].filter(Boolean))].sort());
   fill('[data-filter="folder"]', folderEntries().map((folder) => folder.path));
   const bulkFolder = document.querySelector("#bulk-folder");
   if (bulkFolder) {
@@ -270,17 +292,20 @@ const render = () => {
   document.querySelector("#shown-count").textContent = records.length;
   document.querySelector("#filter-count").textContent = records.length;
   const all = mergedRecords();
-  document.querySelector("#total-count").textContent = all.length;
+  document.querySelector("#total-count").textContent = state.pagination.total + missingManifestRecords().length;
   const count = (name, value) => { document.querySelector(`[data-count="${name}"]`).textContent = value; };
-  count("available", all.filter((item) => item.fileAvailable || item.file_status === "available").length);
-  count("needs_import", all.filter((item) => fileState(item) === "needs_import").length);
-  count("manifest_only", all.filter((item) => item.manifestOnly).length);
+  count("available", state.summary.available);
+  count("needs_import", state.summary.needs_import);
+  count("manifest_only", missingManifestRecords().length);
   count("folders", folderEntries().length);
   count("folder_tags", [...new Set(all.flatMap(folderTags))].length);
   count("standard_tags", [...new Set(all.flatMap(standardTags))].length);
   count("freeform_tags", [...new Set(all.flatMap(freeformTags))].length);
   renderFolders();
   renderBulkControls();
+  document.querySelector("#page-status").textContent = `Page ${state.pagination.page} of ${state.pagination.totalPages} · ${state.pagination.total} canonical records`;
+  document.querySelector("#previous-page").disabled = !state.pagination.hasPrevious;
+  document.querySelector("#next-page").disabled = !state.pagination.hasNext;
 };
 
 const importArchiveSnapshot = async () => {
@@ -307,11 +332,7 @@ const importArchiveSnapshot = async () => {
   try {
     const result = await window.CreativeDatabase.importArchiveFolderIndex();
     els().status.textContent = result.message || "Repository snapshot metadata imported.";
-    const [artifacts, options] = await Promise.all([window.CreativeDatabase.listArtifacts(), window.CreativeDatabase.organizationOptions()]);
-    state.db = artifacts.artifacts || [];
-    state.options = options || state.options;
-    populateFilters();
-    render();
+    await load({ refreshOptions: true });
     return true;
   } catch (error) {
     els().status.textContent = `Repository snapshot remains read-only; explicit import failed: ${error.message}`;
@@ -319,16 +340,22 @@ const importArchiveSnapshot = async () => {
   }
 };
 
-const load = async () => {
+const load = async ({ refreshOptions = false } = {}) => {
   const { status } = els();
   status.textContent = "Loading Archive index...";
   try {
-    const [result, options] = await Promise.all([window.CreativeDatabase.listArtifacts(), window.CreativeDatabase.organizationOptions()]);
+    const [result, options] = await Promise.all([
+      window.CreativeDatabase.listArtifacts(apiFilters()),
+      refreshOptions || !state.options.tags.length ? window.CreativeDatabase.organizationOptions() : Promise.resolve(state.options),
+    ]);
     state.db = result.artifacts || [];
+    state.indexedRefs = result.indexedRefs || state.indexedRefs;
+    state.pagination = result.pagination || state.pagination;
+    state.summary = result.summary || state.summary;
     state.options = options || { tags: [], categories: [] };
     state.apiReady = true;
     state.lastError = null;
-    status.textContent = `Loaded ${state.db.length} canonical file record(s) and the read-only repository snapshot.`;
+    status.textContent = `Loaded page ${state.pagination.page}: ${state.db.length} of ${state.pagination.total} canonical file record(s).`;
   } catch (error) {
     state.db = [];
     state.options = { tags: [], categories: [] };
@@ -338,7 +365,7 @@ const load = async () => {
   }
   populateFilters();
   render();
-  if (state.apiReady && !missingManifestRecords().length) status.textContent = `Archive folder ready: ${state.db.length} indexed file record(s), ${state.manifestFiles.length} files in the Desktop snapshot.`;
+  if (state.apiReady && !missingManifestRecords().length) status.textContent = `Archive folder ready: page ${state.pagination.page} of ${state.pagination.totalPages}, ${state.pagination.total} indexed file record(s).`;
   else if (state.apiReady) status.textContent = `Read-only view loaded. ${missingManifestRecords().length} repository snapshot record(s) are not in canonical Creative OS.`;
 };
 
@@ -425,7 +452,7 @@ const bulkMoveSelected = async () => {
   }
   setBulkStatus(`Moving ${ids.length} selected file(s) to ${folderPath}...`);
   try {
-    await Promise.all(ids.map((id) => window.CreativeDatabase.moveArtifact(id, folderPath, "Bulk Archive Index folder move")));
+    await window.CreativeDatabase.organizeArtifacts(ids, { folderPath, reason: "Bulk Archive Index folder move" });
     setBulkStatus(`Moved ${ids.length} selected file(s) to ${folderPath}. Source files on disk were not renamed or moved.`);
     await load();
   } catch (error) {
@@ -514,12 +541,31 @@ const wireEvents = () => {
   document.querySelector("#artifact-grid").addEventListener("change", (event) => {
     const input = event.target.closest("[data-select-artifact]");
     if (!input) return;
-    if (input.checked) state.selectedIds.add(input.value);
+    if (input.checked && state.selectedIds.size >= 25) {
+      input.checked = false;
+      setBulkStatus("Bulk organization is limited to 25 artifacts per atomic request.");
+    } else if (input.checked) state.selectedIds.add(input.value);
     else state.selectedIds.delete(input.value);
     renderBulkControls();
   });
 
   document.querySelector("#artifact-grid").addEventListener("click", async (event) => {
+    const downloadButton = event.target.closest("[data-download-file]");
+    if (downloadButton) {
+      downloadButton.disabled = true;
+      try {
+        const grant = await window.CreativeDatabase.downloadArtifact(downloadButton.dataset.downloadFile);
+        const link = document.createElement("a");
+        link.href = grant.downloadUrl;
+        link.rel = "noopener";
+        link.click();
+      } catch (error) {
+        els().status.textContent = `Download grant failed: ${error.message}`;
+      } finally {
+        downloadButton.disabled = false;
+      }
+      return;
+    }
     const button = event.target.closest("[data-read-file]");
     if (!button) return;
     const item = mergedRecords().find((record) => record.id === button.dataset.readFile);
@@ -543,7 +589,8 @@ const wireEvents = () => {
     if (!button) return;
     state.selectedFolder = button.dataset.folder || "";
     document.querySelector('[data-filter="folder"]').value = state.selectedFolder;
-    render();
+    state.pagination.page = 1;
+    load();
   });
   document.querySelector("#reload-index").addEventListener("click", async () => {
     await load();
@@ -561,13 +608,29 @@ const wireEvents = () => {
     state.selectedFolder = "";
     document.querySelector("#artifact-search").value = "";
     document.querySelectorAll("[data-filter]").forEach((select) => { select.value = ""; });
-    render();
+    state.pagination.page = 1;
+    load();
   });
-  document.querySelector("#artifact-search").addEventListener("input", render);
+  let searchTimer;
+  document.querySelector("#artifact-search").addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { state.pagination.page = 1; load(); }, 250);
+  });
   document.querySelectorAll("[data-filter]").forEach((select) => select.addEventListener("change", () => {
     if (select.dataset.filter === "folder") state.selectedFolder = select.value;
-    render();
+    state.pagination.page = 1;
+    load();
   }));
+  document.querySelector("#previous-page").addEventListener("click", () => {
+    if (!state.pagination.hasPrevious) return;
+    state.pagination.page -= 1;
+    load();
+  });
+  document.querySelector("#next-page").addEventListener("click", () => {
+    if (!state.pagination.hasNext) return;
+    state.pagination.page += 1;
+    load();
+  });
 };
 
 const waitForCreativeDatabase = async () => {
@@ -580,7 +643,7 @@ const waitForCreativeDatabase = async () => {
 
 const start = () => {
   wireEvents();
-  waitForCreativeDatabase().then(load);
+  waitForCreativeDatabase().then(() => load({ refreshOptions: true }));
 };
 
 if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", start, { once: true });

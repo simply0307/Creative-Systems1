@@ -115,7 +115,8 @@ export const printManualMigrationFallback = () => {
   console.log("1. Install and authenticate the Supabase CLI.");
   console.log("2. Confirm `supabase migration list --linked` matches docs/RUNTIME_AUTHORITY.md.");
   console.log("3. Run `supabase db push --dry-run` and review the exact pending migration.");
-  console.log("Do not paste a partial historical migration into the SQL Editor; the canonical project has documented migration drift.");
+  console.log("4. Use the guarded Production Supabase migration GitHub Actions workflow for an approved production push.");
+  console.log("Do not deploy repository migrations through the SQL Editor, apply_migration, or another migration runner.");
 };
 
 export const safeJson = (value) => JSON.stringify(value, null, 2);

@@ -21,6 +21,8 @@ Opening or refreshing `/pipeline/artifacts/` performs reads only. The bundled re
 
 An authenticated `admin` or `owner` may select **Review and import**. The control reports what it will add and requires confirmation before calling `POST /api/creative-os/imports/archive-folder`. The API independently verifies the trusted Netlify Identity role, runtime readiness, and target project, and creates its normal audit record. The action imports metadata only; source-file bytes require the separate private file-import flow.
 
+Artifact browsing uses deterministic 24-item pages with a maximum requested page size of 50. Only current-page private previews are batch-signed. Full downloads require a separate authenticated five-minute grant. Browser and API upload validation both reject files above 50 MB before any upload begins.
+
 ## Maintenance imports
 
 Maintenance scripts are recovery/bootstrap tools outside normal application behavior. First inspect read-only reports:
@@ -77,7 +79,7 @@ Copy the project URL and publishable/server credentials from Supabase **Settings
 5. Run `npm run setup:import` for a read-only import report.
 6. Use `npm run setup:verify -- --url=https://SITE.netlify.app` for read-only runtime verification.
 
-The top-level `npm run setup` stops before the real import. If automated migration support is unavailable, follow the printed **Safe migration fallback** and review the exact migration in the Supabase SQL Editor; do not improvise a partial schema.
+The top-level `npm run setup` stops before the real import and never deploys schema. Follow the [Production migration policy](PRODUCTION_MIGRATIONS.md) for an approved canonical migration. Repository migrations are never pasted into the production SQL Editor or sent through an alternate migration runner.
 
 After an authorized source merge, use the normal Git-connected Netlify **Trigger deploy** workflow. `/api/creative-os/health/full` remains a read-only compatibility alias for readiness.
 

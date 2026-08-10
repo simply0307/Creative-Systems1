@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 import { resolveIdentity } from "../netlify/functions/lib/identity.mjs";
-import { runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
+import { getRuntimeReadiness, resetRuntimeReadinessCache, runRuntimeReadiness } from "../netlify/functions/lib/runtime-contract.mjs";
 import { handleCreativeOsRequest } from "../netlify/functions/creative-os.mjs";
 import {
   assertFixtureOnlyBudget,
@@ -34,7 +34,24 @@ const measureReadiness = async () => {
   return recorder.snapshot();
 };
 
+const measureCachedReadiness = async () => {
+  resetRuntimeReadinessCache();
+  const fixture = createOfflineSupabaseFixture();
+  const config = runtimeFixtureConfig();
+  await getRuntimeReadiness({ supabase: fixture.client, config, now: new Date("2026-08-10T00:00:00Z") });
+  const recorder = createRequestBudgetRecorder();
+  const result = await getRuntimeReadiness({
+    supabase: instrumentSupabaseClient(fixture.client, recorder),
+    config,
+    now: new Date("2026-08-10T00:00:01Z"),
+  });
+  if (!result.ready) throw new Error("Cached readiness fixture must remain ready.");
+  assertFixtureOnlyBudget(fixture.fixtureState);
+  return recorder.snapshot();
+};
+
 const measureOwnerArtifactListing = async ({ fullProtectedRequest }) => {
+  resetRuntimeReadinessCache();
   const fixture = createOfflineSupabaseFixture();
   const recorder = createRequestBudgetRecorder();
   const supabase = instrumentSupabaseClient(fixture.client, recorder);
@@ -59,7 +76,24 @@ const measureOwnerArtifactListing = async ({ fullProtectedRequest }) => {
   } : {};
   const response = await handleCreativeOsRequest(new Request("https://fixture.invalid/api/creative-os/artifacts"), context, overrides);
   const body = await successfulJson(response, "Owner artifact listing fixture");
-  if (body.artifacts.length !== CURRENT_CORPUS.artifacts) throw new Error("Artifact fixture count drifted.");
+  if (body.artifacts.length !== 24 || body.pagination.total !== CURRENT_CORPUS.artifacts) throw new Error("Artifact page fixture drifted.");
+  assertFixtureOnlyBudget(fixture.fixtureState);
+  return recorder.snapshot();
+};
+
+const measureDownloadGrant = async () => {
+  const fixture = createOfflineSupabaseFixture();
+  const recorder = createRequestBudgetRecorder();
+  const artifactId = fixture.artifacts[0].id;
+  const response = await handleCreativeOsRequest(new Request(`https://fixture.invalid/api/creative-os/artifacts/${encodeURIComponent(artifactId)}/download`), {}, {
+    config: runtimeFixtureConfig(),
+    readiness: { ready: true, failures: [], checks: {} },
+    identity: ownerIdentity,
+    profile: ownerProfile,
+    supabase: instrumentSupabaseClient(fixture.client, recorder),
+  });
+  const body = await successfulJson(response, "Artifact download grant fixture");
+  if (!body.downloadUrl || body.artifactId !== artifactId) throw new Error("Download grant fixture drifted.");
   assertFixtureOnlyBudget(fixture.fixtureState);
   return recorder.snapshot();
 };
@@ -127,13 +161,15 @@ export const measureCurrentRequestBudgets = async () => ({
     productionMutationPossible: false,
   },
   readiness: await measureReadiness(),
+  readinessCached: await measureCachedReadiness(),
   ownerArtifactListingRoute: await measureOwnerArtifactListing({ fullProtectedRequest: false }),
   ownerArtifactListingFullProtectedRequest: await measureOwnerArtifactListing({ fullProtectedRequest: true }),
+  artifactDownloadGrant: await measureDownloadGrant(),
   authVerification: await measureAuthVerification(),
   bulkOrganization: {
     oneItem: await measureBulkOrganization(1),
     normalSmallBatch: await measureBulkOrganization(10),
-    currentCorpusBatch: await measureBulkOrganization(CURRENT_CORPUS.artifacts),
+    maximumAcceptedBatch: await measureBulkOrganization(25),
   },
 });
 

@@ -60,6 +60,14 @@ const query = (result, mutations) => {
 };
 const readinessSupabase = ({ contract = validContract(), schemaErrors = {}, buckets = REQUIRED_STORAGE_BUCKETS.map((id) => ({ id, name: id, public: false })), mutations = [] } = {}) => ({
   mutations,
+  rpc(name) {
+    assert.equal(name, "creative_os_runtime_readiness");
+    const unreadable = schemaErrors.creative_os_runtime_contract || null;
+    const missingSchema = Object.keys(schemaErrors)
+      .filter((table) => table !== "creative_os_runtime_contract")
+      .map((table) => ({ table, column: "fixture_missing" }));
+    return Promise.resolve({ data: unreadable ? null : { contract, schemaCompatible: missingSchema.length === 0, missingSchema }, error: unreadable });
+  },
   from(table) {
     if (table === "creative_os_runtime_contract") return query(contract ? { data: contract, error: schemaErrors[table] || null } : { data: null, error: schemaErrors[table] || null }, mutations);
     return query({ data: [], error: schemaErrors[table] || null }, mutations);
@@ -197,13 +205,13 @@ test("database routes reject unauthenticated requests after readiness", async ()
   assert.equal(response.status, 401);
 });
 
-test("available image artifact receives preview and download URLs", async () => {
+test("available image artifact receives only a preview URL", async () => {
   const fake = { storage: { from: () => ({ createSignedUrl: async (_path, _seconds, options) => ({ data: { signedUrl: options?.download ? "https://files.test/download" : "https://files.test/preview" }, error: null }) }) } };
   const artifact = await presentArtifact(fake, { id: "artifact.image", file_status: "available", storage_bucket: "artifacts", storage_path: "owner/image.png", original_file_name: "image.png", mime_type: "image/png", artifact_tags: [], artifact_categories: [], artifact_archive_records: [] });
   assert.equal(artifact.mediaKind, "image");
   assert.equal(artifact.fileAvailable, true);
   assert.equal(artifact.signedUrl, "https://files.test/preview");
-  assert.equal(artifact.downloadUrl, "https://files.test/download");
+  assert.equal(artifact.downloadUrl, null);
 });
 
 test("missing artifact never invents a file URL", async () => {
@@ -339,14 +347,15 @@ test("archive index accepts browser file upload and standardized/freeform metada
 
 test("organization API supports audited single and bulk writes plus reusable filters", () => {
   const api = read("src/server/creative-os/handle-creative-os.mjs");
+  const migration = read("supabase/migrations/20260810032000_worker_budget_rpc.sql");
   assert.match(api, /artifacts\/bulk\/organization/);
-  assert.match(api, /artifact_organization_update/);
-  assert.match(api, /artifact_organization_proposed/);
-  assert.match(api, /writeAudit/);
-  for (const parameter of ["project", "rights_status", "review_status", "visibility", "intended_use", "lifecycle_status"]) assert.match(api, new RegExp(`${parameter}: \\\"`));
+  assert.match(api, /creative_os_bulk_organize_artifacts/);
+  assert.match(migration, /artifact_organization_update/);
+  assert.match(migration, /artifact_organization_proposed/);
+  assert.match(migration, /insert into public\.audit_events/);
+  for (const parameter of ["project", "rights_status", "review_status", "visibility", "intended_use", "lifecycle_status"]) assert.match(migration, new RegExp(parameter));
   assert.match(api, /normalizeArtifactFilters/);
-  assert.match(api, /filterArtifacts/);
-  assert.match(api, /filters\.ready_for_export/);
+  assert.match(migration, /ready_for_export/);
 });
 
 test("admin approval path applies the proposal before marking it applied", () => {
