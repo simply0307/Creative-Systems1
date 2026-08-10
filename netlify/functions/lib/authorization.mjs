@@ -1,4 +1,4 @@
-import { ROLE_ORDER } from "./identity.mjs";
+import { ROLE_ORDER } from "../../../src/server/auth/identity.mjs";
 
 export const ACCESS_CLASSES = {
   PUBLIC: "public-health",

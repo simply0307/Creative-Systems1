@@ -1,17 +1,27 @@
-import { AUTH_EVENTS, acceptInvite, getUser, handleAuthCallback, login as identityLogin, logout as identityLogout, onAuthChange, updateUser as updateIdentityUser } from "@netlify/identity";
+import {
+  AUTH_EVENTS,
+  AUTH_MODE,
+  defaultProvider,
+  providerAllowed,
+  providerAvailable,
+  providerByName,
+  selectProvider,
+} from "./auth-provider-client.js";
 
 const signedOut = {
   authenticated: false,
+  provider: null,
   userId: null,
   userEmail: null,
   userName: "Not signed in",
   userRole: "viewer",
-  roleSource: "No verified Netlify Identity session",
+  roleSource: "No verified Creative OS session",
   adminPrivilegesActive: false,
   emergencyFallbackActive: false,
 };
 
 let account = { ...signedOut };
+let activeProviderName = null;
 let authError = "";
 let health = null;
 let healthRequest = null;
@@ -19,33 +29,46 @@ let pendingInviteToken = null;
 let passwordFormVisible = false;
 let passwordSetupRequired = false;
 
-const setAccountDrawer = (visible) => {
-  document.querySelector("[data-account-drawer]")?.classList.toggle("account-drawer-open", visible);
-  document.querySelectorAll("[data-account-drawer-open]").forEach((button) => {
-    button.setAttribute("aria-expanded", String(visible));
-  });
-};
-
-const normalizeAccount = (user) => {
-  if (!user?.id) return { ...signedOut };
-  const roles = Array.isArray(user.roles) ? user.roles.map((role) => String(role).toLowerCase()) : [];
-  const roleOrder = ["viewer", "contributor", "editor", "admin", "owner"];
-  const userRole = roles.filter((role) => roleOrder.includes(role)).sort((a, b) => roleOrder.indexOf(b) - roleOrder.indexOf(a))[0] || "viewer";
-  return {
-    authenticated: true,
-    userId: user.id,
-    userEmail: user.email || "",
-    userName: user.name || user.email || "Employee",
-    userRole,
-    roleSource: "Netlify Identity app_metadata.roles (server verified for every API request)",
-    adminPrivilegesActive: ["admin", "owner"].includes(userRole),
-    emergencyFallbackActive: false,
-  };
-};
-
+const provider = () => activeProviderName ? providerByName(activeProviderName) : null;
 const snapshot = () => ({ ...account });
 const canMutate = () => account.authenticated && ["contributor", "editor", "admin", "owner"].includes(account.userRole);
 const authority = () => account.authenticated ? `${account.userRole} Creative OS authority` : "No application authority";
+
+const setAccountDrawer = (visible) => {
+  document.querySelector("[data-account-drawer]")?.classList.toggle("account-drawer-open", visible);
+  document.querySelectorAll("[data-account-drawer-open]").forEach((button) => button.setAttribute("aria-expanded", String(visible)));
+};
+
+const accountFromUser = (user) => user?.id ? ({
+  authenticated: true,
+  provider: user.provider,
+  userId: user.id,
+  userEmail: user.email || "",
+  userName: user.name || user.email || "Employee",
+  userRole: "viewer",
+  roleSource: "Awaiting server-controlled public.profiles.role",
+  adminPrivilegesActive: false,
+  emergencyFallbackActive: false,
+}) : ({ ...signedOut });
+
+const authHeaders = async (target = "/api/creative-os") => provider()?.authHeaders(target) || {};
+
+const hydrateAuthority = async (user) => {
+  account = accountFromUser(user);
+  if (!account.authenticated) return account;
+  const response = await fetch("/api/creative-os/auth/session", { headers: await authHeaders("/api/creative-os/auth/session") });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    account.userRole = "viewer";
+    account.roleSource = "No provisioned Creative OS profile identity";
+    authError = result.error || "This account is authenticated but not provisioned for Creative OS.";
+    return account;
+  }
+  account.userRole = result.userRole || "viewer";
+  account.roleSource = result.roleSource || "public.profiles.role";
+  account.adminPrivilegesActive = ["admin", "owner"].includes(account.userRole);
+  return account;
+};
 
 const render = () => {
   const state = snapshot();
@@ -62,6 +85,7 @@ const render = () => {
   document.querySelectorAll("[data-password-open]").forEach((el) => { el.hidden = !state.authenticated || passwordFormVisible; });
   document.querySelectorAll("[data-password-form]").forEach((el) => { el.hidden = !passwordFormVisible; });
   document.querySelectorAll("[data-password-cancel]").forEach((el) => { el.hidden = passwordSetupRequired; });
+  document.querySelectorAll("[data-auth-provider-field]").forEach((el) => { el.hidden = AUTH_MODE !== "dual"; });
   document.querySelectorAll("[data-admin-link]").forEach((el) => { el.classList.toggle("admin-authorized", state.adminPrivilegesActive); });
   document.querySelectorAll("[data-admin-portal-status]").forEach((el) => { el.textContent = state.authenticated ? "Open Archive" : "View sign-in status"; });
   document.querySelectorAll("[data-emergency-state]").forEach((el) => { el.textContent = authError || "No automatic owner or emergency fallback is active."; });
@@ -76,7 +100,7 @@ const render = () => {
 const renderHealth = () => {
   const checks = health?.checks || {};
   document.querySelectorAll("[data-deploy-branch]").forEach((el) => { el.textContent = health?.deployedBranch || "unknown"; });
-  document.querySelectorAll("[data-deploy-auth]").forEach((el) => { el.textContent = account.authenticated ? "Netlify Identity verified" : "authentication required"; });
+  document.querySelectorAll("[data-deploy-auth]").forEach((el) => { el.textContent = account.authenticated ? `${account.provider} verified (${AUTH_MODE})` : `${AUTH_MODE}; authentication required`; });
   document.querySelectorAll("[data-deploy-api]").forEach((el) => { el.textContent = health ? "reached" : "unavailable"; });
   document.querySelectorAll("[data-health-context]").forEach((el) => { el.textContent = health?.runtimeContext || "missing"; });
   document.querySelectorAll("[data-health-project]").forEach((el) => { el.textContent = checks.projectIdentityMatches ? "declared URL/ref match" : "not ready"; });
@@ -93,61 +117,59 @@ const refreshHealth = async () => {
   healthRequest = Promise.all([
     fetch("/api/creative-os/health").then((response) => response.json()),
     fetch("/api/creative-os/ready").then((response) => response.json()),
-  ])
-    .then(([shallow, readiness]) => {
-      health = { ...shallow, ...readiness };
-      renderHealth();
-      return health;
-    })
-    .catch(() => {
-      health = null;
-      renderHealth();
-      return null;
-    })
-    .finally(() => { healthRequest = null; });
+  ]).then(([shallow, readiness]) => {
+    health = { ...shallow, ...readiness };
+    renderHealth();
+    return health;
+  }).catch(() => {
+    health = null;
+    renderHealth();
+    return null;
+  }).finally(() => { healthRequest = null; });
   return healthRequest;
 };
 
-const showLoginForm = (visible) => {
-  document.querySelectorAll("[data-login-form]").forEach((form) => {
-    form.hidden = !visible;
-    if (visible) form.querySelector("[data-login-email]")?.focus();
-  });
-};
-
-const openLogin = () => {
-  authError = "";
-  setAccountDrawer(true);
-  showLoginForm(true);
-  render();
-};
-
-const closeLogin = () => {
-  document.querySelectorAll("[data-login-form]").forEach((form) => form.reset());
-  showLoginForm(false);
-  authError = "";
-  render();
-};
-
+const showLoginForm = (visible) => document.querySelectorAll("[data-login-form]").forEach((form) => {
+  form.hidden = !visible;
+  if (visible) form.querySelector("[data-login-email]")?.focus();
+});
+const showInviteForm = (visible) => document.querySelectorAll("[data-invite-form]").forEach((form) => { form.hidden = !visible; });
 const showPasswordForm = (visible) => {
   passwordFormVisible = visible;
   if (visible) document.querySelector("[data-password-new]")?.focus();
 };
+const openLogin = () => { authError = ""; setAccountDrawer(true); showLoginForm(true); render(); };
+const closeLogin = () => { document.querySelectorAll("[data-login-form]").forEach((form) => form.reset()); showLoginForm(false); authError = ""; render(); };
+const openPasswordForm = () => { if (account.authenticated) { authError = ""; setAccountDrawer(true); showPasswordForm(true); render(); } };
+const closePasswordForm = () => { if (!passwordSetupRequired) { document.querySelectorAll("[data-password-form]").forEach((form) => form.reset()); showPasswordForm(false); authError = ""; render(); } };
 
-const openPasswordForm = () => {
-  if (!account.authenticated) return;
-  authError = "";
-  setAccountDrawer(true);
-  showPasswordForm(true);
+const selectedLoginProvider = (form) => AUTH_MODE === "dual" ? form.querySelector("[data-auth-provider]")?.value || defaultProvider() : defaultProvider();
+
+const login = async (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const email = form.querySelector("[data-login-email]")?.value.trim() || "";
+  const password = form.querySelector("[data-login-password]")?.value || "";
+  if (!email || !password) return;
+  try {
+    activeProviderName = selectedLoginProvider(form);
+    const selected = selectProvider(activeProviderName);
+    const otherName = activeProviderName === "netlify" ? "supabase" : "netlify";
+    if (AUTH_MODE === "dual" && providerAvailable(otherName)) await providerByName(otherName).logout().catch(() => {});
+    authError = "";
+    await hydrateAuthority(await selected.login(email, password));
+    form.reset();
+    showLoginForm(false);
+  } catch (error) {
+    account = { ...signedOut };
+    authError = error?.message || "Sign-in failed.";
+  }
   render();
 };
 
-const closePasswordForm = () => {
-  if (passwordSetupRequired) return;
-  document.querySelectorAll("[data-password-form]").forEach((form) => form.reset());
-  showPasswordForm(false);
-  authError = "";
-  render();
+const logout = async () => {
+  try { await provider()?.logout(); }
+  finally { account = { ...signedOut }; authError = ""; showLoginForm(false); passwordSetupRequired = false; showPasswordForm(false); render(); }
 };
 
 const setPassword = async (event) => {
@@ -155,134 +177,75 @@ const setPassword = async (event) => {
   const form = event.currentTarget;
   const password = form.querySelector("[data-password-new]")?.value || "";
   const confirmation = form.querySelector("[data-password-confirmation]")?.value || "";
-  if (!account.authenticated) {
-    authError = "An authenticated Netlify Identity session is required to set a password.";
-    render();
-    return;
-  }
-  if (!password || password !== confirmation) {
-    authError = "Passwords must be present and match.";
-    render();
-    return;
-  }
-  try {
-    authError = "";
-    account = normalizeAccount(await updateIdentityUser({ password }));
+  if (!account.authenticated) authError = "An authenticated Creative OS session is required to set a password.";
+  else if (!password || password !== confirmation) authError = "Passwords must be present and match.";
+  else try {
+    await hydrateAuthority(await provider().updatePassword(password));
     passwordSetupRequired = false;
     form.reset();
     showPasswordForm(false);
     authError = "Password saved. Sign out and sign back in to verify it.";
-  } catch (error) {
-    authError = error?.message || "Password update failed.";
-    form.querySelectorAll('input[type="password"]').forEach((input) => { input.value = ""; });
-  }
+  } catch (error) { authError = error?.message || "Password update failed."; }
   render();
 };
 
-const login = async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const email = form.querySelector("[data-login-email]")?.value.trim() || "";
-  const passwordInput = form.querySelector("[data-login-password]");
-  const password = passwordInput?.value || "";
-  if (!email || !password) return;
+const requestRecovery = async (event) => {
+  const form = event.currentTarget.closest("form");
+  const email = form?.querySelector("[data-login-email]")?.value.trim() || "";
+  if (!email) { authError = "Enter the account email first."; render(); return; }
   try {
-    authError = "";
-    account = normalizeAccount(await identityLogin(email, password));
-    form.reset();
-    showLoginForm(false);
-  } catch (error) {
-    account = { ...signedOut };
-    authError = error?.message || "Sign-in failed.";
-    if (passwordInput) passwordInput.value = "";
-  }
+    activeProviderName = selectedLoginProvider(form);
+    await selectProvider(activeProviderName).recover(email);
+    authError = "Password recovery instructions were sent if the account exists.";
+  } catch (error) { authError = error?.message || "Password recovery failed."; }
   render();
-};
-
-const logout = async () => {
-  try { await identityLogout(); }
-  finally {
-    account = { ...signedOut };
-    authError = "";
-    showLoginForm(false);
-    passwordSetupRequired = false;
-    showPasswordForm(false);
-    render();
-  }
-};
-
-const showInviteForm = (visible) => {
-  document.querySelectorAll("[data-invite-form]").forEach((form) => { form.hidden = !visible; });
 };
 
 const acceptPendingInvite = async (event) => {
   event.preventDefault();
-  if (!pendingInviteToken) return;
   const form = event.currentTarget;
   const password = form.querySelector("[data-invite-password]")?.value || "";
   const confirmation = form.querySelector("[data-invite-password-confirmation]")?.value || "";
-  if (!password || password !== confirmation) {
-    authError = "Invitation passwords must be present and match.";
-    render();
-    return;
-  }
+  if (!pendingInviteToken || !password || password !== confirmation) { authError = "Invitation passwords must be present and match."; render(); return; }
   try {
-    authError = "";
-    account = normalizeAccount(await acceptInvite(pendingInviteToken, password));
+    activeProviderName = "netlify";
+    const netlify = selectProvider("netlify");
+    await hydrateAuthority(await netlify.acceptInvite(pendingInviteToken, password));
     pendingInviteToken = null;
     form.reset();
     showInviteForm(false);
-  } catch (error) {
-    account = { ...signedOut };
-    authError = error?.message || "Invitation acceptance failed.";
-  }
+  } catch (error) { account = { ...signedOut }; authError = error?.message || "Invitation acceptance failed."; }
   render();
 };
 
 const ready = (async () => {
   try {
-    const callback = await handleAuthCallback();
-    if (callback?.type === "invite") {
-      pendingInviteToken = callback.token;
+    activeProviderName = defaultProvider();
+    const restored = await selectProvider(activeProviderName).restore();
+    if (restored?.type === "invite") {
+      pendingInviteToken = restored.token;
       authError = "Set and confirm a password to accept your Creative OS invitation.";
       setAccountDrawer(true);
       showInviteForm(true);
-      account = { ...signedOut };
-    } else if (callback?.type === "recovery") {
-      account = normalizeAccount(callback.user);
-      passwordSetupRequired = true;
-      setAccountDrawer(true);
-      showPasswordForm(true);
-      authError = "Set and confirm a new password to complete account recovery.";
     } else {
-      account = normalizeAccount(callback?.user || await getUser());
+      if (restored?.type === "recovery") { passwordSetupRequired = true; setAccountDrawer(true); showPasswordForm(true); }
+      await hydrateAuthority(restored?.user);
     }
-  } catch (error) {
-    account = { ...signedOut };
-    authError = error?.message || "Authentication is unavailable.";
-  }
+  } catch (error) { account = { ...signedOut }; authError = error?.message || "Authentication is unavailable."; }
   render();
   return account;
 })();
 
-onAuthChange((event, user) => {
-  account = normalizeAccount(user);
-  if (event === AUTH_EVENTS.RECOVERY) {
-    passwordSetupRequired = true;
-    setAccountDrawer(true);
-    showPasswordForm(true);
-    authError = "Set and confirm a new password to complete account recovery.";
+for (const name of ["netlify", "supabase"]) {
+  if (!providerAllowed(name) || !providerAvailable(name)) continue;
+  providerByName(name).onChange(async (event, user) => {
+    if (activeProviderName !== name) return;
+    if (event === AUTH_EVENTS.RECOVERY || event === "PASSWORD_RECOVERY") { passwordSetupRequired = true; setAccountDrawer(true); showPasswordForm(true); }
+    authError = "";
+    await hydrateAuthority(user).catch((error) => { authError = error?.message || "Authorization verification failed."; });
     render();
-    return;
-  }
-  authError = "";
-  if (account.authenticated) showLoginForm(false);
-  else {
-    passwordSetupRequired = false;
-    showPasswordForm(false);
-  }
-  render();
-});
+  });
+}
 
 document.querySelectorAll("[data-account-login]").forEach((button) => button.addEventListener("click", openLogin));
 document.querySelectorAll("[data-account-logout]").forEach((button) => button.addEventListener("click", logout));
@@ -290,6 +253,7 @@ document.querySelectorAll("[data-account-drawer-open]").forEach((button) => butt
 document.querySelectorAll("[data-account-drawer-close]").forEach((button) => button.addEventListener("click", () => setAccountDrawer(false)));
 document.querySelectorAll("[data-login-form]").forEach((form) => form.addEventListener("submit", login));
 document.querySelectorAll("[data-login-cancel]").forEach((button) => button.addEventListener("click", closeLogin));
+document.querySelectorAll("[data-login-recovery]").forEach((button) => button.addEventListener("click", requestRecovery));
 document.querySelectorAll("[data-password-open]").forEach((button) => button.addEventListener("click", openPasswordForm));
 document.querySelectorAll("[data-password-form]").forEach((form) => form.addEventListener("submit", setPassword));
 document.querySelectorAll("[data-password-cancel]").forEach((button) => button.addEventListener("click", closePasswordForm));
@@ -300,7 +264,7 @@ refreshHealth();
 window.CreativeAccount = {
   ready,
   current: snapshot,
-  authHeaders: async () => ({}),
+  authHeaders,
   refreshHealth,
   login: openLogin,
   logout,

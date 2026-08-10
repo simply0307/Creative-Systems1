@@ -37,7 +37,7 @@ const buildTimestamp = new Date().toISOString();
           <dl class="account-facts">
             <dt>Email</dt><dd data-account-email>—</dd>
             <dt>Role</dt><dd data-account-role>viewer</dd>
-            <dt>Role source</dt><dd data-account-role-source>Waiting for a verified Netlify Identity session</dd>
+            <dt>Role source</dt><dd data-account-role-source>Waiting for a verified Creative OS session</dd>
             <dt>Privileges</dt><dd data-account-privileges>not elevated</dd>
           </dl>
           <p data-account-authority>No application authority</p>
@@ -47,7 +47,14 @@ const buildTimestamp = new Date().toISOString();
           <button class="button" type="button" data-account-logout hidden>Sign out</button>
           <button class="button" type="button" data-password-open hidden>Set or change password</button>
           <form class="identity-login-form" data-login-form hidden>
-            <p>Sign in with your invited Creative OS account.</p>
+            <p>Sign in with your provisioned Creative OS account.</p>
+            <label data-auth-provider-field hidden>
+              Identity provider
+              <select data-auth-provider>
+                <option value="netlify">Netlify Identity</option>
+                <option value="supabase">Supabase Auth</option>
+              </select>
+            </label>
             <label>
               Email
               <input type="email" autocomplete="username" required data-login-email />
@@ -57,6 +64,7 @@ const buildTimestamp = new Date().toISOString();
               <input type="password" autocomplete="current-password" required data-login-password />
             </label>
             <button class="button acid" type="submit">Sign in</button>
+            <button class="button" type="button" data-login-recovery>Request password recovery</button>
             <button class="button" type="button" data-login-cancel>Cancel</button>
           </form>
           <form class="identity-password-form" data-password-form hidden>

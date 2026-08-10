@@ -17,6 +17,7 @@ export const supabaseConfig = (env = process.env) => {
   const url = envValue("SUPABASE_URL", env);
   const projectRef = envValue("SUPABASE_PROJECT_REF", env);
   const runtimeContext = envValue("CREATIVE_OS_RUNTIME_CONTEXT", env);
+  const authMode = envValue("CREATIVE_OS_AUTH_MODE", env) || "netlify";
   const schemaContractVersion = envValue("CREATIVE_OS_SCHEMA_CONTRACT_VERSION", env);
   const mutationAuthority = envValue("CREATIVE_OS_MUTATION_AUTHORITY", env);
   const allowCanonicalNonProduction = envValue("CREATIVE_OS_ALLOW_CANONICAL_NON_PRODUCTION", env).toLowerCase() === "true";
@@ -46,6 +47,7 @@ export const supabaseConfig = (env = process.env) => {
     url,
     projectRef,
     runtimeContext,
+    authMode,
     schemaContractVersion: schemaContractVersion || String(CREATIVE_OS_SCHEMA_CONTRACT_VERSION),
     mutationAuthority: mutationAuthority || CREATIVE_OS_MUTATION_AUTHORITY,
     allowCanonicalNonProduction,
@@ -98,28 +100,40 @@ export const requireData = (result, label = "Supabase operation") => {
   return result.data;
 };
 
-const profileRow = (identity) => ({
-  email: identity.userEmail || `${identity.userId}@identity.local`,
-  display_name: identity.userName || identity.userEmail || "Employee",
-  role: identity.userRole,
-  identity_provider: "netlify_identity",
-  identity_user_id: identity.userId,
-});
-
-export const ensureProfile = async (supabase, identity) => {
-  if (!identity?.authenticated || !identity?.identityVerified || identity.authMethod !== "netlify-identity") {
-    throw new Error("A verified Netlify Identity user is required before a profile may be created or updated.");
+export const loadProfileForIdentity = async (supabase, identity) => {
+  if (!identity?.authenticated || !identity?.identityVerified || !identity?.provider || !identity?.subject) {
+    throw Object.assign(new Error("A verified provider identity is required before Creative OS authority can be loaded."), { status: 401 });
   }
-  const row = profileRow(identity);
-  const existing = requireData(await supabase.from("profiles")
-    .select("id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at")
-    .eq("identity_user_id", identity.userId)
-    .maybeSingle(), "Load profile bridge");
-  if (!existing) return requireData(await supabase.from("profiles").insert(row).select().single(), "Create profile bridge");
-  const changed = Object.entries(row).some(([key, value]) => existing[key] !== value);
-  if (!changed) return existing;
-  return requireData(await supabase.from("profiles").update(row).eq("id", existing.id).select().single(), "Update profile bridge");
+  if (!['netlify_identity', 'supabase_auth'].includes(identity.provider)) {
+    throw Object.assign(new Error("This identity provider cannot receive Creative OS authority."), { status: 403 });
+  }
+  const mappingResult = await supabase.from("profile_identities")
+    .select("profile_id,provider,provider_subject,profile:profiles!inner(id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at)")
+    .eq("provider", identity.provider)
+    .eq("provider_subject", identity.subject)
+    .maybeSingle();
+  const missingBridgeTable = ["42P01", "PGRST205"].includes(mappingResult.error?.code);
+  if (missingBridgeTable && identity.provider === "netlify_identity") {
+    const legacyProfile = requireData(await supabase.from("profiles")
+      .select("id,email,display_name,role,identity_provider,identity_user_id,created_at,updated_at")
+      .eq("identity_provider", "netlify_identity")
+      .eq("identity_user_id", identity.subject)
+      .maybeSingle(), "Load pre-migration Netlify profile bridge");
+    if (legacyProfile) return legacyProfile;
+  }
+  const mapping = requireData(mappingResult, "Load provider identity bridge");
+  if (!mapping?.profile) {
+    throw Object.assign(new Error("This verified account is not provisioned for Creative OS."), {
+      status: 403,
+      code: "identity_not_provisioned",
+    });
+  }
+  return mapping.profile;
 };
+
+// Compatibility export for callers that have not yet adopted the clearer name.
+// It is intentionally read-only and never creates or updates a profile.
+export const ensureProfile = loadProfileForIdentity;
 
 export const loadLocalOwnerProfile = async (supabase, identity) => {
   if (identity?.authMethod !== "explicit-local-owner") throw new Error("Explicit local owner identity is required.");

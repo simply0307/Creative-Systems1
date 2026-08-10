@@ -13,3 +13,19 @@ export const resolveNetlifyIdentity = (request, environment) => resolveIdentity(
   globalThis.fetch,
   environment,
 );
+
+/** @implements {import("../../../src/server/auth/auth-provider.ts").AuthProvider} */
+export class NetlifyAuthProvider {
+  name = "netlify-identity";
+  #context;
+  #fetch;
+
+  constructor({ context = {}, fetchImpl = globalThis.fetch } = {}) {
+    this.#context = context;
+    this.#fetch = fetchImpl;
+  }
+
+  authenticate(request, { environment } = {}) {
+    return resolveIdentity(request, this.#context, this.#fetch, environment);
+  }
+}

@@ -149,6 +149,7 @@ export const createOfflineSupabaseFixture = ({ artifacts = artifactCorpusFixture
     }
     if (state.options.head) return { data: [], error: null };
     if (state.table === "creative_os_runtime_contract") return { data: runtimeContractFixture, error: null };
+    if (state.table === "profile_identities") return { data: { profile_id: ownerProfile.id, provider: "netlify_identity", provider_subject: ownerIdentity.userId, profile: ownerProfile }, error: null };
     if (state.table === "profiles") return { data: ownerProfile, error: null };
     if (state.table === "artifacts") {
       if (state.operation !== "select") return { data: null, error: null };

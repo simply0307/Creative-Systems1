@@ -68,8 +68,9 @@ test("shared core has no direct Netlify runtime, process environment, clock, or 
   assert.match(core, /handleCreativeOs = createCreativeOsHandler\(\)/);
 
   const entry = read("netlify/functions/creative-os.mjs");
-  assert.match(entry, /handleCreativeOs\(request, new NetlifyRuntimeAdapter\(\)\)/);
+  assert.match(entry, /createCreativeOsHandler\(\{ authProvider: new RoutedAuthProvider\(\{ netlifyContext: context \}\) \}\)\(request, new NetlifyRuntimeAdapter\(\)\)/);
   assert.doesNotMatch(entry, /supabase\.from|runRuntimeReadiness|classifyCreativeOsRoute/);
+  assert.doesNotMatch(core, /resolveNetlifyIdentity|NetlifyAuthProvider|RoutedAuthProvider/);
 });
 
 test("LocalTestRuntimeAdapter supplies deterministic time, UUIDs, environment, secrets, and deployment metadata", () => {

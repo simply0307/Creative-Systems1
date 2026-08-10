@@ -28,10 +28,10 @@ No backup artifact belongs in Git.
 
 - Site: `eggs-creative-systems-os`
 - Site ID: `f69df1d9-50ff-4b8c-a3e8-0ae266a946aa`
-- Audited current deploy ID before Step 4B source changes: `6a769cf7e8abd400085a825d`
+- Current production deploy ID at the Phase B audit: `6a775fd1f6f2490009147d99`
 - Deploy source repository: `simply0307/Creative-Systems1`
 - Deploy branch: `main`
-- Deploy commit: `508091e5d7494132bf629ba05f9713c6781bb6ed`
+- Deploy commit: `a0280c3e2532b0bd94b493cabf3c7c556c60e0d4`
 - Deployed functions: `creative-os`, `operations`
 
 The production-context Netlify environment now declares the canonical project ref, runtime context, schema-contract version, mutation authority, and five bucket names. Deploy-preview and branch-deploy contexts declare the contract metadata and bucket names but intentionally have no `SUPABASE_PROJECT_REF`; they therefore fail closed until a separate non-production backend is explicitly assigned. Existing URL and credential values were not changed.
@@ -57,6 +57,8 @@ Canonical Supabase records these migrations:
 7. `20260807224000_harden_direct_function_privileges`
 8. `20260810032000_worker_budget_rpc`
 
+The Phase B branch adds repository migration `20260810195000_profile_identities`. It is intentionally pending and has not been applied to either Supabase project. It creates the additive provider-subject bridge, seeds only the two existing Netlify profile subjects, and does not link the existing Supabase Auth user.
+
 The first four local SQL bodies were proven identical to the corresponding remote stored statements after newline normalization. Their repository filenames had older version prefixes, so the files were renamed to the versions actually recorded by canonical Supabase without changing their SQL bodies.
 
 The fifth migration was absent from both the Step 2 checkout and the exact Netlify deploy source. Its SQL was reconstructed exactly from `supabase_migrations.schema_migrations.statements` and preserved under the recorded remote version and name.
@@ -74,6 +76,7 @@ Every server runtime must explicitly declare:
 - `CREATIVE_OS_RUNTIME_CONTEXT`
 - `CREATIVE_OS_SCHEMA_CONTRACT_VERSION=1`
 - `CREATIVE_OS_MUTATION_AUTHORITY=creative-os-api`
+- `CREATIVE_OS_AUTH_MODE=netlify|dual|supabase` (defaults to `netlify` during the transition)
 - `SUPABASE_URL`
 - `SUPABASE_PROJECT_REF`
 - `SUPABASE_ANON_KEY` or supported publishable equivalent

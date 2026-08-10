@@ -3,8 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { authorizeCreativeOsRoute, classifyCreativeOsRoute } from "../netlify/functions/lib/authorization.mjs";
+import { RoutedAuthProvider } from "../netlify/functions/lib/auth-provider-router.mjs";
 import { localOwnerModeEnabled, resolveIdentity } from "../netlify/functions/lib/identity.mjs";
-import { ensureProfile } from "../netlify/functions/lib/supabase.mjs";
+import { SupabaseAuthProvider } from "../netlify/functions/lib/supabase-auth-provider.mjs";
+import { loadProfileForIdentity } from "../netlify/functions/lib/supabase.mjs";
+import { withProfileAuthority } from "../src/server/auth/identity.mjs";
 import { handleCreativeOsRequest } from "../netlify/functions/creative-os.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
@@ -68,53 +71,43 @@ test("valid Netlify Identity user is accepted and only trusted app metadata supp
   assert.equal(identity.identityVerified, true);
   assert.equal(identity.userRole, "editor");
   assert.equal(identity.authMethod, "netlify-identity");
+  assert.equal(identity.provider, "netlify_identity");
+  assert.equal(identity.subject, "employee-1");
+  assert.equal(identity.verifiedEmail, "employee@example.test");
 });
 
-test("account client completes invite callbacks with an explicit password acceptance flow", () => {
+test("browser auth boundary preserves Netlify callbacks and implements Supabase session lifecycle without signup", () => {
   const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
+  const providers = fs.readFileSync(path.join(root, "src/scripts/auth-provider-client.js"), "utf8");
   const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
-  assert.match(accountClient, /import \{[^}]*acceptInvite[^}]*handleAuthCallback[^}]*\} from "@netlify\/identity"/);
-  assert.match(accountClient, /callback\?\.type === "invite"/);
-  assert.match(accountClient, /pendingInviteToken = callback\.token/);
+  assert.match(providers, /acceptInvite[\s\S]*handleAuthCallback[\s\S]*from "@netlify\/identity"/);
+  assert.match(providers, /callback\?\.type === "invite"/);
+  assert.match(accountClient, /pendingInviteToken = restored\.token/);
   assert.match(accountClient, /acceptInvite\(pendingInviteToken, password\)/);
+  for (const behavior of ["persistSession: true", "autoRefreshToken: true", "detectSessionInUrl: true", "getSession", "signInWithPassword", "signOut", "resetPasswordForEmail", "updateUser", "onAuthStateChange"]) assert.match(providers, new RegExp(behavior.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.doesNotMatch(providers, /\.auth\.signUp|\bsignup\s*\(/i);
   assert.match(layout, /data-invite-form/);
   assert.match(layout, /autocomplete="new-password"/);
-});
-
-test("account client uses an inline Identity login form instead of blocked browser prompts", () => {
-  const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
-  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
   assert.doesNotMatch(accountClient, /window\.prompt/);
-  assert.match(accountClient, /identityLogin\(email, password\)/);
+  assert.match(accountClient, /selected\.login\(email, password\)/);
   assert.match(accountClient, /\[data-login-form\].*addEventListener\("submit", login\)/);
   assert.match(layout, /data-login-form/);
+  assert.match(layout, /data-auth-provider/);
+  assert.match(layout, /data-login-recovery/);
   assert.match(layout, /autocomplete="username"/);
   assert.match(layout, /autocomplete="current-password"/);
 });
 
-test("authenticated Identity users can set a reusable password without creating another account", () => {
+test("browser authority is hydrated from the server and Supabase bearer credentials stay same-origin", () => {
   const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
-  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
-  assert.match(accountClient, /updateUser as updateIdentityUser/);
-  assert.match(accountClient, /updateIdentityUser\(\{ password \}\)/);
-  assert.match(accountClient, /callback\?\.type === "recovery"/);
-  assert.match(accountClient, /event === AUTH_EVENTS\.RECOVERY/);
-  assert.match(layout, /data-password-open/);
-  assert.match(layout, /data-password-form/);
-  assert.match(layout, /Set or change password/);
-  assert.doesNotMatch(accountClient, /signup\(/);
-});
-
-test("mobile users can open the Identity account panel and recovery opens it automatically", () => {
-  const accountClient = fs.readFileSync(path.join(root, "src/scripts/account-client.js"), "utf8");
-  const layout = fs.readFileSync(path.join(root, "src/layouts/AppLayout.astro"), "utf8");
-  const styles = fs.readFileSync(path.join(root, "src/styles/global.css"), "utf8");
-  assert.match(layout, /data-account-drawer/);
-  assert.match(layout, /data-account-drawer-open/);
-  assert.match(layout, /data-account-drawer-close/);
-  assert.match(accountClient, /callback\?\.type === "recovery"[\s\S]*setAccountDrawer\(true\)[\s\S]*showPasswordForm\(true\)/);
-  assert.match(accountClient, /event === AUTH_EVENTS\.RECOVERY[\s\S]*setAccountDrawer\(true\)[\s\S]*showPasswordForm\(true\)/);
-  assert.match(styles, /\.sidebar\.account-drawer-open\s*\{[^}]*display:flex/);
+  const providers = fs.readFileSync(path.join(root, "src/scripts/auth-provider-client.js"), "utf8");
+  const apiClient = fs.readFileSync(path.join(root, "src/scripts/creative-os-client.js"), "utf8");
+  assert.match(accountClient, /fetch\("\/api\/creative-os\/auth\/session"/);
+  assert.match(accountClient, /result\.roleSource \|\| "public\.profiles\.role"/);
+  assert.doesNotMatch(accountClient, /app_metadata|user_metadata.*roles/i);
+  assert.match(providers, /url\.origin !== window\.location\.origin/);
+  assert.match(providers, /authorization: `Bearer \$\{data\.session\.access_token\}`/);
+  assert.match(apiClient, /authHeaders\(target\)/);
 });
 
 test("explicit local owner mode requires both local runtime and the flag", async () => {
@@ -220,29 +213,182 @@ test("authenticated owner can perform an authorized controlled-value mutation", 
   assert.deepEqual(mutations, ["tags", "audit_events"]);
 });
 
-test("unchanged verified profile reads do not upsert or update", async () => {
+test("verified provider subjects load one stable profile without email lookup or mutation", async () => {
   const mutations = [];
   const existing = { id: "profile-1", email: "editor@example.test", display_name: "Editor", role: "editor", identity_provider: "netlify_identity", identity_user_id: "editor-1" };
   const supabase = {
-    from() {
+    from(table) {
+      assert.equal(table, "profile_identities");
       return {
         select() { return this; },
         eq() { return this; },
-        maybeSingle: async () => ({ data: existing, error: null }),
+        maybeSingle: async () => ({ data: { profile_id: existing.id, provider: "netlify_identity", provider_subject: "editor-1", profile: existing }, error: null }),
         insert() { mutations.push("insert"); return this; },
         update() { mutations.push("update"); return this; },
       };
     },
   };
-  const profile = await ensureProfile(supabase, { authenticated: true, identityVerified: true, userId: "editor-1", userEmail: "editor@example.test", userName: "Editor", userRole: "editor", authMethod: "netlify-identity" });
+  const profile = await loadProfileForIdentity(supabase, { authenticated: true, identityVerified: true, provider: "netlify_identity", subject: "editor-1" });
   assert.equal(profile.id, "profile-1");
   assert.deepEqual(mutations, []);
 });
 
-test("profile bridge rejects synthetic or unauthenticated identities before database access", async () => {
+test("pre-migration Netlify identities retain a read-only legacy bridge only when the mapping table is absent", async () => {
+  const calls = [];
+  const existing = { id: "profile-legacy", email: "owner@example.test", display_name: "Owner", role: "owner", identity_provider: "netlify_identity", identity_user_id: "owner-1" };
+  const supabase = {
+    from(table) {
+      calls.push(table);
+      const chain = {
+        select() { return this; },
+        eq() { return this; },
+        maybeSingle: async () => table === "profile_identities"
+          ? ({ data: null, error: { code: "PGRST205", message: "table not found" } })
+          : ({ data: existing, error: null }),
+      };
+      return chain;
+    },
+  };
+  const profile = await loadProfileForIdentity(supabase, { authenticated: true, identityVerified: true, provider: "netlify_identity", subject: "owner-1" });
+  assert.equal(profile.id, existing.id);
+  assert.deepEqual(calls, ["profile_identities", "profiles"]);
+});
+
+test("profile bridge database errors and Supabase identities never trigger the legacy fallback", async () => {
+  const calls = [];
+  const failing = (code) => ({
+    from(table) {
+      calls.push(table);
+      return { select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: null, error: { code, message: "database unavailable" } }) };
+    },
+  });
+  await assert.rejects(
+    loadProfileForIdentity(failing("08006"), { authenticated: true, identityVerified: true, provider: "netlify_identity", subject: "owner-1" }),
+    /Load provider identity bridge:/,
+  );
+  assert.deepEqual(calls, ["profile_identities"]);
+  calls.length = 0;
+  await assert.rejects(
+    loadProfileForIdentity(failing("PGRST205"), { authenticated: true, identityVerified: true, provider: "supabase_auth", subject: "supabase-1" }),
+    /Load provider identity bridge:/,
+  );
+  assert.deepEqual(calls, ["profile_identities"]);
+});
+
+test("profile bridge rejects synthetic, unauthenticated, and unprovisioned identities without creating profiles", async () => {
   const supabase = new Proxy({}, { get() { throw new Error("database must not be touched"); } });
-  await assert.rejects(ensureProfile(supabase, { authenticated: false }), /verified Netlify Identity/i);
-  await assert.rejects(ensureProfile(supabase, { authenticated: true, identityVerified: false, authMethod: "explicit-local-owner" }), /verified Netlify Identity/i);
+  await assert.rejects(loadProfileForIdentity(supabase, { authenticated: false }), /verified provider identity/i);
+  await assert.rejects(loadProfileForIdentity(supabase, { authenticated: true, identityVerified: false, provider: "local", subject: "local" }), /verified provider identity/i);
+
+  const unprovisioned = { from: () => ({ select() { return this; }, eq() { return this; }, maybeSingle: async () => ({ data: null, error: null }) }) };
+  await assert.rejects(loadProfileForIdentity(unprovisioned, { authenticated: true, identityVerified: true, provider: "supabase_auth", subject: "subject-1" }), (error) => error.status === 403 && error.code === "identity_not_provisioned");
+});
+
+test("canonical profile role overrides every provider claim", () => {
+  const identity = { authenticated: true, userRole: "owner", roleSource: "token", trustedClaims: { roles: ["owner"] } };
+  const effective = withProfileAuthority(identity, { id: "profile-1", role: "editor" });
+  assert.equal(effective.userRole, "editor");
+  assert.equal(effective.roleSource, "public.profiles.role");
+});
+
+test("Supabase provider verifies the exact bearer with auth.getUser and does not trust token role metadata", async () => {
+  const token = jwt({ iss: "https://okqkljexfzolzxysjaha.supabase.co/auth/v1", sub: "supabase-user", exp: Math.floor(Date.now() / 1000) + 3600, aal: "aal1", app_metadata: { roles: ["owner"] } });
+  let verifiedToken = null;
+  const identity = await new SupabaseAuthProvider().authenticate(new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${token}` } }), {
+    supabase: { auth: { getUser: async (candidate) => {
+      verifiedToken = candidate;
+      return { data: { user: { id: "supabase-user", email: "verified@example.test", email_confirmed_at: "2026-08-10T00:00:00Z", app_metadata: { roles: ["owner"] }, user_metadata: { full_name: "Verified" } } }, error: null };
+    } } },
+  });
+  assert.equal(verifiedToken, token);
+  assert.equal(identity.authenticated, true);
+  assert.equal(identity.provider, "supabase_auth");
+  assert.equal(identity.subject, "supabase-user");
+  assert.equal(identity.userRole, "viewer");
+  assert.equal(identity.roleSource, "unprovisioned");
+  assert.equal(identity.sessionStrength, "aal1");
+});
+
+test("Supabase malformed, expired, invalid, and unavailable credentials all fail closed", async () => {
+  const provider = new SupabaseAuthProvider();
+  let calls = 0;
+  const client = (result) => ({ auth: { getUser: async () => { calls += 1; if (result instanceof Error) throw result; return result; } } });
+  const malformed = await provider.authenticate(new Request("https://example.test", { headers: { authorization: "Bearer malformed" } }), { supabase: client(null) });
+  assert.equal(malformed.authFailure, "malformed");
+  const expiredToken = jwt({ sub: "expired", exp: Math.floor(Date.now() / 1000) - 1 });
+  const expired = await provider.authenticate(new Request("https://example.test", { headers: { authorization: `Bearer ${expiredToken}` } }), { supabase: client(null) });
+  assert.equal(expired.authFailure, "expired");
+  assert.equal(calls, 0);
+
+  const currentToken = jwt({ sub: "current", exp: Math.floor(Date.now() / 1000) + 3600 });
+  const invalid = await provider.authenticate(new Request("https://example.test", { headers: { authorization: `Bearer ${currentToken}` } }), { supabase: client({ data: { user: null }, error: { status: 401 } }) });
+  assert.equal(invalid.authFailure, "invalid");
+  assert.equal(invalid.authFailureStatus, 401);
+  const unavailable = await provider.authenticate(new Request("https://example.test", { headers: { authorization: `Bearer ${currentToken}` } }), { supabase: client(new Error("offline")) });
+  assert.equal(unavailable.authFailure, "verification-unavailable");
+  assert.equal(unavailable.authFailureStatus, 503);
+  assert.equal(calls, 2);
+});
+
+test("the complete role matrix is identical after either provider is mapped to the same profile", () => {
+  const policies = [
+    [classifyCreativeOsRoute("GET", "artifacts"), ["viewer", "contributor", "editor", "admin", "owner"]],
+    [classifyCreativeOsRoute("POST", "artifacts/a/tags"), ["contributor", "editor", "admin", "owner"]],
+    [classifyCreativeOsRoute("GET", "review-requests"), ["admin", "owner"]],
+  ];
+  for (const provider of ["netlify_identity", "supabase_auth"]) {
+    for (const role of ["viewer", "contributor", "editor", "admin", "owner"]) {
+      const identity = withProfileAuthority({ authenticated: true, provider, subject: `${provider}-${role}`, userRole: "viewer" }, { id: `${provider}-${role}`, role });
+      for (const [policy, allowed] of policies) {
+        if (allowed.includes(role)) assert.doesNotThrow(() => authorizeCreativeOsRoute(identity, policy));
+        else assert.throws(() => authorizeCreativeOsRoute(identity, policy), (error) => error.status === 403);
+      }
+    }
+  }
+});
+
+test("dual-provider routing is issuer-deterministic and conflicting credentials fail closed", async () => {
+  const calls = [];
+  const provider = (name) => ({ authenticate: async () => { calls.push(name); return { authenticated: true, provider: name, userRole: "viewer" }; } });
+  const router = new RoutedAuthProvider({ netlifyProvider: provider("netlify"), supabaseProvider: provider("supabase") });
+  const environment = { CREATIVE_OS_AUTH_MODE: "dual", SUPABASE_URL: "https://okqkljexfzolzxysjaha.supabase.co" };
+  const supabaseToken = jwt({ iss: `${environment.SUPABASE_URL}/auth/v1`, sub: "s", exp: Math.floor(Date.now() / 1000) + 3600 });
+  const netlifyToken = jwt({ iss: "https://example.test/.netlify/identity", sub: "n", exp: Math.floor(Date.now() / 1000) + 3600 });
+  assert.equal((await router.authenticate(new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${supabaseToken}` } }), { environment })).provider, "supabase");
+  assert.equal((await router.authenticate(new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${netlifyToken}` } }), { environment })).provider, "netlify");
+  const conflict = await router.authenticate(new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${supabaseToken}`, cookie: `nf_jwt=${netlifyToken}` } }), { environment });
+  assert.equal(conflict.authenticated, false);
+  assert.equal(conflict.authFailure, "conflicting-credentials");
+  assert.deepEqual(calls, ["supabase", "netlify"]);
+});
+
+test("single-provider routing preserves authoritative verification across alternate site origins", async () => {
+  const calls = [];
+  const provider = (name) => ({ authenticate: async () => { calls.push(name); return { authenticated: true, provider: name, userRole: "viewer" }; } });
+  const router = new RoutedAuthProvider({ netlifyProvider: provider("netlify"), supabaseProvider: provider("supabase") });
+  const alternateOriginToken = jwt({ iss: "https://primary-site.example/.netlify/identity", sub: "n", exp: Math.floor(Date.now() / 1000) + 3600 });
+  const netlify = await router.authenticate(
+    new Request("https://deploy-preview.example/api/creative-os/artifacts", { headers: { authorization: `Bearer ${alternateOriginToken}` } }),
+    { environment: { CREATIVE_OS_AUTH_MODE: "netlify", SUPABASE_URL: "https://okqkljexfzolzxysjaha.supabase.co" } },
+  );
+  assert.equal(netlify.provider, "netlify");
+  const unknownSupabaseToken = jwt({ iss: "https://unknown.example/auth/v1", sub: "s", exp: Math.floor(Date.now() / 1000) + 3600 });
+  const supabase = await router.authenticate(
+    new Request("https://example.test/api/creative-os/artifacts", { headers: { authorization: `Bearer ${unknownSupabaseToken}` } }),
+    { environment: { CREATIVE_OS_AUTH_MODE: "supabase", SUPABASE_URL: "https://okqkljexfzolzxysjaha.supabase.co" } },
+  );
+  assert.equal(supabase.provider, "supabase");
+  assert.deepEqual(calls, ["netlify", "supabase"]);
+});
+
+test("profile identity migration is additive, unique by provider subject, and does not link Supabase users by email", () => {
+  const sql = fs.readFileSync(path.join(root, "supabase/migrations/20260810195000_profile_identities.sql"), "utf8");
+  assert.match(sql, /create table if not exists public\.profile_identities/);
+  assert.match(sql, /unique \(provider, provider_subject\)/);
+  assert.match(sql, /from public\.profiles[\s\S]*identity_provider = 'netlify_identity'/);
+  assert.doesNotMatch(sql, /auth\.users|lower\(.*email|supabase_auth'\s*,/i);
+  assert.match(sql, /revoke all on table public\.profile_identities from public, anon, authenticated/);
+  assert.match(sql, /grant select, insert, update, delete on table public\.profile_identities to service_role/);
 });
 
 test("database security migration removes anonymous RPC and browser trigger execution", () => {
