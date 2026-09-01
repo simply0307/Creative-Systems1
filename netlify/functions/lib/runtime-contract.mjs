@@ -48,6 +48,7 @@ export const validateRuntimeConfiguration = (config) => {
   const derivedProjectRef = deriveSupabaseProjectRef(config.url);
   if (config.url && !derivedProjectRef) errors.push(error("invalid_supabase_url", "SUPABASE_URL must be an HTTPS project URL of the form https://<project-ref>.supabase.co."));
   if (derivedProjectRef && config.projectRef && derivedProjectRef !== config.projectRef) errors.push(error("supabase_project_ref_mismatch", "SUPABASE_URL does not identify the declared SUPABASE_PROJECT_REF."));
+  if (config.projectRef && config.projectRef !== CANONICAL_SUPABASE_PROJECT_REF) errors.push(error("supabase_project_not_authorized", "This repository may target only the authorized Reath/Creative OS Supabase project."));
   if (config.runtimeContext && !runtimeContexts.has(config.runtimeContext)) errors.push(error("invalid_runtime_context", "CREATIVE_OS_RUNTIME_CONTEXT is not one of the supported explicit contexts."));
   if (config.runtimeContext === "production" && config.projectRef && config.projectRef !== CANONICAL_SUPABASE_PROJECT_REF) errors.push(error("production_project_not_canonical", "Production must declare the canonical Creative OS Supabase project."));
   if (config.runtimeContext && config.runtimeContext !== "production" && config.projectRef === CANONICAL_SUPABASE_PROJECT_REF && !config.allowCanonicalNonProduction) errors.push(error("canonical_project_forbidden_outside_production", "Non-production use of the canonical project requires CREATIVE_OS_ALLOW_CANONICAL_NON_PRODUCTION=true."));

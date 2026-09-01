@@ -1,0 +1,67 @@
+---
+import "../styles/reath.css";
+
+interface Props {
+  title: string;
+  section?: "wire" | "health" | "ai" | "home";
+}
+
+const { title, section = "home" } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content="Internal Reath Digest editorial wire" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>{title} · Reath Digest</title>
+  </head>
+  <body>
+    <div class="reath-shell">
+      <aside class="reath-sidebar">
+        <a class="reath-brand" href="/wire"><span>RD</span><b>REATH<br/>DIGEST</b></a>
+        <p class="desk-label">Assignment desk</p>
+        <nav>
+          <a class:list={[section === "wire" && "active"]} href="/wire">Reath Wire</a>
+          <a class:list={[section === "health" && "active"]} href="/wire/health">Source Health</a>
+          <a class:list={[section === "ai" && "active"]} href="/wire/ai">AI Activity</a>
+        </nav>
+        <section class="identity-card" data-identity-card>
+          <p class="desk-label">Editorial authority</p>
+          <div data-auth-loading>Checking account…</div>
+          <p class="identity-note" data-auth-guest hidden>Accounts are invitation-only. Ask a Reath administrator to send you an invite.</p>
+          <form data-login-form hidden>
+            <label>Email<input name="email" type="email" autocomplete="username" required /></label>
+            <label>Password<input name="password" type="password" autocomplete="current-password" required /></label>
+            <button type="submit">Sign in</button>
+            <p class="form-error" data-login-error></p>
+          </form>
+          <form data-invite-form hidden>
+            <b>Finish creating your account</b>
+            <span>Your invitation is valid. Choose a password to join the internal editorial desk.</span>
+            <label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required /></label>
+            <label>Confirm password<input name="password_confirmation" type="password" autocomplete="new-password" minlength="8" required /></label>
+            <button type="submit">Create account</button>
+            <p class="form-error" data-invite-error></p>
+          </form>
+          <div data-user-panel hidden>
+            <b data-user-name></b>
+            <span data-user-email></span>
+            <span class="role-chip" data-user-role></span>
+            <button type="button" class="text-button" data-logout>Sign out</button>
+          </div>
+        </section>
+        <p class="rights-note">Internal metadata desk.<br/>No auto-publication.<br/>Source links remain source authority.</p>
+      </aside>
+      <main class="reath-main">
+        <header class="reath-topbar">
+          <span>NEW JERSEY · INTERNAL</span>
+          <time>{new Date().toLocaleDateString("en-US", { dateStyle: "long", timeZone: "America/New_York" })}</time>
+        </header>
+        <div class="reath-content"><slot /></div>
+      </main>
+    </div>
+    <script>import "../scripts/reath-auth-client.js";</script>
+  </body>
+</html>

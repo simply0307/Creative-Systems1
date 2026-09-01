@@ -1,0 +1,17 @@
+---
+import ReathLayout from "../../layouts/ReathLayout.astro";
+---
+<ReathLayout title="Source Health" section="health">
+  <section class="wire-heading">
+    <div><p class="kicker">Registry and observability</p><h1>Source Health</h1><p>Broken and stale feeds should be visible, attributable, and fixable.</p></div>
+    <button class="secondary-button" type="button" data-health-refresh>Refresh</button>
+  </section>
+  <p class="wire-message" data-health-message>Sign in to load source health.</p>
+  <div class="table-wrap" data-health-table hidden>
+    <table>
+      <thead><tr><th>Source</th><th>Assessment</th><th>Scope</th><th>Last success</th><th>Last check</th><th>Recent new</th><th>Failures</th><th>Last error</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <script>import "../../scripts/reath-health-client.js";</script>
+</ReathLayout>

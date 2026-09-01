@@ -1,29 +1,11 @@
 ---
-import AppLayout from "../layouts/AppLayout.astro";
-import manifest from "../generated/repo-import-manifest.json";
+import ReathLayout from "../layouts/ReathLayout.astro";
 ---
-<AppLayout title="Archive Index" section="artifacts">
-  <section class="hero-split">
-    <div class="hero-primary">
-      <div>
-        <p class="eyebrow">Archive Index</p>
-        <h1>Archive, index, tag.</h1>
-        <p class="lede">Browse the Desktop <code>Archive/</code> snapshot, add new files, preview and download individual files, and keep folders and tags saved in Supabase.</p>
-        <div class="cta-row">
-          <a class="button acid" href="/pipeline/artifacts">Open Archive</a>
-        </div>
-      </div>
-      <p class="eyebrow" style="margin:0">Solo-user mode: archive, index, tag, import, export.</p>
-    </div>
-    <div class="hero-side">
-      <div>
-        <p class="eyebrow">Archive snapshot</p>
-        <div class="hero-stat">
-          <div><b>{manifest.counts.archiveFiles || 0}</b><span>Archive files</span></div>
-          <div><b>{manifest.counts.archiveFolders || 0}</b><span>Folders</span></div>
-          <div><b>{manifest.counts.archiveFolderTags || 0}</b><span>Folder tags</span></div>
-        </div>
-      </div>
-    </div>
+<ReathLayout title="Reath Digest">
+  <section class="wire-hero">
+    <p class="kicker">New Jersey editorial intelligence</p>
+    <h1>Articles are evidence.<br/>Stories are the work.</h1>
+    <p>Reath Wire groups source coverage into auditable events for human editorial triage. Nothing here auto-publishes.</p>
+    <a class="primary-button" href="/wire">Open Reath Wire</a>
   </section>
-</AppLayout>
+</ReathLayout>

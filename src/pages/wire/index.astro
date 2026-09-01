@@ -1,0 +1,29 @@
+---
+import ReathLayout from "../../layouts/ReathLayout.astro";
+---
+<ReathLayout title="Reath Wire" section="wire">
+  <section class="wire-heading">
+    <div><p class="kicker">Human editorial inbox</p><h1>Reath Wire</h1><p>Corroborated Stories first, with source provenance and human editorial authority preserved.</p></div>
+    <button class="primary-button" type="button" data-run-ingestion>Run ingestion</button>
+  </section>
+
+  <form class="wire-filters" data-wire-filters>
+    <label>Status<select name="status"><option value="">All states</option><option>new</option><option>watch</option><option>keep</option><option>ignore</option></select></label>
+    <label>County<select name="county"><option value="">All counties</option></select></label>
+    <label>Municipality<select name="municipality"><option value="">All municipalities</option></select></label>
+    <label>Topic<select name="topic"><option value="">All topics</option></select></label>
+    <label>Source<select name="source"><option value="">All sources</option></select></label>
+    <label>Time<select name="hours"><option value="">Any time</option><option value="24">24 hours</option><option value="72">3 days</option><option value="168">7 days</option></select></label>
+    <label class="checkbox-filter"><input type="checkbox" name="include_low_signal" value="true"/> Show unverified intake</label>
+    <button type="submit">Apply</button>
+  </form>
+
+  <p class="wire-message" data-wire-message>Sign in to load the desk.</p>
+  <div class="desk-sections" data-desk-sections hidden></div>
+
+  <dialog class="story-dialog" data-story-dialog>
+    <button class="dialog-close" type="button" data-dialog-close aria-label="Close">×</button>
+    <div data-story-detail></div>
+  </dialog>
+  <script>import "../../scripts/reath-wire-client.js";</script>
+</ReathLayout>

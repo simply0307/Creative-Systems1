@@ -1,0 +1,20 @@
+---
+import ReathLayout from "../../layouts/ReathLayout.astro";
+---
+<ReathLayout title="AI Activity" section="ai">
+  <section class="wire-heading">
+    <div><p class="kicker">Optional intelligence layer</p><h1>AI Activity</h1><p>Non-secret provider capability and the latest 100 call records, including failures, latency, cache identity, and token usage.</p></div>
+    <button class="secondary-button" type="button" data-ai-activity-refresh>Refresh</button>
+  </section>
+  <p class="wire-message" data-ai-activity-message>Sign in to load AI activity.</p>
+  <section data-ai-activity hidden>
+    <div class="health-summary" data-ai-summary></div>
+    <div class="health-table-wrap">
+      <table class="health-table">
+        <thead><tr><th>Operation</th><th>Story</th><th>Status</th><th>Provider</th><th>Started</th><th>Latency</th><th>Tokens</th><th>Error</th></tr></thead>
+        <tbody data-ai-call-rows></tbody>
+      </table>
+    </div>
+  </section>
+  <script>import "../../scripts/reath-ai-client.js";</script>
+</ReathLayout>

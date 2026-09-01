@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.108.2",
+    "fast-xml-parser": "npm:fast-xml-parser@5.11.0",
+    "zod": "npm:zod@4.4.3"
+  }
+}
