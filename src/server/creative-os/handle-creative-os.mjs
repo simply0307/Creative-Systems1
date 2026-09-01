@@ -2,7 +2,6 @@ import { ROLE_ORDER } from "../../../netlify/functions/lib/identity.mjs";
 import { resolveNetlifyIdentity } from "../../../netlify/functions/lib/netlify-identity-provider.mjs";
 import { authorizeCreativeOsRoute, classifyCreativeOsRoute } from "../../../netlify/functions/lib/authorization.mjs";
 import { databaseDisposition } from "../../../netlify/functions/lib/database-policy.mjs";
-import repoImportManifest from "../../generated/repo-import-manifest.json" with { type: "json" };
 import { artifactOrganization, uploadDefaults } from "../../data/artifact-organization.mjs";
 import { normalizeArtifactFilters } from "../../lib/artifact-filters.mjs";
 import { matchArtifactForUpload, mergeStaticArtifact, rowsEqual, summarizeImportStatus } from "../../../netlify/functions/lib/import-tools.mjs";
@@ -36,6 +35,37 @@ import {
   supabaseConfig,
   writeAudit,
 } from "../../../netlify/functions/lib/supabase.mjs";
+
+// Reath recovery deliberately excludes generated repository-import manifests.
+// Keep the historical API import routes inert instead of rebuilding an Archive
+// catalog from unrelated source material.
+const repoImportManifest = Object.freeze({
+  version: "reath-recovery-retired",
+  counts: Object.freeze({
+    artifacts: 0,
+    archiveRecords: 0,
+    decisions: 0,
+    tags: 0,
+    categories: 0,
+    artifactTags: 0,
+    artifactCategories: 0,
+    relationships: 0,
+    expectedFiles: 0,
+    archiveFiles: 0,
+    archiveFolders: 0,
+  }),
+  artifacts: Object.freeze([]),
+  archiveRecords: Object.freeze([]),
+  decisions: Object.freeze([]),
+  tags: Object.freeze([]),
+  categories: Object.freeze([]),
+  artifactTags: Object.freeze([]),
+  artifactCategories: Object.freeze([]),
+  relationships: Object.freeze([]),
+  expectedFiles: Object.freeze([]),
+  archiveFiles: Object.freeze([]),
+  archiveFolders: Object.freeze([]),
+});
 
 const headers = { "content-type": "application/json", "cache-control": "no-store" };
 const json = (status, body) => Response.json(body, { status, headers });

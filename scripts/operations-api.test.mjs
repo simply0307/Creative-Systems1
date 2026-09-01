@@ -56,10 +56,14 @@ test("the tombstone is dependency-free and has no mutation vocabulary", () => {
   assert.doesNotMatch(source, /branch|commit|pull request|comment|review|merge/i);
 });
 
-test("the compatibility redirect and function remain for one release", () => {
+test("the historical compatibility function remains in source but is not packaged for Reath", () => {
   const config = read("netlify.toml");
-  assert.match(config, /from = "\/api\/operations"[\s\S]*to = "\/\.netlify\/functions\/operations"/);
   assert.ok(fs.existsSync(path.join(root, "netlify/functions/operations.mjs")));
+  assert.match(config, /functions = "netlify\/reath-functions"/);
+  assert.doesNotMatch(config, /\/api\/operations|\/api\/creative-os/);
+  for (const entrypoint of ["reath-api.mts", "reath-ingest-background.mts", "reath-ai-background.mts"]) {
+    assert.ok(fs.existsSync(path.join(root, "netlify/reath-functions", entrypoint)));
+  }
 });
 
 test("no shipped browser source contains the retired endpoint, client, or local keys", () => {
@@ -80,17 +84,12 @@ test("no shipped browser source contains the retired endpoint, client, or local 
   assert.equal(fs.existsSync(path.join(root, "public/operations-client.js")), false);
 });
 
-test("Archive initialization is read-only and import is an explicit privileged confirmation", () => {
-  const source = read("src/scripts/archive-index-client.js");
-  const page = read("src/pages/pipeline/artifacts.astro");
-  const loadBody = source.slice(source.indexOf("const load = async"), source.indexOf("const differenceByName"));
-  assert.doesNotMatch(loadBody, /importArchiveFolderIndex|importArchiveSnapshot|method:\s*["']POST/);
-  assert.match(page, /id="import-archive-snapshot"[^>]*disabled/);
-  assert.match(page, /Admin\/owner only/);
-  assert.match(source, /\["admin", "owner"\]\.includes\(account\.userRole\)/);
-  assert.match(source, /window\.confirm/);
-  assert.match(source, /CreativeDatabase\.importArchiveFolderIndex\(\)/);
-  assert.match(source, /Repository snapshot import cancelled; no data was changed/);
+test("the Reath cutover retires legacy pipeline routes and generated Archive inputs", () => {
+  assert.equal(fs.existsSync(path.join(root, "src/pages/pipeline/index.astro")), false);
+  assert.equal(fs.existsSync(path.join(root, "src/pages/pipeline/artifacts.astro")), false);
+  assert.equal(fs.existsSync(path.join(root, "src/generated/repo-import-manifest.json")), false);
+  assert.equal(fs.existsSync(path.join(root, "public/exports")), false);
+  assert.match(read("astro.config.mjs"), /publicDir:\s*["']public-reath["']/);
 });
 
 test("direct maintenance writers require apply, exact project identity, readiness, and production confirmation", () => {

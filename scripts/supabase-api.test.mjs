@@ -16,7 +16,6 @@ import { mediaKind, presentArtifact, slugify, supabaseConfig } from "../netlify/
 import { handleCreativeOsRequest, organizationDisposition } from "../netlify/functions/creative-os.mjs";
 import { controlledTagSlug, mediumForFile, uploadDefaults } from "../src/data/artifact-organization.mjs";
 import { effectiveArtifactType, filterArtifacts, normalizeArtifactFilters } from "../src/lib/artifact-filters.mjs";
-import repoImportManifest from "../src/generated/repo-import-manifest.json" with { type: "json" };
 
 const root = path.resolve(import.meta.dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
@@ -133,6 +132,13 @@ test("runtime configuration requires an explicit project ref and matching URL", 
   const mismatch = validConfig({ SUPABASE_URL: "https://uzderzjbitmghfvrllvz.supabase.co" });
   assert.equal(mismatch.configured, false);
   assert.ok(mismatch.configurationErrors.some((item) => item.code === "supabase_project_ref_mismatch"));
+
+  const unauthorized = validConfig({
+    SUPABASE_URL: "https://uzderzjbitmghfvrllvz.supabase.co",
+    SUPABASE_PROJECT_REF: "uzderzjbitmghfvrllvz",
+  });
+  assert.equal(unauthorized.configured, false);
+  assert.ok(unauthorized.configurationErrors.some((item) => item.code === "supabase_project_not_authorized"));
 });
 
 test("correct URL, project ref, and contract pass readiness", async () => {
@@ -290,44 +296,13 @@ test("setup guide covers keys, migration, buckets, imports, deploy, health, and 
   for (const phrase of ["Settings → API Keys", "SUPABASE_SERVICE_ROLE_KEY", "SQL Editor", "imports-raw", "npm run supabase:seed", "npm run supabase:files:dry", "npm run supabase:files", "Trigger deploy", "/api/creative-os/health/full", "Final live acceptance checklist"]) assert.match(guide, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 });
 
-test("archive folder index renders previews and truthful import states", () => {
-  const source = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
-  assert.match(source, /repo-import-manifest\.json/);
-  assert.match(source, /archiveFiles/);
-  assert.match(source, /item\.signedUrl/);
-  assert.match(source, /archive-thumb/);
-  assert.match(source, /Found in the read-only repository snapshot/);
-  assert.match(source, /Add or attach the file to enable browser preview\/download/);
-  assert.match(source, /importArchiveFolderIndex/);
-  assert.match(source, /Refresh view/);
-});
-
-test("archive folder index exposes simple folder, standard tag, freeform tag, and file filters", () => {
-  const source = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
-  for (const phrase of ["Folders", "Add files", "quick-index-form", "Save index fields", "Standard tags", "Freeform tags"]) assert.match(source, new RegExp(phrase));
-  for (const filter of ["type", "file", "folder", "standard", "freeform"]) assert.match(source, new RegExp(`data-filter=[\\\"']${filter}[\\\"']`));
-  assert.match(source, /type="file" multiple/);
-  assert.match(source, /uploadArtifact/);
-});
-
-test("archive folder index filters combine locally and empty results remain truthful", () => {
-  const source = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
-  assert.match(source, /filteredRecords/);
-  assert.match(source, /filters\.search/);
-  assert.match(source, /filters\.folder/);
-  assert.match(source, /No files match these filters/);
-  assert.match(source, /effectiveArtifactType/);
-});
-
-test("folder, standard tag, and freeform inputs reuse existing values across the archive index", () => {
-  const artifacts = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
-  assert.match(artifacts, /folder-values/);
-  assert.match(artifacts, /standard-tag-values/);
-  assert.match(artifacts, /freeform-tag-values/);
-  assert.match(artifacts, /moveArtifact/);
-  assert.match(artifacts, /organizeArtifact/);
-  assert.match(artifacts, /Create folder/);
-  assert.match(artifacts, /multiple/);
+test("the Reath cutover excludes generated Archive imports and pipeline routes", () => {
+  assert.equal(fs.existsSync(path.join(root, "src/generated/repo-import-manifest.json")), false);
+  assert.equal(fs.existsSync(path.join(root, "src/pages/pipeline/artifacts.astro")), false);
+  assert.equal(fs.existsSync(path.join(root, "src/pages/pipeline/index.astro")), false);
+  const api = read("src/server/creative-os/handle-creative-os.mjs");
+  assert.doesNotMatch(api, /generated\/repo-import-manifest\.json/);
+  assert.match(api, /version:\s*"reath-recovery-retired"/);
 });
 
 test("controlled-value API can still create, rename, archive, and report usage", () => {
@@ -336,13 +311,6 @@ test("controlled-value API can still create, rename, archive, and report usage",
   assert.match(api, /controlled-values/);
   assert.match(api, /controlledValuesMatch/);
   assert.match(api, /artifactFieldByTagType/);
-});
-
-test("archive index accepts browser file upload and standardized/freeform metadata edits", () => {
-  const page = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
-  for (const field of ["title", "folder", "standardTags", "freeformTags", "notes"]) assert.match(page, new RegExp(`name=[\\\"']${field}[\\\"']`));
-  assert.match(page, /folder-upload/);
-  assert.match(page, /uploadArtifact/);
 });
 
 test("organization API supports audited single and bulk writes plus reusable filters", () => {
@@ -372,17 +340,6 @@ test("decision records state that source prose remains unchanged", () => {
   assert.match(api, /source_files_changed: false/);
 });
 
-test("protected repo manifest contains the expected existing content", () => {
-  assert.equal(repoImportManifest.artifacts.length, 16);
-  assert.equal(repoImportManifest.archiveRecords.length, 22);
-  assert.equal(repoImportManifest.decisions.length, 81);
-  assert.equal(repoImportManifest.expectedFiles.length, 16);
-  assert.ok(repoImportManifest.archiveFiles.length >= repoImportManifest.expectedFiles.length);
-  assert.ok(repoImportManifest.archiveFolders.length > 0);
-  assert.ok(repoImportManifest.archiveFiles.every((file) => file.provenance?.workspaceRelativePath?.startsWith("Archive/")));
-  assert.ok(repoImportManifest.expectedFiles.every((file) => file.artifactId && file.originalFileName && file.originalPath));
-});
-
 test("browser uploads reconnect by checksum, path, filename-size, then slug", () => {
   const artifacts = [
     { id: "artifact.bizi", title: "Bizi Constantinople Reference", slug: "bizi-constantinople", original_file_name: "bizi.png", file_size: 42, file_status: "needs_import", provenance: { checksumSha256: "a".repeat(64), workspaceRelativePath: "Archive/Art/Bizi/bizi.png" }, legacy_data: {} },
@@ -409,8 +366,8 @@ test("ambiguous filename match stops instead of creating another artifact", () =
 });
 
 test("repo metadata refresh preserves an already stored private file", () => {
-  const incoming = repoImportManifest.artifacts[0];
-  const merged = mergeStaticArtifact(incoming, { ...incoming, file_status: "available", storage_bucket: "artifacts", storage_path: "owner/file.png", original_file_name: "file.png", mime_type: "image/png", file_size: 123, rights_status: "internal-reference-only", canon_status: "experimental", review_status: "needs-review", visibility: "private", provenance: { checksumSha256: "c".repeat(64) }, created_by: "profile-1" }, "profile-2", repoImportManifest.version);
+  const incoming = { id: "artifact.recovery", title: "Recovery fixture", slug: "recovery-fixture", file_status: "metadata_only", provenance: {} };
+  const merged = mergeStaticArtifact(incoming, { ...incoming, file_status: "available", storage_bucket: "artifacts", storage_path: "owner/file.png", original_file_name: "file.png", mime_type: "image/png", file_size: 123, rights_status: "internal-reference-only", canon_status: "experimental", review_status: "needs-review", visibility: "private", provenance: { checksumSha256: "c".repeat(64) }, created_by: "profile-1" }, "profile-2", "reath-recovery-test");
   assert.equal(merged.file_status, "available");
   assert.equal(merged.storage_path, "owner/file.png");
   assert.equal(merged.created_by, "profile-1");
@@ -440,20 +397,10 @@ test("import dashboard counts real availability and expected-file gaps", () => {
   assert.deepEqual(status.expectedFiles.map((file) => file.status), ["available", "needs-upload"]);
 });
 
-test("Archive Index exposes explicit privileged metadata import and audited browser uploads", () => {
-  const page = `${read("src/pages/pipeline/artifacts.astro")}\n${read("src/scripts/archive-index-client.js")}`;
+test("historical Archive import code remains private and is absent from the Reath UI", () => {
   const client = read("src/scripts/creative-os-client.js");
   const api = read("src/server/creative-os/handle-creative-os.mjs");
-  assert.match(page, /Refresh view/);
-  assert.match(page, /importArchiveFolderIndex/);
-  assert.match(page, /Review and import/);
-  assert.match(page, /window\.confirm/);
-  assert.match(page, /\["admin", "owner"\]\.includes\(account\.userRole\)/);
-  const loadBody = page.slice(page.indexOf("const load = async"), page.indexOf("const differenceByName"));
-  assert.doesNotMatch(loadBody, /importArchiveFolderIndex|importArchiveSnapshot/);
-  assert.match(page, /type="file" multiple/);
-  assert.match(page, /Add files finished/);
-  assert.match(page, /Create folder/);
+  assert.equal(fs.existsSync(path.join(root, "src/pages/pipeline/artifacts.astro")), false);
   assert.match(client, /crypto\.subtle\.digest/);
   assert.match(client, /imports\/archive-folder/);
   assert.match(api, /archive_folder_indexed/);
@@ -461,7 +408,7 @@ test("Archive Index exposes explicit privileged metadata import and audited brow
   assert.match(api, /requireRole\(identity, "admin"\)/);
   assert.match(api, /repo_metadata_import/);
   assert.match(api, /import_file_status/);
-  assert.doesNotMatch(page, /api\/operations/);
+  assert.match(read("netlify.toml"), /functions = "netlify\/reath-functions"/);
 });
 
 test("repo metadata import rejects non-admin employees before any database write", async () => {

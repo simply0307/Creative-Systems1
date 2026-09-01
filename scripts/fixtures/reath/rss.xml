@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Fixture New Jersey News</title>
+    <link>https://fixture.example/</link>
+    <item>
+      <title>Newark council approves late-night transit pilot</title>
+      <link>http://www.fixture.example/news/transit-pilot/?utm_source=newsletter&amp;fbclid=abc</link>
+      <guid isPermaLink="false">fixture-001</guid>
+      <dc:creator>Jamie Reporter</dc:creator>
+      <pubDate>Fri, 21 Aug 2026 14:00:00 -0400</pubDate>
+      <description><![CDATA[Newark City Council approved a six-month late-night bus pilot. <a href="https://example.test">Details</a>.]]></description>
+      <content:encoded><![CDATA[THIS FULL ARTICLE BODY MUST NEVER BE STORED.]]></content:encoded>
+      <category>Transportation</category>
+    </item>
+    <item>
+      <title>Camden opens cooling centers during heat emergency</title>
+      <link>https://fixture.example/news/camden-cooling-centers</link>
+      <guid>fixture-002</guid>
+      <pubDate>Fri, 21 Aug 2026 16:30:00 -0400</pubDate>
+      <description>Residents can use three public cooling centers through Sunday.</description>
+    </item>
+  </channel>
+</rss>

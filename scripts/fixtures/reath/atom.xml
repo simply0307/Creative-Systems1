@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Fixture Public Notices</title>
+  <entry>
+    <title>Newark City Council votes for overnight bus test</title>
+    <link rel="alternate" href="https://second.example/newark-bus-test?utm_medium=rss" />
+    <id>tag:second.example,2026:newark-bus</id>
+    <updated>2026-08-21T19:00:00Z</updated>
+    <summary type="html">The pilot adds overnight service on two Newark routes.</summary>
+    <author><name>Alex Editor</name></author>
+    <category term="Transit" />
+  </entry>
+</feed>
