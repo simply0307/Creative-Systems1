@@ -1,4 +1,25 @@
-# AGENTS.md — EGGS / Para Creative Archive
+# AGENTS.md — Reath Digest conversion
+
+## Current task authority
+
+Before changing ingestion, database, editorial, or deployment code, read
+`docs/reath-news-ingester.md` and `docs/RUNTIME_AUTHORITY.md`.
+
+- A story/event is the editorial object. Source items are evidence.
+- AI may organize and analyze; it may not independently report or publish.
+- Editors are authoritative. Never auto-publish or delete a story to represent an editorial decision.
+- Preserve publisher, URL, timestamps, feed metadata, and every story/source attachment decision.
+- Retain only feed-provided descriptions and metadata unless rights explicitly permit more.
+- New Jersey is the only V1 ingestion jurisdiction.
+- Reath uses Supabase `okqkljexfzolzxysjaha` (`creative os`), which is disposable for this conversion.
+- Never mutate `uzderzjbitmghfvrllvz` (`creative-systems-eggs`), the live Para/EGGS backend.
+- Use migration-backed schema changes, RLS on every exposed table, and server-only privileged credentials.
+- Follow the existing pnpm, Astro, Netlify Functions, and Node test conventions.
+- Run lint, typecheck, tests, build, and database checks before completion.
+
+The remaining Creative Archive guidance is historical context. It must not override the Reath conversion authority above.
+
+# Historical guidance — EGGS / Para Creative Archive
 
 ## Mission
 

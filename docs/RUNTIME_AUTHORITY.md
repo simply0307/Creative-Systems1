@@ -14,7 +14,7 @@ The only canonical production authority for Creative OS is the Supabase project:
 
 New routine Creative OS writes may target only that project in the `production` runtime context and may pass only through the authoritative Creative OS API. A URL/project-ref mismatch, missing declaration, incompatible schema contract, missing required table or column, or missing/private-bucket violation must fail closed before authentication bridging, profile upsert, audit creation, or any application mutation.
 
-The Supabase project `creative-systems-eggs` (`uzderzjbitmghfvrllvz`) is a read-only legacy evidence source. It contains legacy-only Creative OS evidence and unrelated poker/recap/stat data. It is not an alternate production authority and must not receive the Step 2 migration.
+The Supabase project `creative-systems-eggs` (`uzderzjbitmghfvrllvz`) is the live Para/EGGS backend and is wholly outside the Reath recovery runtime, setup, migration, import, and verification scope. It must not be linked, queried, or mutated by Reath code.
 
 ## Backup gate
 
@@ -132,3 +132,9 @@ Health and readiness responses expose no credential values.
 Routine production mutation authority remains `/api/creative-os/*`. The Step 4B branch retains the `/api/operations` redirect and function for one compatibility release, but replaces the implementation with a dependency-free 410 tombstone. The repository snapshot is read-only during page initialization; import requires a confirmed admin/owner action. Direct maintenance writers require apply intent, an exact project-ref confirmation, readiness, and an additional canonical/production confirmation. Repository-derived export review files are generated outside public deployment and are distinct from canonical private exports.
 
 This is a source candidate only. Do not claim the tombstone or export removal is active until a later authorized Git merge and normal Netlify deployment passes the acceptance checklist in `docs/OPERATIONS_API.md`.
+
+## Reath recovery boundary
+
+The `codex/reath-digest-backend-recovery` branch carries an additive, offline-recovered Reath candidate sequence beginning with `20260822031655_convert_creative_os_to_reath_digest.sql`. Production migration application was not inspected because this recovery explicitly forbids contacting Supabase. The repository sequence must not be described as one-to-one with live production until a separately authorized, read-only history comparison proves that claim.
+
+Reath runtime code independently fails closed unless `SUPABASE_URL` and `SUPABASE_PROJECT_REF` both identify `okqkljexfzolzxysjaha`. No recovery command may link, query, migrate, or otherwise contact `uzderzjbitmghfvrllvz`.

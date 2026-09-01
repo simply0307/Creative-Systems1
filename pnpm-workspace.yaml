@@ -1,9 +1,16 @@
 packages:
   - "."
 
+# Netlify packages Functions for an AWS Lambda runtime. A flat, symlink-free
+# install prevents Windows junction targets from leaking into deploy zips.
+nodeLinker: hoisted
+
 allowBuilds:
   esbuild: true
   sharp: true
+
+minimumReleaseAgeExclude:
+  - eslint@10.9.0
 
 onlyBuiltDependencies:
   - esbuild

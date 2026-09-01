@@ -1,11 +1,22 @@
 {
-  "name": "eggs-para-creative-systems",
+  "name": "reath-digest-ingester",
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22 <25"
+  },
   "scripts": {
     "dev": "astro dev",
-    "test": "node --test",
+    "lint": "eslint netlify/reath-functions netlify/functions/_shared/reath netlify/functions/reath-api.mjs netlify/functions/reath-ingest-background.mjs netlify/functions/reath-ai-background.mjs supabase/functions src/scripts/reath-auth-client.js src/scripts/reath-wire-client.js src/scripts/reath-wire-data.js src/scripts/reath-health-client.js src/scripts/reath-ai-client.js scripts/generate-nj-geography.mjs scripts/reath-ingester.test.mjs scripts/reath-ai.test.mjs scripts/reath-signal.test.mjs scripts/reath-reconciliation.test.mjs scripts/reath-edge-runtime.test.mjs scripts/reath-reconcile-stories.mjs scripts/reath-wire.test.mjs scripts/reath-wire-client.test.mjs scripts/reath-database-check.mjs scripts/sync-reath-edge-runtime.mjs",
+    "typecheck": "astro check",
+    "test": "node --test scripts/*.test.mjs",
+    "test:reath": "node --test scripts/reath*.test.mjs",
+    "db:check": "node scripts/reath-database-check.mjs",
+    "edge:sync": "node scripts/sync-reath-edge-runtime.mjs",
+    "edge:check": "node scripts/sync-reath-edge-runtime.mjs --check",
+    "stories:reconcile": "node scripts/reath-reconcile-stories.mjs",
     "exports": "node scripts/generate-exports.mjs",
     "repo:manifest": "node scripts/generate-import-manifest.mjs",
     "test:operations": "node --test scripts/operations-api.test.mjs",
@@ -28,7 +39,7 @@
     "supabase:files:dry": "node scripts/import-workspace-files.mjs",
     "supabase:files": "node scripts/import-workspace-files.mjs",
     "supabase:files:apply": "node scripts/import-workspace-files.mjs --apply",
-    "build": "node scripts/generate-exports.mjs && node scripts/generate-import-manifest.mjs && astro check && astro build",
+    "build": "astro check && astro build",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -36,7 +47,14 @@
     "@netlify/identity": "^1.2.0",
     "@supabase/supabase-js": "^2.108.2",
     "astro": "^5.9.3",
+    "fast-xml-parser": "5.11.0",
     "gray-matter": "^4.0.3",
-    "typescript": "^5.8.3"
+    "openai": "7.5.0",
+    "typescript": "^5.8.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.5",
+    "eslint": "10.9.0"
   }
 }
