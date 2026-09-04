@@ -48,3 +48,19 @@ test("the invite-only account UI retains the invite token in browser memory and 
   assert.match(layout, /Accounts are invitation-only/);
   assert.doesNotMatch(layout, /data-signup-form/);
 });
+
+test("queued ingestion uses a dedicated accessible animated status instead of replacing Wire content", async () => {
+  const [client, page, styles] = await Promise.all([
+    readFile(new URL("../src/scripts/reath-wire-client.js", import.meta.url), "utf8"),
+    readFile(new URL("../src/pages/wire/index.astro", import.meta.url), "utf8"),
+    readFile(new URL("../src/styles/reath.css", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(page, /data-ingestion-status[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(page, /data-ingestion-status-text/);
+  assert.match(client, /setIngestionStatus\("queued", "Ingestion queued/);
+  assert.match(client, /setIngestionStatus\("refreshing", "Ingestion is processing/);
+  assert.match(client, /server lacks jwt secret/i);
+  assert.match(styles, /@keyframes ingestion-queue-pulse/);
+  assert.match(styles, /prefers-reduced-motion:reduce/);
+});

@@ -1205,7 +1205,7 @@ test("manual API dispatches ingestion asynchronously instead of running it inlin
   const wireClient = await readFile(path.join(directory, "../src/scripts/reath-wire-client.js"), "utf8");
   assert.match(api, /dispatchIngestionBackground\(request/);
   assert.doesNotMatch(api, /await ingestDueSources\(/);
-  assert.match(wireClient, /All active sources, the one-month processing backlog, and duplicate Story candidates are being checked\./);
+  assert.match(wireClient, /Ingestion queued · checking active sources, the one-month attention backlog, and duplicate Story candidates\./);
   assert.doesNotMatch(wireClient, /result\.status|result\.inserted|result\.duplicates|result\.errors/);
 });
 

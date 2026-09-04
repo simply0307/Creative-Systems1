@@ -2,12 +2,20 @@ import { loadDeskStories } from "./reath-wire-data.js";
 
 const auth = window.ReathAuth || await new Promise((resolve) => window.addEventListener("reath-auth-client-ready", () => resolve(window.ReathAuth), { once: true }));
 const message = document.querySelector("[data-wire-message]");
+const ingestionStatus = document.querySelector("[data-ingestion-status]");
+const ingestionStatusText = document.querySelector("[data-ingestion-status-text]");
 const sections = document.querySelector("[data-desk-sections]");
 const filters = document.querySelector("[data-wire-filters]");
 const dialog = document.querySelector("[data-story-dialog]");
 const detail = document.querySelector("[data-story-detail]");
 const sectionOrder = ["Kept", "Watch", "Reath Bait", "Developing", "Worth a Look", "Corroborated", "Needs Classification", "Low Signal", "Ignored"];
 let activeQuery = "";
+
+const setIngestionStatus = (state, text) => {
+  ingestionStatus.dataset.state = state;
+  ingestionStatusText.textContent = text;
+  ingestionStatus.hidden = false;
+};
 
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>'"]/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
 const date = (value) => value ? new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "America/New_York" }).format(new Date(value)) : "Unknown";
@@ -85,8 +93,10 @@ const loadStories = async (query = "", { fallbackToUnverified = false } = {}) =>
     if (showingUnverifiedIntake) filters.elements.include_low_signal.checked = true;
     populateFilters(stories);
     renderStories(stories, { showingUnverifiedIntake, unverifiedFallback: result.unverifiedFallback });
+    return true;
   } catch (error) {
     message.textContent = error.message;
+    return false;
   }
 };
 
@@ -247,16 +257,33 @@ filters.addEventListener("submit", (event) => {
 document.querySelector("[data-run-ingestion]").addEventListener("click", async (event) => {
   const button = event.currentTarget;
   button.disabled = true;
+  button.setAttribute("aria-busy", "true");
   button.textContent = "Starting…";
+  setIngestionStatus("requesting", "Requesting an ingestion worker…");
   try {
     const result = await auth.api("/api/reath/ingest", { method:"POST", body:"{}" });
-    message.hidden = false;
-    message.textContent = result.accepted
-      ? "Ingestion started. All active sources, the one-month processing backlog, and duplicate Story candidates are being checked."
-      : "Ingestion could not be queued.";
-    if (result.accepted) window.setTimeout(() => loadStories(activeQuery), 60_000);
-  } catch (error) { message.hidden = false; message.textContent = error.message; }
-  finally { button.disabled = false; button.textContent = "Run ingestion"; }
+    if (result.accepted) {
+      setIngestionStatus("queued", "Ingestion queued · checking active sources, the one-month attention backlog, and duplicate Story candidates.");
+      window.setTimeout(async () => {
+        setIngestionStatus("refreshing", "Ingestion is processing · refreshing the desk once…");
+        const refreshed = await loadStories(activeQuery);
+        setIngestionStatus(refreshed ? "complete" : "error", refreshed
+          ? "Desk refreshed. Background ingestion may continue; refresh later for additional results."
+          : "The desk could not refresh yet. Background ingestion may still be running; try again shortly.");
+      }, 60_000);
+    } else {
+      setIngestionStatus("error", "Ingestion could not be queued. No ingestion run was started.");
+    }
+  } catch (error) {
+    const temporarilyUnavailable = /server lacks jwt secret/i.test(error.message);
+    setIngestionStatus("error", temporarilyUnavailable
+      ? "The Reath data service is temporarily unavailable. No ingestion run was started; try again shortly."
+      : error.message);
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+    button.textContent = "Run ingestion";
+  }
 });
 
 const initialize = async () => {

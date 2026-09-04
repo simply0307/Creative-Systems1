@@ -18,6 +18,10 @@ import ReathLayout from "../../layouts/ReathLayout.astro";
     <button type="submit">Apply</button>
   </form>
 
+  <p class="ingestion-status" data-ingestion-status data-state="idle" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <span class="ingestion-status__pulse" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span data-ingestion-status-text></span>
+  </p>
   <p class="wire-message" data-wire-message>Sign in to load the desk.</p>
   <div class="desk-sections" data-desk-sections hidden></div>
 
