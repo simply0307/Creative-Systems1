@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "lint": "eslint netlify/reath-functions netlify/functions/_shared/reath netlify/functions/reath-api.mjs netlify/functions/reath-ingest-background.mjs netlify/functions/reath-ai-background.mjs supabase/functions src/scripts/reath-auth-client.js src/scripts/reath-wire-client.js src/scripts/reath-wire-data.js src/scripts/reath-health-client.js src/scripts/reath-ai-client.js scripts/generate-nj-geography.mjs scripts/reath-ingester.test.mjs scripts/reath-ai.test.mjs scripts/reath-signal.test.mjs scripts/reath-reconciliation.test.mjs scripts/reath-edge-runtime.test.mjs scripts/reath-reconcile-stories.mjs scripts/reath-wire.test.mjs scripts/reath-wire-client.test.mjs scripts/reath-database-check.mjs scripts/sync-reath-edge-runtime.mjs",
+    "lint": "eslint netlify/reath-functions netlify/functions/_shared/reath netlify/functions/reath-api.mjs netlify/functions/reath-ingest-background.mjs netlify/functions/reath-ai-background.mjs supabase/functions src/scripts/reath-auth-client.js src/scripts/reath-api-response.js src/scripts/reath-wire-client.js src/scripts/reath-wire-data.js src/scripts/reath-health-client.js src/scripts/reath-ai-client.js scripts/generate-nj-geography.mjs scripts/reath-ingester.test.mjs scripts/reath-ai.test.mjs scripts/reath-signal.test.mjs scripts/reath-reconciliation.test.mjs scripts/reath-edge-runtime.test.mjs scripts/reath-reconcile-stories.mjs scripts/reath-wire.test.mjs scripts/reath-wire-client.test.mjs scripts/reath-database-check.mjs scripts/sync-reath-edge-runtime.mjs",
     "typecheck": "astro check",
     "test": "node --test scripts/*.test.mjs",
     "test:reath": "node --test scripts/reath*.test.mjs",

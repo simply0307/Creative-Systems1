@@ -230,6 +230,8 @@ Every new story receives an editorial queue row. Editors may Keep, Watch, Ignore
 
 Reath Wire groups stories into desk-oriented sections and exposes filters, source chronology, source-assessment provenance, structured briefing fields, uncertainty, score dimensions, and provenance links. Low Signal is collapsed by default but remains auditable through an explicit filter. Source Health exposes last check/success, recent counts, failure streak, current source assessment, and last error.
 
+The Wire list endpoint uses a bounded, list-specific projection: it loads only the Story, current scoring/classification, geography, and minimum source-assessment fields needed for cards and filters. Article descriptions, raw feed metadata, URLs, briefing bodies, and other detail-only fields are fetched only when an editor opens a Story. Upstream gateway failures are returned as a short retryable service status; Cloudflare or provider HTML is never relayed into the newsroom DOM, and browser API requests stop waiting after 30 seconds.
+
 AI never rewrites a fetched article into an automatically published Reath article. Machines collect, normalize, organize, compare, classify, and prioritize. Human editors interpret, frame, report, satirize, approve, and publish. Keep status or a route may raise analysis priority, but neither authorizes generation or publication.
 
 ## Permissions and security

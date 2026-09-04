@@ -1,4 +1,5 @@
 import { acceptInvite, getUser, handleAuthCallback, login, logout, onAuthChange } from "@netlify/identity";
+import { readApiResponse, TEMPORARY_SERVICE_MESSAGE } from "./reath-api-response.js";
 
 let currentUser = null;
 let pendingInviteToken = null;
@@ -86,10 +87,22 @@ window.ReathAuth = {
   ready,
   current: () => currentUser,
   api: async (path, options = {}) => {
-    const response = await fetch(path, { ...options, credentials: "same-origin", headers: { "Content-Type": "application/json", ...(options.headers || {}) } });
-    const body = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(body.error || `Request failed (${response.status})`);
-    return body;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 30_000);
+    try {
+      const response = await fetch(path, {
+        ...options,
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        signal: options.signal || controller.signal,
+      });
+      return await readApiResponse(response);
+    } catch (error) {
+      if (error?.name === "AbortError") throw new Error(TEMPORARY_SERVICE_MESSAGE);
+      throw error;
+    } finally {
+      window.clearTimeout(timeout);
+    }
   },
 };
 window.dispatchEvent(new CustomEvent("reath-auth-client-ready"));

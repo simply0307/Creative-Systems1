@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { deskSection } from "../netlify/functions/reath-api.mjs";
+import { deskSection, storyListSelect } from "../netlify/functions/reath-api.mjs";
+import { normalizeSupabaseError } from "../netlify/functions/_shared/reath/supabase.mjs";
 
 const scores = (overrides = {}) => ({
   reath_potential: 20,
@@ -32,4 +33,22 @@ test("human editorial decisions override the automatic corroboration gate", () =
   assert.equal(deskSection(story({ editorialStatus: "keep" })), "Kept");
   assert.equal(deskSection(story({ editorialStatus: "watch" })), "Watch");
   assert.equal(deskSection(story({ editorialStatus: "ignore" })), "Ignored");
+});
+
+test("the Wire list projection excludes detail-only article payloads", () => {
+  assert.match(storyListSelect, /canonical_title/);
+  assert.match(storyListSelect, /source_assessments/);
+  assert.doesNotMatch(storyListSelect, /description|raw_metadata|canonical_url|briefing/);
+});
+
+test("Supabase gateway HTML is never exposed as an application error", () => {
+  const error = normalizeSupabaseError({
+    status: 521,
+    error: { message: "<!DOCTYPE html><html><title>Web server is down</title></html>" },
+  }, "Load Reath Wire stories");
+
+  assert.equal(error.status, 503);
+  assert.equal(error.code, "REATH_UPSTREAM_UNAVAILABLE");
+  assert.match(error.message, /temporarily unavailable/);
+  assert.doesNotMatch(error.message, /doctype|html|cloudflare|521/i);
 });

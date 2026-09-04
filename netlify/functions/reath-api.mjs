@@ -9,6 +9,29 @@ import { getReathSupabase, requireData } from "./_shared/reath/supabase.mjs";
 
 const headers = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" };
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers });
+const PUBLIC_SERVICE_MESSAGE = "Reath's data service is temporarily unavailable. Your desk data is safe; retry shortly.";
+const boundedDiagnostic = (error) => {
+  const message = String(error?.message || "Unknown server error").replace(/\s+/g, " ").trim();
+  return /<!doctype\s+html|<html\b|cloudflare|web server is down/i.test(message)
+    ? "Upstream HTML error omitted"
+    : message.slice(0, 400);
+};
+const errorResponse = (error) => {
+  const requestedStatus = Number(error?.status || (/not found/i.test(error?.message || "") ? 404 : 500));
+  const status = Number.isInteger(requestedStatus) && requestedStatus >= 400 && requestedStatus <= 599 ? requestedStatus : 500;
+  const clientMessage = status >= 500
+    ? (status === 503 ? PUBLIC_SERVICE_MESSAGE : "Reath could not complete that request. Retry shortly.")
+    : String(error?.message || "Request failed.").replace(/\s+/g, " ").trim().slice(0, 400);
+  if (status >= 500) {
+    console.error(JSON.stringify({
+      event: "reath_api_error",
+      message: boundedDiagnostic(error),
+      code: error?.code || null,
+      upstreamStatus: error?.upstreamStatus || null,
+    }));
+  }
+  return json({ error: clientMessage, code: error?.code || null, retryable: status >= 500 }, status);
+};
 const parseBody = async (request) => {
   try {
     return await request.json();
@@ -124,7 +147,19 @@ const projectStory = (story, config) => ({
   ai: projectAiStatus(story, config),
 });
 
-const storySelect = `
+export const storyListSelect = `
+  id,canonical_title,first_seen_at,last_activity_at,status,evidence_revision,
+  editorial_queue(status,route),
+  story_ai_state(enrichment_status,last_enriched_at,enrichment_error_code,requested_at,current_evidence_revision,enrichment_version,schema_version,prompt_version,provider,model),
+  story_scores(id,local_impact,civic_utility,significance,momentum,novelty,human_interest,emotional_resonance,reath_potential,satire_potential,locality,confidence,provider,model_version,is_current,analysis_kind,input_fingerprint,created_at),
+  story_enrichments(id,topics,provider,model,model_version,schema_version,is_current,analysis_kind,input_fingerprint,prompt_version,created_at),
+  story_counties(county_id,counties(id,name,slug)),
+  story_municipalities(municipality_id,municipalities(id,name,slug,county_id)),
+  story_sources(source_item_id,detached_at,
+    source_items(id,author,source_id,sources(id,name,source_type,source_assessments(id,assessment_status,evidence_role,corroboration_group_key,verification_tier,assessed_at,superseded_at))))
+`;
+
+const storyDetailSelect = `
   *,
   editorial_queue(*),
   story_ai_state(enrichment_status,last_enriched_at,enrichment_error_code,requested_at,last_successful_fingerprint,current_evidence_revision,current_input_fingerprint,enrichment_version,schema_version,prompt_version,provider,model),
@@ -174,9 +209,9 @@ const filterStories = (stories, search) => {
 
 const listStories = async (supabase, url, config) => {
   const stories = [];
-  const pageSize = 250;
-  for (let start = 0; start < 5_000; start += pageSize) {
-    const page = requireData(await supabase.from("stories").select(storySelect).neq("status", "merged")
+  const pageSize = 500;
+  for (let start = 0; start < 2_000; start += pageSize) {
+    const page = requireData(await supabase.from("stories").select(storyListSelect).neq("status", "merged")
       .order("last_activity_at", { ascending: false }).range(start, start + pageSize - 1), "Load Reath Wire stories");
     stories.push(...page);
     if (page.length < pageSize) break;
@@ -185,7 +220,7 @@ const listStories = async (supabase, url, config) => {
 };
 
 const getStory = async (supabase, storyId, config) => {
-  const story = projectStory(requireData(await supabase.from("stories").select(`${storySelect},editorial_decisions(*),story_analyses(*),ai_call_attempts(id,request_sequence,operation_type,status,evidence_revision,input_fingerprint,enrichment_version,provider,model,schema_version,prompt_version,cache_hit,started_at,completed_at,error_code)`).eq("id", storyId).single(), "Load Reath story"), config);
+  const story = projectStory(requireData(await supabase.from("stories").select(`${storyDetailSelect},editorial_decisions(*),story_analyses(*),ai_call_attempts(id,request_sequence,operation_type,status,evidence_revision,input_fingerprint,enrichment_version,provider,model,schema_version,prompt_version,cache_hit,started_at,completed_at,error_code)`).eq("id", storyId).single(), "Load Reath story"), config);
   const projected = { ...story };
   delete projected._config;
   const sourceIds = new Set(activeSources(story).map((link) => link.source_items?.source_id).filter(Boolean));
@@ -336,9 +371,7 @@ export default async (request) => {
     }
     return json({ error: "Not found" }, 404);
   } catch (error) {
-    const status = error.status || (/not found/i.test(error.message) ? 404 : 500);
-    if (status >= 500) console.error(JSON.stringify({ event: "reath_api_error", message: error.message, code: error.code || null }));
-    return json({ error: error.message }, status);
+    return errorResponse(error);
   }
 };
 
